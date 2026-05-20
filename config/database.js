@@ -1,22 +1,23 @@
 import pg from 'pg';
-import { resolve4 } from 'dns/promises';
 
 const { Pool } = pg;
 
-// Render Frankfurt resolves Supabase hostnames to IPv6 which is unreachable.
-// Explicitly query A records (IPv4 only) and rewrite the host before pool creation.
-async function resolveIPv4(connStr) {
-  try {
-    const u = new URL(connStr);
-    const [ip] = await resolve4(u.hostname);
-    u.hostname = ip;
-    return u.toString();
-  } catch {
-    return connStr;
-  }
+// The Supabase direct host (db.PROJECTREF.supabase.co) is IPv6-only and
+// unreachable from Render Frankfurt. Rewrite to the Transaction pooler which
+// has IPv4 addresses. The pooler URL format differs only in host, port, and
+// the username gains a ".PROJECTREF" suffix.
+function toPoolerUrl(connStr) {
+  const u = new URL(connStr);
+  const m = u.hostname.match(/^db\.([a-z0-9]+)\.supabase\.co$/);
+  if (!m) return connStr; // already pooler or custom host — leave as-is
+  const ref = m[1];
+  u.hostname = 'aws-0-eu-west-1.pooler.supabase.com';
+  u.port = '6543';
+  if (!u.username.endsWith(`.${ref}`)) u.username = `${u.username}.${ref}`;
+  return u.toString();
 }
 
-const connectionString = await resolveIPv4(process.env.DATABASE_URL ?? '');
+const connectionString = toPoolerUrl(process.env.DATABASE_URL ?? '');
 
 const pool = new Pool({
   connectionString,
