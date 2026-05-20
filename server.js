@@ -1,3 +1,7 @@
+import { setDefaultResultOrder } from 'dns';
+// Force IPv4 — Render Frankfurt resolves Supabase hostnames to IPv6 which is unreachable
+setDefaultResultOrder('ipv4first');
+
 import 'dotenv/config';
 import express from 'express';
 import authRoutes from './routes/authRoutes.js';
