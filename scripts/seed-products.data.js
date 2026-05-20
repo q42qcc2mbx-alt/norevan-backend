@@ -1,0 +1,237 @@
+// Initial product catalogue for Norevan. Pure data — consumed by scripts/seed.js.
+const APPAREL_SIZES = ['XS', 'S', 'M', 'L', 'XL'];
+const SNEAKER_SIZES = ['40', '41', '42', '43', '44', '45', '46'];
+
+export const seedProducts = [
+  {
+    slug: 'nike-air-street',
+    name: 'Nike Air Street Sneaker',
+    brand: 'nike',
+    priceCents: 16900,
+    categories: ['sneaker', 'streetwear'],
+    images: [
+      { src: '/products/nike-street-sneaker-1.png', alt: 'Nike Air Street Sneaker' },
+      { src: '/products/nike-street-sneaker-2.png', alt: 'Nike Air Street Sneaker — Seitenansicht' },
+      { src: '/products/nike-street-sneaker-3.png', alt: 'Nike Air Street Sneaker — Detail' },
+    ],
+    sizes: SNEAKER_SIZES,
+    description: {
+      de: 'Bequemer Low-Cut Sneaker mit gepolstertem Mittelfuß und atmungsaktivem Mesh-Upper. Perfekt für jeden Tag.',
+      en: 'Comfortable low-cut sneaker with cushioned midsole and breathable mesh upper. Perfect for every day.',
+    },
+    specs: [
+      { label: { de: 'Material', en: 'Material' }, value: { de: 'Mesh & Synthetik', en: 'Mesh & synthetics' } },
+      { label: { de: 'Sohle', en: 'Sole' }, value: { de: 'Air-Cushion EVA', en: 'Air-cushion EVA' } },
+      { label: { de: 'Verschluss', en: 'Closure' }, value: { de: 'Schnürung', en: 'Lace-up' } },
+      { label: { de: 'Pflege', en: 'Care' }, value: { de: 'Mit feuchtem Tuch reinigen', en: 'Wipe with damp cloth' } },
+    ],
+    highlight: true,
+    hero: true,
+  },
+  {
+    slug: 'adidas-classic-sneaker',
+    name: 'Adidas Classic Sneaker',
+    brand: 'adidas',
+    priceCents: 14900,
+    categories: ['sneaker', 'streetwear'],
+    images: [
+      { src: '/products/adidas-sneaker-1.png', alt: 'Adidas Classic Sneaker' },
+      { src: '/products/adidas-sneaker-2.png', alt: 'Adidas Classic Sneaker — Profil' },
+      { src: '/products/adidas-sneaker-3.png', alt: 'Adidas Classic Sneaker — Detail' },
+    ],
+    sizes: SNEAKER_SIZES,
+    description: {
+      de: 'Ikonischer Sneaker mit drei Streifen. Robustes Obermaterial, weicher Tritt, zeitloses Design.',
+      en: 'Iconic sneaker with three stripes. Sturdy upper, soft step, timeless design.',
+    },
+    specs: [
+      { label: { de: 'Material', en: 'Material' }, value: { de: 'Leder & Wildleder', en: 'Leather & suede' } },
+      { label: { de: 'Sohle', en: 'Sole' }, value: { de: 'Gummi', en: 'Rubber' } },
+      { label: { de: 'Verschluss', en: 'Closure' }, value: { de: 'Schnürung', en: 'Lace-up' } },
+      { label: { de: 'Style', en: 'Style' }, value: { de: 'Casual / Streetwear', en: 'Casual / streetwear' } },
+    ],
+    highlight: true,
+  },
+  {
+    slug: 'polo-rl-sneaker',
+    name: 'Polo Ralph Lauren Heritage Sneaker',
+    brand: 'polo-ralph-lauren',
+    priceCents: 19900,
+    categories: ['sneaker', 'herrenmode'],
+    images: [
+      { src: '/products/polo-ralph-lauren-sneaker-1.png', alt: 'Polo Ralph Lauren Heritage Sneaker' },
+      { src: '/products/polo-ralph-lauren-sneaker-2.png', alt: 'Polo RL Sneaker — Seitenansicht' },
+      { src: '/products/polo-ralph-lauren-sneaker-3.png', alt: 'Polo RL Sneaker — Detail' },
+    ],
+    sizes: SNEAKER_SIZES,
+    description: {
+      de: 'Premium Sneaker mit Heritage-DNA. Hochwertiges Leder, gepolsterte Innenseite, gesticktes Pony-Logo.',
+      en: 'Premium sneaker with heritage DNA. Quality leather, padded interior, embroidered pony logo.',
+    },
+    specs: [
+      { label: { de: 'Material', en: 'Material' }, value: { de: 'Vollnarbenleder', en: 'Full-grain leather' } },
+      { label: { de: 'Innen', en: 'Lining' }, value: { de: 'Textil, gepolstert', en: 'Padded textile' } },
+      { label: { de: 'Sohle', en: 'Sole' }, value: { de: 'Gummi', en: 'Rubber' } },
+      { label: { de: 'Logo', en: 'Logo' }, value: { de: 'Gestickt', en: 'Embroidered' } },
+    ],
+    highlight: true,
+  },
+  {
+    slug: 'baggy-jeans-blue',
+    name: 'Baggy Jeans Blau',
+    brand: 'generic',
+    priceCents: 8900,
+    categories: ['hosen-jeans', 'streetwear', 'herrenmode'],
+    images: [
+      { src: '/products/baggy-jeans-blue-1.png', alt: 'Baggy Jeans Blau' },
+      { src: '/products/baggy-jeans-blue-2.png', alt: 'Baggy Jeans Blau — Detail' },
+      { src: '/products/baggy-jeans-blue-3.png', alt: 'Baggy Jeans Blau — Rückseite' },
+    ],
+    sizes: ['28', '30', '32', '34', '36'],
+    description: {
+      de: 'Lockere Baggy-Fit Jeans mit klassischer Indigo-Waschung. Hoher Bund, weite Beine, statement-piece.',
+      en: 'Loose baggy-fit jeans in classic indigo wash. High waist, wide leg, statement piece.',
+    },
+    specs: [
+      { label: { de: 'Material', en: 'Material' }, value: { de: '100% Baumwolle', en: '100% cotton' } },
+      { label: { de: 'Fit', en: 'Fit' }, value: { de: 'Baggy / Loose', en: 'Baggy / loose' } },
+      { label: { de: 'Bund', en: 'Waist' }, value: { de: 'Hoch', en: 'High-rise' } },
+      { label: { de: 'Pflege', en: 'Care' }, value: { de: '30°C Waschen', en: 'Machine wash 30°C' } },
+    ],
+    highlight: true,
+  },
+  {
+    slug: 'baggy-jeans-black',
+    name: 'Baggy Jeans Schwarz',
+    brand: 'generic',
+    priceCents: 8900,
+    categories: ['hosen-jeans', 'streetwear', 'herrenmode'],
+    images: [
+      { src: '/products/baggy-jeans-black-1.png', alt: 'Baggy Jeans Schwarz' },
+      { src: '/products/baggy-jeans-black-2.png', alt: 'Baggy Jeans Schwarz — Detail' },
+      { src: '/products/baggy-jeans-black-3.png', alt: 'Baggy Jeans Schwarz — Rückseite' },
+    ],
+    sizes: ['28', '30', '32', '34', '36'],
+    description: {
+      de: 'Tiefschwarze Baggy-Fit Jeans für den minimalistischen Look. Robust verarbeitet, weiche Haptik.',
+      en: 'Deep-black baggy-fit jeans for the minimalist look. Robustly built, soft hand-feel.',
+    },
+    specs: [
+      { label: { de: 'Material', en: 'Material' }, value: { de: '100% Baumwolle', en: '100% cotton' } },
+      { label: { de: 'Fit', en: 'Fit' }, value: { de: 'Baggy / Loose', en: 'Baggy / loose' } },
+      { label: { de: 'Farbe', en: 'Color' }, value: { de: 'Tiefschwarz', en: 'Jet black' } },
+      { label: { de: 'Pflege', en: 'Care' }, value: { de: '30°C Waschen', en: 'Machine wash 30°C' } },
+    ],
+  },
+  {
+    slug: 'nike-tech-fleece-grey',
+    name: 'Nike Tech Fleece Hoodie & Jogger Set Grey',
+    brand: 'nike',
+    priceCents: 21900,
+    categories: ['herrenmode', 'streetwear'],
+    images: [
+      { src: '/products/nike-tech-fleece-grey-2.jpg', alt: 'Nike Tech Fleece Set Grey — Klamotten' },
+      { src: '/products/nike-tech-fleece-grey-1.png', alt: 'Nike Tech Fleece Set Grey — getragen' },
+    ],
+    sizes: APPAREL_SIZES,
+    description: {
+      de: 'Das Komplett-Set: Hoodie und Jogger im legendären Tech-Fleece-Material. Leicht, warm, perfekt geschnitten.',
+      en: 'The complete set: hoodie and jogger in the legendary Tech Fleece fabric. Light, warm, perfectly cut.',
+    },
+    specs: [
+      { label: { de: 'Material', en: 'Material' }, value: { de: '66% Baumwolle, 34% Polyester', en: '66% cotton, 34% polyester' } },
+      { label: { de: 'Set enthält', en: 'Set contains' }, value: { de: 'Hoodie + Jogger', en: 'Hoodie + jogger' } },
+      { label: { de: 'Farbe', en: 'Color' }, value: { de: 'Dark Grey Heather', en: 'Dark grey heather' } },
+      { label: { de: 'Passform', en: 'Fit' }, value: { de: 'Standard', en: 'Standard' } },
+    ],
+    highlight: true,
+  },
+  {
+    slug: 'iced-green-watch',
+    name: 'Iced Green Watch',
+    brand: 'generic',
+    priceCents: 12900,
+    categories: ['accessoires', 'schmuck'],
+    images: [
+      { src: '/products/iced-green-watch.png', alt: 'Iced Green Watch' },
+    ],
+    description: {
+      de: 'Statement-Uhr mit grünem Zifferblatt und vollflächig besetztem Gehäuse. Auffällig, präzise, einzigartig.',
+      en: 'Statement watch with a green dial and fully iced-out case. Bold, precise, one-of-a-kind.',
+    },
+    specs: [
+      { label: { de: 'Gehäuse', en: 'Case' }, value: { de: 'Edelstahl, vergoldet', en: 'Stainless steel, gold-plated' } },
+      { label: { de: 'Zifferblatt', en: 'Dial' }, value: { de: 'Grün', en: 'Green' } },
+      { label: { de: 'Wasserdicht', en: 'Water resistance' }, value: { de: '5 ATM', en: '5 ATM' } },
+      { label: { de: 'Werk', en: 'Movement' }, value: { de: 'Quartz', en: 'Quartz' } },
+    ],
+    highlight: true,
+  },
+  {
+    slug: 'ami-paris-essential-tee',
+    name: 'Ami Paris Essential Tee Black',
+    brand: 'ami-paris',
+    priceCents: 9900,
+    categories: ['herrenmode', 'streetwear'],
+    images: [
+      { src: '/products/ami-paris-lifestyle-1.jpg', alt: 'Ami Paris Essential Tee Black' },
+      { src: '/products/ami-paris-lifestyle-2.jpg', alt: 'Ami Paris Essential Tee Black — Detail' },
+    ],
+    sizes: APPAREL_SIZES,
+    description: {
+      de: 'Minimalistisches Statement-Tee mit Ami-Logo. Hochwertige Baumwolle, perfekter Fall, zeitlos.',
+      en: 'Minimalist statement tee with Ami logo. Premium cotton, perfect drape, timeless.',
+    },
+    specs: [
+      { label: { de: 'Material', en: 'Material' }, value: { de: '100% Pima Baumwolle', en: '100% Pima cotton' } },
+      { label: { de: 'Logo', en: 'Logo' }, value: { de: 'Ami de Cœur, gestickt', en: 'Ami de Cœur, embroidered' } },
+      { label: { de: 'Farbe', en: 'Color' }, value: { de: 'Schwarz', en: 'Black' } },
+      { label: { de: 'Made in', en: 'Made in' }, value: { de: 'Portugal', en: 'Portugal' } },
+    ],
+  },
+  {
+    slug: 'polo-rl-polo-black',
+    name: 'Polo Ralph Lauren Polo Shirt Black',
+    brand: 'polo-ralph-lauren',
+    priceCents: 12900,
+    categories: ['herrenmode'],
+    images: [
+      { src: '/products/ralph-lauren-lifestyle-black-1.jpg', alt: 'Polo RL Polo Shirt Black' },
+      { src: '/products/ralph-lauren-lifestyle-black-2.jpg', alt: 'Polo RL Polo Shirt Black — Detail' },
+      { src: '/products/ralph-lauren-lifestyle-black-3.jpg', alt: 'Polo RL Polo Shirt Black — Rückseite' },
+    ],
+    sizes: APPAREL_SIZES,
+    description: {
+      de: 'Klassisches Polo Shirt aus Mesh-Baumwolle. Custom Fit mit gesticktem Pony-Logo. Ein zeitloser Klassiker.',
+      en: 'Classic polo shirt in mesh cotton. Custom fit with embroidered pony logo. A timeless classic.',
+    },
+    specs: [
+      { label: { de: 'Material', en: 'Material' }, value: { de: '100% Baumwolle Mesh', en: '100% cotton mesh' } },
+      { label: { de: 'Fit', en: 'Fit' }, value: { de: 'Custom Fit', en: 'Custom fit' } },
+      { label: { de: 'Logo', en: 'Logo' }, value: { de: 'Gestickt', en: 'Embroidered' } },
+      { label: { de: 'Farbe', en: 'Color' }, value: { de: 'Schwarz', en: 'Black' } },
+    ],
+  },
+  {
+    slug: 'polo-rl-polo-white',
+    name: 'Polo Ralph Lauren Polo Shirt White',
+    brand: 'polo-ralph-lauren',
+    priceCents: 12900,
+    categories: ['herrenmode'],
+    images: [
+      { src: '/products/ralph-lauren-lifestyle-white-1.jpg', alt: 'Polo RL Polo Shirt White' },
+      { src: '/products/ralph-lauren-lifestyle-white-2.jpg', alt: 'Polo RL Polo Shirt White — Detail' },
+    ],
+    sizes: APPAREL_SIZES,
+    description: {
+      de: 'Das ikonische weiße Polo. Reines Baumwoll-Mesh, perfekt geschnitten, gesticktes Pony-Logo.',
+      en: 'The iconic white polo. Pure cotton mesh, perfectly cut, embroidered pony logo.',
+    },
+    specs: [
+      { label: { de: 'Material', en: 'Material' }, value: { de: '100% Baumwolle Mesh', en: '100% cotton mesh' } },
+      { label: { de: 'Fit', en: 'Fit' }, value: { de: 'Custom Fit', en: 'Custom fit' } },
+      { label: { de: 'Logo', en: 'Logo' }, value: { de: 'Gestickt', en: 'Embroidered' } },
+      { label: { de: 'Farbe', en: 'Color' }, value: { de: 'Weiß', en: 'White' } },
+    ],
+  },
+];

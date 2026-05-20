@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CURL FLOW — Streaming Field</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; cursor: crosshair; font-family: ui-sans-serif, -apple-system, system-ui, sans-serif; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+  .label { position: fixed; top: 24px; left: 28px; color: rgba(180,255,200,.7); font-size: 11px; text-transform: uppercase; letter-spacing: .35em; pointer-events: none; user-select: none; }
+  .num { position: fixed; top: 24px; right: 28px; color: rgba(180,255,200,.4); font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: .25em; pointer-events: none; }
+  .hint { position: fixed; bottom: 24px; left: 28px; color: rgba(180,255,200,.35); font-family: ui-monospace, Menlo, monospace; font-size: 10px; text-transform: uppercase; letter-spacing: .25em; pointer-events: none; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="label">Curl Flow — Streaming field</div>
+<div class="num">04 / 05</div>
+<div class="hint">Mouse warps the flow · Click = vortex (rotational pull, decays)</div>
+<script>
+const canvas = document.getElementById('c');
+const gl = canvas.getContext('webgl2', { antialias: false, alpha: false });
+if (!gl) { document.body.innerHTML = 'WebGL2 required'; throw new Error('no webgl2'); }
+
+const vs = `#version 300 es
+in vec2 a_pos;
+void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }`;
+
+const fs = `#version 300 es
+precision highp float;
+out vec4 o;
+uniform vec2 u_res;
+uniform float u_t;
+uniform vec2 u_m;
+uniform vec2 u_click;
+uniform float u_clickT;
+
+vec2 toUV(vec2 p){ return (p - 0.5 * u_res) / min(u_res.x, u_res.y); }
+
+float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float noise(vec2 p){
+  vec2 i = floor(p), f = fract(p);
+  vec2 u = f*f*(3.0-2.0*f);
+  return mix(mix(hash(i), hash(i+vec2(1,0)), u.x),
+             mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), u.x), u.y);
+}
+
+vec2 curl(vec2 p){
+  float e = 0.01;
+  float n1 = noise(p + vec2(0, e));
+  float n2 = noise(p - vec2(0, e));
+  float n3 = noise(p + vec2(e, 0));
+  float n4 = noise(p - vec2(e, 0));
+  return vec2((n1 - n2) / (2.0*e), -(n3 - n4) / (2.0*e));
+}
+
+void main(){
+  vec2 uv = toUV(gl_FragCoord.xy);
+  vec2 mu = toUV(u_m);
+
+  // base flow
+  vec2 p = uv * 2.4 + vec2(u_t * 0.05, 0.0);
+  vec2 v = curl(p);
+
+  // mouse warp
+  vec2 d = uv - mu;
+  float dm = length(d);
+  v += normalize(d + 1e-5) * 0.6 / (1.0 + dm * 6.0);
+
+  // click vortex (decays)
+  float age = u_t - u_clickT;
+  if (u_clickT > 0.0 && age < 2.5){
+    vec2 cu = toUV(u_click);
+    vec2 dc = uv - cu;
+    float dcl = length(dc);
+    float strength = exp(-dcl * 3.5) * (1.0 - age / 2.5) * 2.0;
+    // tangential rotation
+    v += vec2(-dc.y, dc.x) * strength * 4.0;
+  }
+
+  // sample flow trail by stepping back along velocity (LIC-style)
+  float trail = 0.0;
+  vec2 sp = uv;
+  for (int i = 0; i < 18; i++){
+    vec2 sv = curl(sp * 2.4 + vec2(u_t * 0.05, 0.0));
+    vec2 sd = sp - mu;
+    sv += normalize(sd + 1e-5) * 0.6 / (1.0 + length(sd) * 6.0);
+    if (u_clickT > 0.0 && age < 2.5){
+      vec2 cu2 = toUV(u_click);
+      vec2 dc2 = sp - cu2;
+      float s2 = exp(-length(dc2) * 3.5) * (1.0 - age / 2.5) * 2.0;
+      sv += vec2(-dc2.y, dc2.x) * s2 * 4.0;
+    }
+    sp -= sv * 0.012;
+    trail += noise(sp * 18.0 + u_t * 0.5) * 0.06;
+  }
+
+  // bright streak detection — high noise variance gets pulled to lime
+  float speed = length(v);
+  float intensity = pow(trail, 1.8) * 4.0 + speed * 0.25;
+
+  vec3 deep = vec3(0.0, 0.02, 0.05);
+  vec3 teal = vec3(0.05, 0.5, 0.55);
+  vec3 lime = vec3(0.6, 1.0, 0.45);
+  vec3 ice = vec3(0.85, 1.0, 1.0);
+
+  vec3 col = mix(deep, teal, smoothstep(0.0, 0.5, intensity));
+  col = mix(col, lime, smoothstep(0.5, 1.2, intensity));
+  col = mix(col, ice, smoothstep(1.4, 2.4, intensity));
+
+  // mouse cursor halo
+  col += vec3(0.4, 1.0, 0.6) * exp(-dm * 7.0) * 0.4;
+
+  // vortex glow
+  if (u_clickT > 0.0 && age < 2.5){
+    vec2 cu = toUV(u_click);
+    float dcl = length(uv - cu);
+    col += vec3(0.7, 1.0, 0.6) * exp(-dcl * 9.0) * (1.0 - age / 2.5) * 0.6;
+  }
+
+  // vignette
+  col *= mix(0.55, 1.0, smoothstep(1.4, 0.3, length(uv)));
+
+  o = vec4(col, 1.0);
+}`;
+
+function compile(t, src){
+  const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+const prog = gl.createProgram();
+gl.attachShader(prog, compile(gl.VERTEX_SHADER, vs));
+gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fs));
+gl.linkProgram(prog); gl.useProgram(prog);
+if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+
+const buf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+const a = gl.getAttribLocation(prog, 'a_pos');
+gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+
+const U = n => gl.getUniformLocation(prog, n);
+const u_res = U('u_res'), u_t = U('u_t'), u_m = U('u_m'), u_click = U('u_click'), u_clickT = U('u_clickT');
+
+const dpr = () => Math.min(window.devicePixelRatio || 1, 2);
+let mouse = [innerWidth/2, innerHeight/2];
+let mSm = mouse.slice();
+let click = [0,0], clickT = -100;
+
+function resize(){
+  canvas.width = innerWidth * dpr();
+  canvas.height = innerHeight * dpr();
+  gl.viewport(0, 0, canvas.width, canvas.height);
+}
+addEventListener('resize', resize); resize();
+
+addEventListener('pointermove', e => { mouse = [e.clientX * dpr(), (innerHeight - e.clientY) * dpr()]; });
+addEventListener('pointerdown', e => {
+  click = [e.clientX * dpr(), (innerHeight - e.clientY) * dpr()];
+  clickT = (performance.now() - start) * 0.001;
+});
+
+const start = performance.now();
+function frame(){
+  const t = (performance.now() - start) * 0.001;
+  mSm[0] += (mouse[0] - mSm[0]) * 0.1;
+  mSm[1] += (mouse[1] - mSm[1]) * 0.1;
+  gl.uniform2f(u_res, canvas.width, canvas.height);
+  gl.uniform1f(u_t, t);
+  gl.uniform2f(u_m, mSm[0], mSm[1]);
+  gl.uniform2f(u_click, click[0], click[1]);
+  gl.uniform1f(u_clickT, clickT);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>VORONOI — Crystalline Cells</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; cursor: crosshair; font-family: ui-sans-serif, -apple-system, system-ui, sans-serif; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+  .label { position: fixed; top: 24px; left: 28px; color: rgba(150,255,235,.7); font-size: 11px; text-transform: uppercase; letter-spacing: .35em; pointer-events: none; user-select: none; }
+  .num { position: fixed; top: 24px; right: 28px; color: rgba(150,255,235,.4); font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: .25em; pointer-events: none; }
+  .hint { position: fixed; bottom: 24px; left: 28px; color: rgba(150,255,235,.3); font-family: ui-monospace, Menlo, monospace; font-size: 10px; text-transform: uppercase; letter-spacing: .25em; pointer-events: none; }
+  .pinned { position: fixed; bottom: 24px; right: 28px; color: rgba(150,255,235,.4); font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: .25em; pointer-events: none; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="label">Voronoi — Crystalline cells</div>
+<div class="num">02 / 05</div>
+<div class="hint">Mouse = moving seed · Click = pin a sonar seed · Double-click = clear</div>
+<div class="pinned" id="pinned">pinned 00</div>
+<script>
+const canvas = document.getElementById('c');
+const gl = canvas.getContext('webgl2', { antialias: false, alpha: false });
+if (!gl) { document.body.innerHTML = 'WebGL2 required'; throw new Error('no webgl2'); }
+
+const MAX_PINS = 12;
+
+const vs = `#version 300 es
+in vec2 a_pos;
+void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }`;
+
+const fs = `#version 300 es
+precision highp float;
+out vec4 o;
+uniform vec2 u_res;
+uniform float u_t;
+uniform vec2 u_m;
+uniform vec2 u_pins[${MAX_PINS}];
+uniform float u_pinAge[${MAX_PINS}];
+uniform int u_pinCount;
+
+vec2 toUV(vec2 p){ return (p - 0.5 * u_res) / min(u_res.x, u_res.y); }
+
+vec3 hash(vec2 p){
+  p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+  return fract(sin(p.xyy) * vec3(43758.5453, 22578.1459, 19642.3490));
+}
+
+void main(){
+  vec2 uv = toUV(gl_FragCoord.xy);
+  vec2 mu = toUV(u_m);
+
+  // background voronoi: animated seeds on a grid
+  vec2 g = uv * 4.0;
+  vec2 fi = floor(g);
+  vec2 ff = fract(g);
+
+  float minDist = 1e9, secondDist = 1e9;
+  vec3 closestId = vec3(0.0);
+
+  for (int j = -1; j <= 1; j++){
+    for (int i = -1; i <= 1; i++){
+      vec2 nb = vec2(float(i), float(j));
+      vec3 h = hash(fi + nb);
+      vec2 seed = nb + 0.5 + 0.45 * sin(u_t * 0.5 + 6.2831 * h.xy);
+      vec2 r = seed - ff;
+      float d = dot(r, r);
+      if (d < minDist){
+        secondDist = minDist;
+        minDist = d;
+        closestId = h;
+      } else if (d < secondDist){
+        secondDist = d;
+      }
+    }
+  }
+  minDist = sqrt(minDist);
+  secondDist = sqrt(secondDist);
+  float edge = secondDist - minDist;
+
+  // mouse acts as a moving extra seed (pulls cells)
+  float dm = length(uv - mu);
+  float mouseInfluence = exp(-dm * 6.0);
+
+  // base color: deep teal cells with electric edges
+  vec3 cellColor = mix(vec3(0.02, 0.05, 0.08), vec3(0.06, 0.18, 0.22), closestId.x);
+  cellColor += mix(vec3(0.0), vec3(0.08, 0.4, 0.5), closestId.y * 0.4);
+
+  // edges glow
+  float edgeGlow = smoothstep(0.045, 0.0, edge);
+  vec3 edgeColor = mix(vec3(0.2, 1.0, 0.85), vec3(0.55, 0.95, 1.0), closestId.z);
+  vec3 col = cellColor + edgeGlow * edgeColor * 1.2;
+
+  // mouse halo
+  col += vec3(0.4, 1.0, 0.85) * mouseInfluence * 0.45;
+
+  // pinned sonar pulses
+  for (int p = 0; p < ${MAX_PINS}; p++){
+    if (p >= u_pinCount) break;
+    vec2 pin = toUV(u_pins[p]);
+    float dp = length(uv - pin);
+    float age = u_pinAge[p];
+    float radius = age * 0.18;
+    float ring = exp(-pow((dp - radius) * 30.0, 2.0));
+    col += vec3(0.5, 1.0, 0.9) * ring * exp(-age * 0.45) * 1.4;
+    // persistent dot
+    col += vec3(1.0, 0.95, 0.6) * exp(-dp * 220.0);
+  }
+
+  // vignette + grain
+  col *= mix(0.55, 1.0, smoothstep(1.5, 0.4, length(uv)));
+  float grain = (fract(sin(dot(uv * u_res, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * 0.025;
+  col += grain;
+
+  o = vec4(col, 1.0);
+}`;
+
+function compile(t, src){
+  const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+const prog = gl.createProgram();
+gl.attachShader(prog, compile(gl.VERTEX_SHADER, vs));
+gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fs));
+gl.linkProgram(prog); gl.useProgram(prog);
+if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+
+const buf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+const a = gl.getAttribLocation(prog, 'a_pos');
+gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+
+const U = n => gl.getUniformLocation(prog, n);
+const u_res = U('u_res'), u_t = U('u_t'), u_m = U('u_m');
+const u_pins = U('u_pins'), u_pinAge = U('u_pinAge'), u_pinCount = U('u_pinCount');
+
+const dpr = () => Math.min(window.devicePixelRatio || 1, 2);
+let mouse = [innerWidth/2, innerHeight/2];
+let mSm = mouse.slice();
+const pins = [];   // {x, y, born}
+const pinnedEl = document.getElementById('pinned');
+
+function resize(){
+  canvas.width = innerWidth * dpr();
+  canvas.height = innerHeight * dpr();
+  gl.viewport(0, 0, canvas.width, canvas.height);
+}
+addEventListener('resize', resize); resize();
+
+addEventListener('pointermove', e => {
+  mouse = [e.clientX * dpr(), (innerHeight - e.clientY) * dpr()];
+});
+addEventListener('pointerdown', e => {
+  const t = (performance.now() - start) * 0.001;
+  pins.push({ x: e.clientX * dpr(), y: (innerHeight - e.clientY) * dpr(), born: t });
+  if (pins.length > MAX_PINS) pins.shift();
+  pinnedEl.textContent = `pinned ${String(pins.length).padStart(2, '0')}`;
+});
+addEventListener('dblclick', () => {
+  pins.length = 0;
+  pinnedEl.textContent = 'pinned 00';
+});
+
+const start = performance.now();
+function frame(){
+  const t = (performance.now() - start) * 0.001;
+  mSm[0] += (mouse[0] - mSm[0]) * 0.12;
+  mSm[1] += (mouse[1] - mSm[1]) * 0.12;
+
+  gl.uniform2f(u_res, canvas.width, canvas.height);
+  gl.uniform1f(u_t, t);
+  gl.uniform2f(u_m, mSm[0], mSm[1]);
+  gl.uniform1i(u_pinCount, pins.length);
+  if (pins.length){
+    const flatPos = new Float32Array(MAX_PINS * 2);
+    const flatAge = new Float32Array(MAX_PINS);
+    for (let i = 0; i < pins.length; i++){
+      flatPos[i*2] = pins[i].x;
+      flatPos[i*2+1] = pins[i].y;
+      flatAge[i] = t - pins[i].born;
+    }
+    gl.uniform2fv(u_pins, flatPos);
+    gl.uniform1fv(u_pinAge, flatAge);
+  }
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

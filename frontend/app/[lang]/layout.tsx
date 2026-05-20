@@ -1,0 +1,83 @@
+import type { Metadata } from "next";
+import { Geist, Geist_Mono, Cormorant_Garamond } from "next/font/google";
+import { notFound } from "next/navigation";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { LenisProvider } from "@/components/motion/LenisProvider";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+import { CartDrawer } from "@/components/cart/CartDrawer";
+import { PageTransition } from "@/components/motion/PageTransition";
+import { ScrollProgress } from "@/components/motion/ScrollProgress";
+import { locales, type Locale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
+import { getAllProducts } from "@/lib/products";
+
+const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+  style: ["normal", "italic"],
+});
+
+export async function generateStaticParams() {
+  return locales.map((lang) => ({ lang }));
+}
+
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://norevan.shop"),
+  title: {
+    default: "Norevan — Premium Streetwear",
+    template: "%s · Norevan",
+  },
+  description: "Hand-picked sneakers, streetwear and accessories. Curated in Berlin.",
+  applicationName: "Norevan",
+  authors: [{ name: "Norevan UG" }],
+  creator: "Norevan",
+  publisher: "Norevan",
+  formatDetection: { email: false, address: false, telephone: false },
+};
+
+export default async function LangLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  if (!locales.includes(lang as Locale)) notFound();
+  const locale = lang as Locale;
+  const dict = await getDictionary(locale);
+
+  return (
+    <html
+      lang={locale}
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} h-full antialiased`}
+    >
+      <body className="min-h-full bg-background text-foreground">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-foreground focus:px-5 focus:py-3 focus:font-mono focus:text-[11px] focus:uppercase focus:tracking-[0.25em] focus:text-background"
+        >
+          {locale === "de" ? "Zum Inhalt springen" : "Skip to content"}
+        </a>
+        <ThemeProvider>
+          <LenisProvider>
+            <ScrollProgress />
+            <div className="relative flex min-h-screen flex-col">
+              <Header locale={locale} dict={dict} products={await getAllProducts()} />
+              <div id="main-content">
+                <PageTransition>{children}</PageTransition>
+              </div>
+              <Footer dict={dict} locale={locale} />
+            </div>
+            <CartDrawer locale={locale} dict={dict} />
+          </LenisProvider>
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}

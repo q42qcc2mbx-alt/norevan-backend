@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>METABALLS — Liquid Mercury</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #04030a; cursor: crosshair; font-family: ui-sans-serif, -apple-system, system-ui, sans-serif; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+  .label { position: fixed; top: 24px; left: 28px; color: rgba(255,255,255,.6); font-size: 11px; text-transform: uppercase; letter-spacing: .35em; pointer-events: none; user-select: none; }
+  .num { position: fixed; top: 24px; right: 28px; color: rgba(255,255,255,.35); font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: .25em; pointer-events: none; }
+  .hint { position: fixed; bottom: 24px; left: 28px; color: rgba(255,255,255,.3); font-family: ui-monospace, Menlo, monospace; font-size: 10px; text-transform: uppercase; letter-spacing: .25em; pointer-events: none; }
+  .count { position: fixed; bottom: 24px; right: 28px; color: rgba(255,255,255,.4); font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: .25em; pointer-events: none; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="label">Metaballs — Liquid mercury</div>
+<div class="num">03 / 05</div>
+<div class="hint">Mouse = main orb · Click = spawn drifting orb · Double-click = clear</div>
+<div class="count" id="count">orbs 00</div>
+<script>
+const canvas = document.getElementById('c');
+const gl = canvas.getContext('webgl2', { antialias: false, alpha: false });
+if (!gl) { document.body.innerHTML = 'WebGL2 required'; throw new Error('no webgl2'); }
+
+const MAX_ORBS = 16;
+
+const vs = `#version 300 es
+in vec2 a_pos;
+void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }`;
+
+const fs = `#version 300 es
+precision highp float;
+out vec4 o;
+uniform vec2 u_res;
+uniform float u_t;
+uniform vec2 u_m;
+uniform vec2 u_orbs[${MAX_ORBS}];
+uniform float u_radii[${MAX_ORBS}];
+uniform int u_orbCount;
+
+vec2 toUV(vec2 p){ return (p - 0.5 * u_res) / min(u_res.x, u_res.y); }
+
+void main(){
+  vec2 uv = toUV(gl_FragCoord.xy);
+  vec2 mu = toUV(u_m);
+
+  // mouse orb
+  float field = (0.18 * 0.18) / max(dot(uv - mu, uv - mu), 1e-6);
+
+  // spawned orbs contribute
+  for (int i = 0; i < ${MAX_ORBS}; i++){
+    if (i >= u_orbCount) break;
+    vec2 op = toUV(u_orbs[i]);
+    float r = u_radii[i];
+    field += (r * r) / max(dot(uv - op, uv - op), 1e-6);
+  }
+
+  // iso surface — high field = inside
+  float iso = smoothstep(0.6, 1.4, field);
+  float edge = smoothstep(0.45, 0.6, field) - smoothstep(1.4, 1.6, field);
+
+  // chrome-like gradient based on field magnitude
+  vec3 deep = vec3(0.02, 0.01, 0.06);
+  vec3 violet = vec3(0.3, 0.18, 0.85);
+  vec3 silver = vec3(0.85, 0.92, 1.0);
+  vec3 hot = vec3(1.0, 0.55, 0.85);
+
+  vec3 col = deep;
+  col = mix(col, violet, smoothstep(0.3, 0.9, field));
+  col = mix(col, silver, smoothstep(0.9, 1.6, field));
+  col = mix(col, hot, smoothstep(2.0, 4.0, field) * 0.5);
+
+  // edge highlight
+  col += edge * vec3(0.55, 0.7, 1.0) * 1.4;
+
+  // ambient haze + animated horizon
+  float haze = 0.04 + 0.06 * sin(u_t * 0.4 + uv.x * 2.0);
+  col += vec3(0.05, 0.04, 0.12) * (1.0 - iso) * haze * 4.0;
+
+  // vignette
+  col *= mix(0.5, 1.0, smoothstep(1.4, 0.3, length(uv)));
+
+  o = vec4(col, 1.0);
+}`;
+
+function compile(t, src){
+  const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+const prog = gl.createProgram();
+gl.attachShader(prog, compile(gl.VERTEX_SHADER, vs));
+gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fs));
+gl.linkProgram(prog); gl.useProgram(prog);
+if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+
+const buf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+const a = gl.getAttribLocation(prog, 'a_pos');
+gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+
+const U = n => gl.getUniformLocation(prog, n);
+const u_res = U('u_res'), u_t = U('u_t'), u_m = U('u_m');
+const u_orbs = U('u_orbs'), u_radii = U('u_radii'), u_orbCount = U('u_orbCount');
+
+const dpr = () => Math.min(window.devicePixelRatio || 1, 2);
+let mouse = [innerWidth/2, innerHeight/2];
+let mSm = mouse.slice();
+const orbs = [];   // {x, y, vx, vy, r}
+const countEl = document.getElementById('count');
+
+function resize(){
+  canvas.width = innerWidth * dpr();
+  canvas.height = innerHeight * dpr();
+  gl.viewport(0, 0, canvas.width, canvas.height);
+}
+addEventListener('resize', resize); resize();
+
+addEventListener('pointermove', e => {
+  mouse = [e.clientX * dpr(), (innerHeight - e.clientY) * dpr()];
+});
+addEventListener('pointerdown', e => {
+  const x = e.clientX * dpr(), y = (innerHeight - e.clientY) * dpr();
+  const angle = Math.random() * Math.PI * 2;
+  const speed = 30 + Math.random() * 80;
+  orbs.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, r: 0.10 + Math.random() * 0.10 });
+  if (orbs.length > MAX_ORBS) orbs.shift();
+  countEl.textContent = `orbs ${String(orbs.length).padStart(2, '0')}`;
+});
+addEventListener('dblclick', () => {
+  orbs.length = 0;
+  countEl.textContent = 'orbs 00';
+});
+
+let prev = performance.now();
+const start = prev;
+function frame(){
+  const now = performance.now();
+  const dt = Math.min((now - prev) * 0.001, 1/30);
+  prev = now;
+  const t = (now - start) * 0.001;
+
+  mSm[0] += (mouse[0] - mSm[0]) * 0.10;
+  mSm[1] += (mouse[1] - mSm[1]) * 0.10;
+
+  // update orb physics: gentle attraction to mouse + bounce off walls
+  const W = canvas.width, H = canvas.height;
+  for (const orb of orbs){
+    const dx = mSm[0] - orb.x, dy = mSm[1] - orb.y;
+    const dist = Math.hypot(dx, dy) + 1;
+    const pull = 28;
+    orb.vx += (dx / dist) * pull * dt;
+    orb.vy += (dy / dist) * pull * dt;
+    orb.vx *= 0.992; orb.vy *= 0.992;
+    orb.x += orb.vx * dt * 60;
+    orb.y += orb.vy * dt * 60;
+    if (orb.x < 0) { orb.x = 0; orb.vx = Math.abs(orb.vx) * 0.6; }
+    if (orb.x > W) { orb.x = W; orb.vx = -Math.abs(orb.vx) * 0.6; }
+    if (orb.y < 0) { orb.y = 0; orb.vy = Math.abs(orb.vy) * 0.6; }
+    if (orb.y > H) { orb.y = H; orb.vy = -Math.abs(orb.vy) * 0.6; }
+  }
+
+  gl.uniform2f(u_res, canvas.width, canvas.height);
+  gl.uniform1f(u_t, t);
+  gl.uniform2f(u_m, mSm[0], mSm[1]);
+  gl.uniform1i(u_orbCount, orbs.length);
+  if (orbs.length){
+    const fp = new Float32Array(MAX_ORBS * 2);
+    const fr = new Float32Array(MAX_ORBS);
+    for (let i = 0; i < orbs.length; i++){
+      fp[i*2] = orbs[i].x;
+      fp[i*2+1] = orbs[i].y;
+      fr[i] = orbs[i].r;
+    }
+    gl.uniform2fv(u_orbs, fp);
+    gl.uniform1fv(u_radii, fr);
+  }
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

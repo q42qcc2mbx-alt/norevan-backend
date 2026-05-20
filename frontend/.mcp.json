@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "tinyfish": {
+      "type": "http",
+      "url": "https://agent.tinyfish.ai/mcp"
+    },
+    "brightdata": {
+      "url": "https://mcp.brightdata.com/mcp?token=YOUR_BRIGHTDATA_API_TOKEN&pro=1"
+    }
+  }
+}

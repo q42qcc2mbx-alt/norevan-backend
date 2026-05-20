@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>PRISM — Chromatic Plasma</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #02010a; cursor: crosshair; font-family: ui-sans-serif, -apple-system, system-ui, sans-serif; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+  .label { position: fixed; top: 24px; left: 28px; color: rgba(255,255,255,.55); font-size: 11px; text-transform: uppercase; letter-spacing: .35em; pointer-events: none; user-select: none; mix-blend-mode: difference; }
+  .num { position: fixed; top: 24px; right: 28px; color: rgba(255,255,255,.35); font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: .25em; pointer-events: none; }
+  .hint { position: fixed; bottom: 24px; left: 28px; color: rgba(255,255,255,.3); font-family: ui-monospace, Menlo, monospace; font-size: 10px; text-transform: uppercase; letter-spacing: .25em; pointer-events: none; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="label">Prism — Chromatic plasma</div>
+<div class="num">01 / 05</div>
+<div class="hint">Move mouse → warp field · Click → chromatic shockwave</div>
+<script>
+const canvas = document.getElementById('c');
+const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, premultipliedAlpha: false });
+if (!gl) { document.body.innerHTML = 'WebGL2 required'; throw new Error('no webgl2'); }
+
+const vs = `#version 300 es
+in vec2 a_pos;
+void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }`;
+
+const fs = `#version 300 es
+precision highp float;
+out vec4 o;
+uniform vec2 u_res;
+uniform float u_t;
+uniform vec2 u_m;
+uniform vec2 u_click;
+uniform float u_clickT;
+
+vec3 hash3(vec2 p){ p = vec2(dot(p,vec2(127.1,311.7)), dot(p,vec2(269.5,183.3))); return -1.0 + 2.0 * fract(sin(p.xyx * 43758.5453123) * vec3(1.0,2.0,3.0)); }
+
+float snoise(vec2 v){
+  const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+  vec2 i = floor(v + dot(v, C.yy));
+  vec2 x0 = v - i + dot(i, C.xx);
+  vec2 i1 = (x0.x > x0.y) ? vec2(1.0,0.0) : vec2(0.0,1.0);
+  vec4 x12 = x0.xyxy + C.xxzz; x12.xy -= i1;
+  i = mod(i, 289.0);
+  vec3 p = mod(((mod(i.y + vec3(0.0, i1.y, 1.0), 289.0)) * 34.0 + 1.0)
+           * mod(i.y + vec3(0.0, i1.y, 1.0), 289.0) + i.x + vec3(0.0, i1.x, 1.0), 289.0);
+  vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+  m = m*m; m = m*m;
+  vec3 x = 2.0 * fract(p * 0.024390243902439) - 1.0;
+  vec3 h = abs(x) - 0.5;
+  vec3 ox = floor(x + 0.5);
+  vec3 a0 = x - ox;
+  m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
+  vec3 g;
+  g.x  = a0.x  * x0.x  + h.x  * x0.y;
+  g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+  return 130.0 * dot(m, g);
+}
+
+float fbm(vec2 p){
+  float a = 0.5, s = 0.0, f = 1.0;
+  for (int i = 0; i < 6; i++){ s += a * snoise(p * f); f *= 2.0; a *= 0.5; }
+  return s;
+}
+
+vec2 toUV(vec2 p){ return (p - 0.5 * u_res) / min(u_res.x, u_res.y); }
+
+void main(){
+  vec2 uv = toUV(gl_FragCoord.xy);
+  vec2 mu = toUV(u_m);
+  vec2 cu = toUV(u_click);
+
+  // domain warp toward mouse
+  vec2 d = uv - mu;
+  float dm = length(d);
+  vec2 warped = uv + normalize(d + 1e-5) * 0.18 / (1.0 + dm * 5.0);
+
+  // animated multi-octave field
+  vec2 q = warped * 1.6 + vec2(0.0, u_t * 0.06);
+  vec2 r = q + 0.6 * vec2(fbm(q + u_t * 0.07), fbm(q + 4.2 - u_t * 0.05));
+  float n = fbm(r);
+
+  // RGB chromatic split — sample noise with channel offsets toward the cursor
+  vec2 chromaDir = normalize(d + 1e-5);
+  float chroma = 0.06 / (0.4 + dm);
+  float nR = fbm(r + chromaDir * chroma);
+  float nB = fbm(r - chromaDir * chroma);
+
+  // shockwave on click
+  float age = u_t - u_clickT;
+  float shock = 0.0;
+  if (u_clickT > 0.0 && age < 2.4){
+    float d2 = length(uv - cu);
+    float radius = age * 0.85;
+    shock = exp(-pow((d2 - radius) * 14.0, 2.0)) * (1.0 - age / 2.4);
+  }
+
+  // map to chromatic plasma
+  float tR = smoothstep(-1.0, 1.0, nR + shock * 1.4);
+  float tG = smoothstep(-1.0, 1.0, n);
+  float tB = smoothstep(-1.0, 1.0, nB - shock * 1.0);
+
+  vec3 deepIndigo = vec3(0.04, 0.02, 0.18);
+  vec3 cyan = vec3(0.05, 0.85, 1.0);
+  vec3 magenta = vec3(1.0, 0.18, 0.7);
+  vec3 violet = vec3(0.55, 0.25, 1.0);
+
+  vec3 col;
+  col.r = mix(deepIndigo.r, magenta.r, tR);
+  col.r = mix(col.r, cyan.r * 0.4, smoothstep(0.7, 1.0, tR));
+  col.g = mix(deepIndigo.g, violet.g, tG);
+  col.b = mix(deepIndigo.b, cyan.b, tB);
+
+  // glow at mouse
+  col += vec3(0.45, 0.3, 0.95) * exp(-dm * 4.5) * 0.55;
+
+  // vignette
+  float vig = smoothstep(1.4, 0.4, length(uv));
+  col *= mix(0.7, 1.0, vig);
+
+  // tone & gamma
+  col = pow(col, vec3(0.95));
+  o = vec4(col, 1.0);
+}`;
+
+function compile(t, src){
+  const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+const prog = gl.createProgram();
+gl.attachShader(prog, compile(gl.VERTEX_SHADER, vs));
+gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fs));
+gl.linkProgram(prog); gl.useProgram(prog);
+if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+
+const buf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+const a = gl.getAttribLocation(prog, 'a_pos');
+gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+
+const U = name => gl.getUniformLocation(prog, name);
+const u_res = U('u_res'), u_t = U('u_t'), u_m = U('u_m'), u_click = U('u_click'), u_clickT = U('u_clickT');
+
+const dpr = () => Math.min(window.devicePixelRatio || 1, 2);
+let mouse = [innerWidth/2, innerHeight/2];
+let mSm = mouse.slice();
+let click = [0,0], clickT = -100;
+
+function resize(){
+  canvas.width = innerWidth * dpr();
+  canvas.height = innerHeight * dpr();
+  gl.viewport(0, 0, canvas.width, canvas.height);
+}
+addEventListener('resize', resize); resize();
+
+addEventListener('pointermove', e => {
+  mouse = [e.clientX * dpr(), (innerHeight - e.clientY) * dpr()];
+});
+addEventListener('pointerdown', e => {
+  click = [e.clientX * dpr(), (innerHeight - e.clientY) * dpr()];
+  clickT = (performance.now() - start) * 0.001;
+});
+
+const start = performance.now();
+function frame(){
+  const t = (performance.now() - start) * 0.001;
+  mSm[0] += (mouse[0] - mSm[0]) * 0.1;
+  mSm[1] += (mouse[1] - mSm[1]) * 0.1;
+  gl.uniform2f(u_res, canvas.width, canvas.height);
+  gl.uniform1f(u_t, t);
+  gl.uniform2f(u_m, mSm[0], mSm[1]);
+  gl.uniform2f(u_click, click[0], click[1]);
+  gl.uniform1f(u_clickT, clickT);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

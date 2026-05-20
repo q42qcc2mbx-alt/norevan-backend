@@ -1,0 +1,455 @@
+{
+  "name": "Norevan — Order Pipeline (Concierge + Stylist + Ops)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "norevan-order",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh1-order",
+      "name": "Webhook · /norevan-order",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1200,
+        0
+      ],
+      "webhookId": "norevan-order"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "v0",
+              "name": "orderId",
+              "value": "={{ $json.body.orderId }}",
+              "type": "string"
+            },
+            {
+              "id": "v1",
+              "name": "email",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "v2",
+              "name": "firstName",
+              "value": "={{ $json.body.firstName }}",
+              "type": "string"
+            },
+            {
+              "id": "v3",
+              "name": "lastName",
+              "value": "={{ $json.body.lastName }}",
+              "type": "string"
+            },
+            {
+              "id": "v4",
+              "name": "subtotalCents",
+              "value": "={{ $json.body.subtotalCents }}",
+              "type": "number"
+            },
+            {
+              "id": "v5",
+              "name": "items",
+              "value": "={{ $json.body.items }}",
+              "type": "array"
+            },
+            {
+              "id": "v6",
+              "name": "locale",
+              "value": "={{ $json.body.locale || 'de' }}",
+              "type": "string"
+            },
+            {
+              "id": "v7",
+              "name": "subtotalEUR",
+              "value": "={{ ($json.body.subtotalCents / 100).toFixed(2).replace('.', ',') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "parse-order",
+      "name": "Parse Order",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -960,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-sonnet-4-5",
+          "mode": "list",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {
+          "temperature": 0.6,
+          "maxTokensToSample": 1500
+        }
+      },
+      "id": "lm-concierge",
+      "name": "Claude · Concierge",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        -700,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"subject\",\n    \"body_html\",\n    \"body_text\"\n  ],\n  \"properties\": {\n    \"subject\": {\n      \"type\": \"string\"\n    },\n    \"body_html\": {\n      \"type\": \"string\",\n      \"description\": \"HTML email body, Cormorant-italic warmth in headings via <em>.\"\n    },\n    \"body_text\": {\n      \"type\": \"string\"\n    }\n  }\n}"
+      },
+      "id": "parser-concierge",
+      "name": "Parser · Concierge",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Schreibe eine warme, premium Bestellbestätigung für die Norevan-Boutique. Editorial-Ton: ruhig, kuratiert, Cormorant-italic-Wärme — nicht corporate, nicht aufdringlich. Sprache: {{ $('Parse Order').item.json.locale === 'en' ? 'English' : 'Deutsch' }}.\n\nBestelldaten:\n- Bestellnummer: {{ $('Parse Order').item.json.orderId }}\n- Kunde: {{ $('Parse Order').item.json.firstName }} {{ $('Parse Order').item.json.lastName }}\n- E-Mail: {{ $('Parse Order').item.json.email }}\n- Summe: {{ $('Parse Order').item.json.subtotalEUR }} €\n- Artikel: {{ JSON.stringify($('Parse Order').item.json.items) }}\n\nLiefere strukturiertes JSON: subject (max 60 Zeichen), body_html (mit <p>-Absätzen, Cormorant-Italic-Headlines via <em>, Bestellnummer prominent), body_text (Plaintext-Fallback). Verwende Du-Form bei DE, first-name-only bei EN. KEINE Versand-Lügen — sag nur dass wir alles fürs Atelier vorbereiten.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Du bist die Norevan-Concierge. Du schreibst Bestellbestätigungen die sich anfühlen wie ein handgeschriebener Brief vom Atelier — kurz, kuratiert, premium. Kein Marketing-Sprech, keine Caps, keine Ausrufezeichen-Inflation. Tonalität: Mr Porter trifft Aimé Leon Dore."
+        }
+      },
+      "id": "agent-concierge",
+      "name": "Agent · Concierge",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -700,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-sonnet-4-5",
+          "mode": "list",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokensToSample": 800
+        }
+      },
+      "id": "lm-stylist",
+      "name": "Claude · Stylist",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        -300,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"recommendation_html\",\n    \"styling_note\"\n  ],\n  \"properties\": {\n    \"recommendation_html\": {\n      \"type\": \"string\",\n      \"description\": \"Two product recommendations as HTML <ul><li>.\"\n    },\n    \"styling_note\": {\n      \"type\": \"string\"\n    }\n  }\n}"
+      },
+      "id": "parser-stylist",
+      "name": "Parser · Stylist",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -140,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Sprache: {{ $('Parse Order').item.json.locale === 'en' ? 'English' : 'Deutsch' }}.\n\nDie Kund:in hat folgende Artikel bestellt:\n{{ JSON.stringify($('Parse Order').item.json.items) }}\n\nKatalog (Auszug):\n- Nike Air Street Sneaker (169€) — Low-Cut Mesh-Upper, daily\n- Adidas Classic Sneaker (149€) — Gum-Sole Heritage\n- Polo Ralph Lauren Heritage Sneaker (199€) — All-white classic\n- Nike Tech Fleece Hoodie (189€) — heavy basics\n- Streetwear Hoodie Set (139€) — washed black trio\n- Cargo Pants Heavy (159€) — black utility\n- Vintage Wash Jeans (149€) — light wash relaxed\n- Trackpants Black Stripe (109€) — adidas-style\n- Nike Cap Black (45€) — daily piece\n- Iced Watch Green (129€) — statement accessory\n- Silver Ring Solitaire (89€) — minimal\n- Silver Chain Pendant (119€) — layered\n- Ami Paris Heart Tee (159€) — signature red heart\n\nWähle 2 Artikel aus dem Katalog die STILISTISCH zur Bestellung passen (NICHT was bereits bestellt wurde). Begründe in EINEM Satz pro Empfehlung warum es passt.\n\nLiefere strukturiertes JSON: recommendation_html (ein <ul> mit 2 <li>, jeweils <strong>Brand · Produktname · Preis€</strong> — kurzer Grund-Satz), styling_note (eine Zeile Styling-Tipp).",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Du bist Norevan-Stylist:in mit Auge für Streetwear/Menswear-Komposition. Du verkaufst nicht hart — du kuratierst."
+        }
+      },
+      "id": "agent-stylist",
+      "name": "Agent · Stylist",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -300,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-sonnet-4-5",
+          "mode": "list",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {
+          "temperature": 0.3,
+          "maxTokensToSample": 500
+        }
+      },
+      "id": "lm-ops",
+      "name": "Claude · Ops",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        100,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"slack_text\",\n    \"priority\"\n  ],\n  \"properties\": {\n    \"slack_text\": {\n      \"type\": \"string\",\n      \"description\": \"Slack mrkdwn message, multi-line.\"\n    },\n    \"priority\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"high\",\n        \"normal\"\n      ]\n    }\n  }\n}"
+      },
+      "id": "parser-ops",
+      "name": "Parser · Ops",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        260,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Interne Ops-Slack-Nachricht für eine neue Bestellung. Sprache: Deutsch (intern, lockerer Ton — kein Kundenmaterial).\n\nBestellung:\n- ID: {{ $('Parse Order').item.json.orderId }}\n- Kunde: {{ $('Parse Order').item.json.firstName }} {{ $('Parse Order').item.json.lastName }} ({{ $('Parse Order').item.json.email }})\n- Summe: {{ $('Parse Order').item.json.subtotalEUR }} €\n- Artikel: {{ JSON.stringify($('Parse Order').item.json.items) }}\n\nSetze priority = 'high' wenn subtotalCents >= 30000 (= 300€), sonst 'normal'.\n\nLiefere strukturiertes JSON. slack_text knapp halten — max 6 Zeilen, Slack-mrkdwn (*bold*, • bullets). Bei high priority Zeile 1 mit dem Blitz-Emoji ⚡ und Premium-Bestellung beginnen.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Du bist Norevan-Ops. Du schreibst kurze, klare interne Slack-Pings für das Team. Nicht emoji-spammen, max 1 emoji pro Nachricht."
+        }
+      },
+      "id": "agent-ops",
+      "name": "Agent · Ops",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        100,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "v0",
+              "name": "subject",
+              "value": "={{ $('Agent · Concierge').item.json.output.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "v1",
+              "name": "html",
+              "value": "={{ $('Agent · Concierge').item.json.output.body_html + '<hr style=\"border:none;border-top:1px solid #e5dccc;margin:32px 0\"><p style=\"font-family:Georgia,serif;font-style:italic;color:#7a6c54;margin:0 0 8px\">Wir glauben das passt auch zu dir</p>' + $('Agent · Stylist').item.json.output.recommendation_html + '<p style=\"color:#7a6c54;margin-top:16px;font-size:14px\"><em>' + $('Agent · Stylist').item.json.output.styling_note + '</em></p>' }}",
+              "type": "string"
+            },
+            {
+              "id": "v2",
+              "name": "text",
+              "value": "={{ $('Agent · Concierge').item.json.output.body_text }}",
+              "type": "string"
+            },
+            {
+              "id": "v3",
+              "name": "to",
+              "value": "={{ $('Parse Order').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "v4",
+              "name": "slack_text",
+              "value": "={{ $('Agent · Ops').item.json.output.slack_text }}",
+              "type": "string"
+            },
+            {
+              "id": "v5",
+              "name": "priority",
+              "value": "={{ $('Agent · Ops').item.json.output.priority }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "compose-out",
+      "name": "Compose Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        460,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, orderId: $('Parse Order').item.json.orderId, processed: ['concierge', 'stylist', 'ops'], subject: $json.subject, priority: $json.priority }) }}",
+        "options": {}
+      },
+      "id": "resp-order",
+      "name": "Respond to /api/checkout",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        700,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook · /norevan-order": {
+      "main": [
+        [
+          {
+            "node": "Parse Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Order": {
+      "main": [
+        [
+          {
+            "node": "Agent · Concierge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude · Concierge": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent · Concierge",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser · Concierge": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent · Concierge",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent · Concierge": {
+      "main": [
+        [
+          {
+            "node": "Agent · Stylist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude · Stylist": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent · Stylist",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser · Stylist": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent · Stylist",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent · Stylist": {
+      "main": [
+        [
+          {
+            "node": "Agent · Ops",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude · Ops": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent · Ops",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser · Ops": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent · Ops",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent · Ops": {
+      "main": [
+        [
+          {
+            "node": "Compose Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compose Output": {
+      "main": [
+        [
+          {
+            "node": "Respond to /api/checkout",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}

@@ -1,0 +1,28 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build output
+frontend/.next/
+frontend/out/
+
+# SQLite (legacy — now using Supabase)
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+/tmp/
+
+# Vercel
+.vercel

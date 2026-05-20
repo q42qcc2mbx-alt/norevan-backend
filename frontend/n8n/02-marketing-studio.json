@@ -1,0 +1,291 @@
+{
+  "name": "Norevan — Marketing Studio (Trend Scout + Copywriter)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron-9am",
+      "name": "Cron · daily 09:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1100,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "v0",
+              "name": "today",
+              "value": "={{ $now.format('dd.MM.yyyy') }}",
+              "type": "string"
+            },
+            {
+              "id": "v1",
+              "name": "weekday",
+              "value": "={{ $now.format('cccc') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "today",
+      "name": "Today",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-sonnet-4-5",
+          "mode": "list",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {
+          "temperature": 0.8,
+          "maxTokensToSample": 1200
+        }
+      },
+      "id": "lm-scout",
+      "name": "Claude · Trend Scout",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        -620,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"trends\"\n  ],\n  \"properties\": {\n    \"trends\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"headline\",\n          \"why_now\",\n          \"angle_for_norevan\"\n        ],\n        \"properties\": {\n          \"headline\": {\n            \"type\": \"string\"\n          },\n          \"why_now\": {\n            \"type\": \"string\"\n          },\n          \"angle_for_norevan\": {\n            \"type\": \"string\"\n          }\n        }\n      },\n      \"minItems\": 3,\n      \"maxItems\": 3\n    }\n  }\n}"
+      },
+      "id": "parser-trends",
+      "name": "Parser · Trends",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -460,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Heute ist {{ $('Today').item.json.weekday }}, {{ $('Today').item.json.today }}.\n\nDu bist Trend-Scout für Norevan — eine Berliner Streetwear-Boutique die Nike, Adidas, Polo Ralph Lauren, Ami Paris kuratiert. Zielgruppe: 22-35, urban, design-affin, Premium-Streetwear, kein Hypebeast-Massenmarkt.\n\nGib mir 3 Trend-Beobachtungen für heutigen Content:\n- Saisonale Cues (Spätfrühling 2026 — wir sind im Mai)\n- Streetwear/Sneaker News-Hooks die gerade laufen\n- Style-Themen die in unserer Zielgruppe Resonanz haben (Gorpcore, Quiet Luxury, Heritage-Revival, etc.)\n\nFür jeden Trend: headline (1 Zeile), why_now (warum gerade jetzt, 1 Satz), angle_for_norevan (wie WIR das spielen könnten, 1 Satz, konkret und produktbezogen).\n\nKeine generischen Plattitüden. Konkret. Spitz. Aktuell.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Du bist Trend-Scout für eine Premium-Streetwear-Boutique. Du liest Hypebeast, Highsnobiety, GQ Style, SSENSE, MR PORTER, Aimé Leon Dore Drops. Du redest nicht in Marketing-Sprech, sondern wie ein:e gut belesene Stilist:in."
+        }
+      },
+      "id": "agent-scout",
+      "name": "Agent · Trend Scout",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -620,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-sonnet-4-5",
+          "mode": "list",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {
+          "temperature": 0.75,
+          "maxTokensToSample": 1500
+        }
+      },
+      "id": "lm-copy",
+      "name": "Claude · Copywriter",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        -200,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"posts\"\n  ],\n  \"properties\": {\n    \"posts\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"platform\",\n          \"copy\",\n          \"hashtags\",\n          \"cta\"\n        ],\n        \"properties\": {\n          \"platform\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"instagram\",\n              \"x\",\n              \"newsletter\"\n            ]\n          },\n          \"copy\": {\n            \"type\": \"string\"\n          },\n          \"hashtags\": {\n            \"type\": \"string\"\n          },\n          \"cta\": {\n            \"type\": \"string\"\n          }\n        }\n      },\n      \"minItems\": 3,\n      \"maxItems\": 3\n    }\n  }\n}"
+      },
+      "id": "parser-posts",
+      "name": "Parser · Posts",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -40,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Basierend auf den heutigen Trends — schreibe 3 Social-Post-Drafts.\n\nTrends:\n{{ JSON.stringify($('Agent · Trend Scout').item.json.output.trends, null, 2) }}\n\nNorevan-Brand-Voice:\n- Editorial, ruhig, kuratiert (Mr Porter trifft Aimé Leon Dore)\n- DE als Default, kein corporate Sprech\n- Cormorant-italic-Wärme — denk in Sätzen wie: Spätfrühling. Layering wird leiser. Hoodie statt Jacke.\n- Keine Emojis (max 1), keine Caps, keine ALL-CAPS-Headlines\n- CTA dezent: Hier entlang, Im Atelier, Heute neu — nie BUY NOW\n\nLiefere 3 Posts in JSON:\n1. Instagram (3-4 Sätze, atmospherisch, hashtags max 5 relevant)\n2. X/Twitter (1-2 Sätze, scharf, hashtags max 3)\n3. Newsletter-Snippet (1 Absatz für nächsten Drop-Newsletter, persönlich)\n\nJeder Post bezieht sich auf einen anderen Trend.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Du bist Norevan-Copywriter. Du schreibst wie ein:e Stilist:in mit Magazin-Background, nicht wie ein:e Social-Media-Manager:in."
+        }
+      },
+      "id": "agent-copy",
+      "name": "Agent · Copywriter",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "v0",
+              "name": "date",
+              "value": "={{ $('Today').item.json.today }}",
+              "type": "string"
+            },
+            {
+              "id": "v1",
+              "name": "trends",
+              "value": "={{ $('Agent · Trend Scout').item.json.output.trends }}",
+              "type": "array"
+            },
+            {
+              "id": "v2",
+              "name": "posts",
+              "value": "={{ $('Agent · Copywriter').item.json.output.posts }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "compose-brief",
+      "name": "Compose Brief",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        200,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Cron · daily 09:00": {
+      "main": [
+        [
+          {
+            "node": "Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Today": {
+      "main": [
+        [
+          {
+            "node": "Agent · Trend Scout",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude · Trend Scout": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent · Trend Scout",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser · Trends": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent · Trend Scout",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent · Trend Scout": {
+      "main": [
+        [
+          {
+            "node": "Agent · Copywriter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude · Copywriter": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent · Copywriter",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser · Posts": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent · Copywriter",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent · Copywriter": {
+      "main": [
+        [
+          {
+            "node": "Compose Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}

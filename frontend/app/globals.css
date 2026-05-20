@@ -1,0 +1,162 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================================
+   NOREVAN — Colors & Type tokens
+   warm-ivory champagne (light) / warm-charcoal (dark)
+   Display: Cormorant Garamond · Body: Geist Sans · Mono: Geist Mono
+   ============================================================ */
+
+:root {
+  /* Brand neutrals (light = warm ivory champagne) */
+  --background: #f7f3ea;
+  --background-soft: #f1ebde;
+  --foreground: #1c1612;
+  --muted: #7a6f5f;
+  --muted-bg: #efe9da;
+  --border: #e1d8c5;
+  --border-subtle: #ebe3d1;
+  --card: #ffffff;
+  --accent: #1c1612;
+  --accent-foreground: #f7f3ea;
+
+  /* Brand accents — used very sparingly */
+  --gold: #c8a96a;            /* Logo only — never UI accent */
+  --gold-soft: #d9c08a;
+  --ring: #1c1612;
+
+  /* Spacing scale (4-pt) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* Radius — rounded-sm (2px) is the signature */
+  --radius-sm: 2px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-pill: 9999px;
+
+  /* Tracking presets */
+  --tracking-eyebrow: 0.35em;
+  --tracking-button: 0.25em;
+  --tracking-tight: -0.01em;
+}
+
+.dark {
+  --background: #15110d;
+  --background-soft: #1b1714;
+  --foreground: #f3ede1;
+  --muted: #9a8e7a;
+  --muted-bg: #1f1b16;
+  --border: #2a241e;
+  --border-subtle: #221d18;
+  --card: #1a1612;
+  --accent: #f3ede1;
+  --accent-foreground: #15110d;
+  --ring: #f3ede1;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-soft: var(--background-soft);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-bg: var(--muted-bg);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-card: var(--card);
+  --color-gold: var(--gold);
+  --font-sans: var(--font-geist-sans);
+  --font-serif: var(--font-cormorant);
+  --font-mono: var(--font-geist-mono);
+
+  --tracking-eyebrow: 0.35em;
+  --tracking-button: 0.25em;
+  --tracking-tight: -0.01em;
+}
+
+html, body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "ss03";
+}
+
+* { border-color: var(--border); }
+
+/* === Display headlines: Cormorant Garamond, weight 400, tight leading === */
+.headline {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.headline em,
+.headline-italic {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* === Eyebrow — universal pattern, ALL CAPS 11px 0.35em tracking === */
+.eyebrow {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  color: var(--muted);
+}
+
+/* === Mono — counters, tags, [SHOP] markers === */
+.mono {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+}
+
+/* === Body opacity for comfort reading === */
+.body-soft {
+  color: color-mix(in oklab, var(--foreground) 80%, transparent);
+}
+
+/* === Visible focus ring — accessibility (no glow) === */
+:where(a, button, input, textarea, select, [role="button"], [tabindex]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* === Respect reduced-motion === */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* === Lenis === */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }

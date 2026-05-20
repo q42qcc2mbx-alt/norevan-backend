@@ -1,0 +1,286 @@
+{
+  "name": "Norevan — Support Triage (Classifier + Responder)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "norevan-support",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-support",
+      "name": "Webhook · /norevan-support",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1200,
+        0
+      ],
+      "webhookId": "norevan-support"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "v0",
+              "name": "customerEmail",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "v1",
+              "name": "customerName",
+              "value": "={{ $json.body.name || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "v2",
+              "name": "message",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "v3",
+              "name": "orderId",
+              "value": "={{ $json.body.orderId || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "v4",
+              "name": "locale",
+              "value": "={{ $json.body.locale || 'de' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "parse-support",
+      "name": "Parse Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -960,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-sonnet-4-5",
+          "mode": "list",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {
+          "temperature": 0.2,
+          "maxTokensToSample": 500
+        }
+      },
+      "id": "lm-cls",
+      "name": "Claude · Classifier",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        -680,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"category\",\n    \"urgency\",\n    \"requires_human\",\n    \"summary\"\n  ],\n  \"properties\": {\n    \"category\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"shipping\",\n        \"sizing\",\n        \"returns\",\n        \"product_info\",\n        \"payment\",\n        \"authentication\",\n        \"complaint\",\n        \"general\"\n      ]\n    },\n    \"urgency\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"low\",\n        \"medium\",\n        \"high\"\n      ]\n    },\n    \"requires_human\": {\n      \"type\": \"boolean\"\n    },\n    \"summary\": {\n      \"type\": \"string\"\n    }\n  }\n}"
+      },
+      "id": "parser-cls",
+      "name": "Parser · Classifier",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -520,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Klassifiziere folgende Kundenanfrage an Norevan (Premium-Streetwear-Boutique).\n\nKunde: {{ $('Parse Message').item.json.customerName }} <{{ $('Parse Message').item.json.customerEmail }}>\nBestellnummer (falls vorhanden): {{ $('Parse Message').item.json.orderId }}\n\nNachricht:\n{{ $('Parse Message').item.json.message }}\n\nLiefere JSON:\n- category: eine der vorgegebenen Kategorien\n- urgency: low (allgemein, keine Eile) / medium (zeitsensibel aber nicht kritisch) / high (Reklamation, Zahlungsproblem, verlorenes Paket, wütende:r Kund:in)\n- requires_human: true wenn Beschwerde, rechtliche Frage, Auth/Echtheit-Streit, oder etwas wo wir individuell entscheiden müssen — sonst false\n- summary: 1-Satz-Zusammenfassung der Anfrage",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Du bist Support-Triage. Du bist konservativ — im Zweifel requires_human=true."
+        }
+      },
+      "id": "agent-cls",
+      "name": "Agent · Classifier",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -680,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-sonnet-4-5",
+          "mode": "list",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {
+          "temperature": 0.5,
+          "maxTokensToSample": 1200
+        }
+      },
+      "id": "lm-resp",
+      "name": "Claude · Responder",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        -280,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"draft_reply\",\n    \"confidence\"\n  ],\n  \"properties\": {\n    \"draft_reply\": {\n      \"type\": \"string\"\n    },\n    \"confidence\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"high\",\n        \"medium\",\n        \"low\"\n      ]\n    }\n  }\n}"
+      },
+      "id": "parser-resp",
+      "name": "Parser · Responder",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -120,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Verfasse einen Antwort-Entwurf an Kund:in. Sprache: {{ $('Parse Message').item.json.locale === 'en' ? 'English' : 'Deutsch' }}.\n\nKlassifikation:\n- Kategorie: {{ $('Agent · Classifier').item.json.output.category }}\n- Dringlichkeit: {{ $('Agent · Classifier').item.json.output.urgency }}\n- Zusammenfassung: {{ $('Agent · Classifier').item.json.output.summary }}\n\nOriginalanfrage von {{ $('Parse Message').item.json.customerName }}:\n{{ $('Parse Message').item.json.message }}\n\nNorevan-Fakten die du benutzen kannst:\n- Versand: 2-4 Werktage in DE, kostenfrei ab 100€, ansonsten 4,90€\n- Retoure: 30 Tage, ungetragen, mit Etikett — kostenfrei in DE\n- Echtheit: Alle Stücke direkt vom Brand oder von verifizierten Resellern\n- Größen: Sneaker EU 39-46, Apparel S-XL\n- Erreichbarkeit: hello@norevan.com, Mo-Fr 10-18 Uhr CET\n\nWenn die Klassifikation requires_human=true sagt: schreibe trotzdem einen Entwurf, aber confidence=low und signalisiere im Text dass ein Mensch nochmal drauf schaut.\n\nTon: warm, editorial, knapp. Du-Form bei DE, first-name bei EN. Kein Marketing-Sprech, keine Standardfloskeln. Beginne NICHT mit Vielen Dank für deine Anfrage — sei direkter.\n\nLiefere JSON: draft_reply (Plain-Text, mit Zeilenumbrüchen, ohne Signatur-Block — die fügen wir an), confidence.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Du bist Norevan-Support. Du antwortest wie ein:e Mitarbeiter:in einer kleinen Berliner Boutique — persönlich, knapp, ehrlich. Keine Standardphrasen. Keine Caps."
+        }
+      },
+      "id": "agent-resp",
+      "name": "Agent · Responder",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -280,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, classification: $('Agent · Classifier').item.json.output, draft_reply: $('Agent · Responder').item.json.output.draft_reply, confidence: $('Agent · Responder').item.json.output.confidence, requires_human: $('Agent · Classifier').item.json.output.requires_human }) }}",
+        "options": {}
+      },
+      "id": "resp-sup",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        120,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook · /norevan-support": {
+      "main": [
+        [
+          {
+            "node": "Parse Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Message": {
+      "main": [
+        [
+          {
+            "node": "Agent · Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude · Classifier": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent · Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser · Classifier": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent · Classifier",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent · Classifier": {
+      "main": [
+        [
+          {
+            "node": "Agent · Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude · Responder": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent · Responder",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser · Responder": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent · Responder",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent · Responder": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}

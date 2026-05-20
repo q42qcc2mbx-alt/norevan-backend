@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Interactive Wallpapers — Five Shaders</title>
+<style>
+  :root {
+    --bg: #06050d;
+    --fg: #e8e7f0;
+    --muted: #7a7990;
+    --line: #1d1c2c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; min-height: 100%; background: var(--bg); color: var(--fg); font-family: ui-sans-serif, -apple-system, system-ui, sans-serif; }
+  header { padding: 64px 36px 24px; border-bottom: 1px solid var(--line); }
+  h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-style: italic; font-size: clamp(2rem, 5vw, 3.75rem); letter-spacing: -0.02em; line-height: 1.05; margin: 0; }
+  .eyebrow { font-family: ui-monospace, Menlo, monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.35em; color: var(--muted); margin-bottom: 14px; }
+  p { color: var(--muted); max-width: 560px; line-height: 1.65; margin: 18px 0 0; font-size: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 18px; padding: 36px; }
+  .card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    aspect-ratio: 16 / 10;
+    background: #000;
+    transition: border-color .2s ease, transform .3s ease;
+  }
+  .card:hover { border-color: rgba(255,255,255,.3); transform: translateY(-2px); }
+  .card iframe {
+    border: 0;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    transform: scale(1);
+    transition: transform .4s ease;
+  }
+  .card:hover iframe { transform: scale(1.04); }
+  .card a {
+    position: absolute; inset: 0;
+    text-decoration: none; color: inherit;
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 18px 20px;
+    background: linear-gradient(to bottom, rgba(0,0,0,.4) 0%, transparent 35%, transparent 65%, rgba(0,0,0,.7) 100%);
+    z-index: 2;
+  }
+  .card .num { font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: 0.25em; color: rgba(255,255,255,.7); }
+  .card .title { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-weight: 400; font-size: 22px; line-height: 1.05; }
+  .card .meta { font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: rgba(255,255,255,.55); }
+  footer { padding: 36px; border-top: 1px solid var(--line); font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Interactive Shader Wallpapers</div>
+  <h1>Five fidget-friendly canvases.</h1>
+  <p>WebGL2 fragment shaders that react to your mouse and clicks. Built for a future operating system: dark, luminous, slightly playful. Open one full-screen and just move around.</p>
+</header>
+
+<div class="grid">
+  <div class="card">
+    <iframe src="01-prism.html" loading="lazy"></iframe>
+    <a href="01-prism.html">
+      <span class="num">01 / 05</span>
+      <div>
+        <div class="title">Prism — Chromatic plasma</div>
+        <div class="meta">Move · Click for shockwave</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="card">
+    <iframe src="02-voronoi.html" loading="lazy"></iframe>
+    <a href="02-voronoi.html">
+      <span class="num">02 / 05</span>
+      <div>
+        <div class="title">Voronoi — Crystalline cells</div>
+        <div class="meta">Click pins a sonar seed</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="card">
+    <iframe src="03-metaballs.html" loading="lazy"></iframe>
+    <a href="03-metaballs.html">
+      <span class="num">03 / 05</span>
+      <div>
+        <div class="title">Metaballs — Liquid mercury</div>
+        <div class="meta">Click spawns a drifting orb</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="card">
+    <iframe src="04-curl-flow.html" loading="lazy"></iframe>
+    <a href="04-curl-flow.html">
+      <span class="num">04 / 05</span>
+      <div>
+        <div class="title">Curl Flow — Streaming field</div>
+        <div class="meta">Click summons a vortex</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="card">
+    <iframe src="05-neon-grid.html" loading="lazy"></iframe>
+    <a href="05-neon-grid.html">
+      <span class="num">05 / 05</span>
+      <div>
+        <div class="title">Neon Grid — Wireframe topo</div>
+        <div class="meta">Click sends a sine ripple</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<footer>
+  Vanilla WebGL2 — no dependencies · Each wallpaper is one self-contained HTML file under /public/wallpapers/
+</footer>
+</body>
+</html>
