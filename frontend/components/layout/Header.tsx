@@ -170,13 +170,6 @@ export function Header({
                 </span>
               )}
             </Link>
-            <Link
-              href={`/${locale}/account`}
-              aria-label={locale === "de" ? "Konto" : "Account"}
-              className="hidden h-9 w-9 items-center justify-center rounded-full border border-border transition-colors hover:border-foreground sm:inline-flex"
-            >
-              <UserIcon />
-            </Link>
             <ThemeToggle label={dict.theme.toggle} />
             <CartIcon ariaLabel={dict.nav.cart} />
 
@@ -287,14 +280,6 @@ export function Header({
                       {wishlistCount}
                     </span>
                   )}
-                </Link>
-                <Link
-                  href={`/${locale}/account`}
-                  onClick={() => setMobileOpen(false)}
-                  className="mono flex items-center gap-3 px-3 py-2.5 text-sm text-foreground/50 transition-colors hover:text-foreground uppercase tracking-widest"
-                >
-                  <UserIcon />
-                  {locale === "de" ? "Konto" : "Account"}
                 </Link>
               </div>
 
