@@ -8,6 +8,7 @@ import type { Product } from "@/lib/products";
 import type { Locale } from "@/lib/i18n/config";
 import { formatPrice } from "@/lib/format";
 import { cn } from "@/lib/cn";
+import { useWishlist } from "@/lib/wishlist-store";
 
 export function ProductCard({
   product,
@@ -21,6 +22,8 @@ export function ProductCard({
   className?: string;
 }) {
   const [hover, setHover] = useState(false);
+  const { toggle, has } = useWishlist();
+  const wishlisted = has(product.slug);
   const primary = product.images[0];
   const secondary = product.images[1] ?? primary;
 
@@ -31,6 +34,7 @@ export function ProductCard({
       transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
       className={cn("group relative flex flex-col", className)}
     >
+      <div className="relative">
       <Link
         href={`/${locale}/shop/${product.slug}`}
         className="relative block aspect-[3/4] overflow-hidden rounded-sm bg-muted-bg"
@@ -64,6 +68,32 @@ export function ProductCard({
           />
         </motion.div>
       </Link>
+      <motion.button
+        type="button"
+        onClick={() =>
+          toggle({
+            slug: product.slug,
+            name: product.name,
+            priceCents: product.priceCents,
+            image: product.images[0].src,
+            brand: product.brand,
+          })
+        }
+        whileTap={{ scale: 0.9 }}
+        aria-label={wishlisted ? (locale === "de" ? "Von Wunschliste entfernen" : "Remove from wishlist") : (locale === "de" ? "Zur Wunschliste" : "Add to wishlist")}
+        aria-pressed={wishlisted}
+        className={cn(
+          "absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full border backdrop-blur-sm transition-colors",
+          wishlisted
+            ? "border-foreground bg-foreground text-background"
+            : "border-border bg-background/70 text-foreground hover:border-foreground",
+        )}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill={wishlisted ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+        </svg>
+      </motion.button>
+      </div>
 
       <div className="flex items-start justify-between gap-3 pt-4">
         <div className="min-w-0 flex-1">

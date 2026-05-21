@@ -1,0 +1,163 @@
+- generic [ref=e1]:
+  - link "Zum Inhalt springen" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e3]:
+    - banner [ref=e147]:
+      - generic [ref=e148]:
+        - link "Norevan" [ref=e149] [cursor=pointer]:
+          - /url: /de
+          - img "Norevan" [ref=e150]
+        - navigation [ref=e151]:
+          - link "Shop" [ref=e152] [cursor=pointer]:
+            - /url: /de/shop
+          - link "Lookbook" [ref=e153] [cursor=pointer]:
+            - /url: /de/lookbook
+          - link "Kategorien" [ref=e154] [cursor=pointer]:
+            - /url: /de#categories
+        - generic [ref=e155]:
+          - group "Sprache" [ref=e156]:
+            - button "DE" [ref=e157]
+            - button "EN" [ref=e158]
+          - button "Suchen" [ref=e159]:
+            - img [ref=e160]
+          - button "Wunschliste" [ref=e163]:
+            - img [ref=e164]
+          - link "Anmelden" [ref=e166] [cursor=pointer]:
+            - /url: /de/login
+            - img [ref=e167]
+          - button "Design wechseln" [ref=e170]:
+            - img [ref=e191]
+          - button "Warenkorb" [ref=e174]:
+            - img [ref=e175]
+    - generic:
+      - main:
+        - generic [ref=e5]:
+          - generic [ref=e6]:
+            - button "Design wechseln" [active] [ref=e8]:
+              - img [ref=e194]
+            - generic [ref=e13]:
+              - generic [ref=e14]:
+                - img "Norevan" [ref=e16]
+                - text: Mitglieder
+                - heading "Willkommen zurück." [level=1] [ref=e17]
+              - generic [ref=e18]:
+                - button "Mit Google anmelden" [ref=e19]:
+                  - img [ref=e20]
+                  - text: Mit Google anmelden
+                - button "Mit Apple anmelden" [ref=e25]:
+                  - img [ref=e26]
+                  - text: Mit Apple anmelden
+                - generic [ref=e30]: oder
+                - generic [ref=e32]:
+                  - generic [ref=e33]: E-Mail
+                  - textbox "you@example.com" [ref=e34]
+                - generic [ref=e35]:
+                  - generic [ref=e36]: Passwort
+                  - generic [ref=e37]:
+                    - textbox "••••••••" [ref=e38]
+                    - button "Passwort anzeigen" [ref=e39]:
+                      - img [ref=e40]
+                - button "Passwort vergessen?" [ref=e43]
+                - button "Anmelden" [disabled] [ref=e44]
+                - generic [ref=e47]: oder
+                - button "Als Gast fortfahren" [ref=e49]
+                - paragraph [ref=e50]:
+                  - text: Neu hier?
+                  - button "Konto erstellen →" [ref=e51]
+          - generic [ref=e52]:
+            - generic [ref=e54]:
+              - link "Norevan" [ref=e55] [cursor=pointer]:
+                - /url: /de
+                - img "Norevan" [ref=e56]
+              - paragraph [ref=e57]: Berlin · Premium Streetwear
+            - generic [ref=e58]:
+              - text: Seit 2024
+              - heading "Streetwear, ohne Kompromisse." [level=2] [ref=e59]:
+                - text: Streetwear,
+                - emphasis [ref=e60]: ohne Kompromisse.
+              - paragraph [ref=e61]: Handverlesene Sneaker, Streetwear und Accessoires — kuratiert in Berlin, verschickt weltweit. Jedes Stück erzählt eine Geschichte.
+              - generic [ref=e62]:
+                - generic [ref=e65]:
+                  - generic [ref=e66]: Exklusive Drops
+                  - generic [ref=e67]: Früher Zugang zu limitierten Kollektionen
+                - generic [ref=e70]:
+                  - generic [ref=e71]: Kostenloser Versand
+                  - generic [ref=e72]: Innerhalb Deutschlands ab 120 €
+                - generic [ref=e75]:
+                  - generic [ref=e76]: Echtheit garantiert
+                  - generic [ref=e77]: Jedes Produkt handgeprüft
+                - generic [ref=e80]:
+                  - generic [ref=e81]: Kuratiert in Berlin
+                  - generic [ref=e82]: Sorgfältig ausgewählte Marken weltweit
+              - paragraph [ref=e84]: Wir prüfen jedes Produkt auf Echtheit, Verarbeitung und Charakter — bevor es deine Tür erreicht.
+            - paragraph [ref=e86]: © 2024 Norevan UG · Berlin, Deutschland
+    - contentinfo [ref=e87]:
+      - generic [ref=e88]:
+        - generic [ref=e89]:
+          - link "Norevan" [ref=e90] [cursor=pointer]:
+            - /url: /de
+            - text: Nor
+            - emphasis [ref=e91]: e
+            - text: van
+          - generic [ref=e92]: Berlin · seit 2026
+        - navigation "Footer-Navigation" [ref=e93]:
+          - generic [ref=e94]:
+            - generic [ref=e95]: Shop
+            - list [ref=e96]:
+              - listitem [ref=e97]:
+                - link "Alle Produkte" [ref=e98] [cursor=pointer]:
+                  - /url: /de/shop
+              - listitem [ref=e99]:
+                - link "Sneaker" [ref=e100] [cursor=pointer]:
+                  - /url: /de/shop?cat=sneaker
+              - listitem [ref=e101]:
+                - link "Streetwear" [ref=e102] [cursor=pointer]:
+                  - /url: /de/shop?cat=streetwear
+              - listitem [ref=e103]:
+                - link "Hosen & Jeans" [ref=e104] [cursor=pointer]:
+                  - /url: /de/shop?cat=hosen-jeans
+              - listitem [ref=e105]:
+                - link "Schmuck" [ref=e106] [cursor=pointer]:
+                  - /url: /de/shop?cat=schmuck
+          - generic [ref=e107]:
+            - generic [ref=e108]: Atelier
+            - list [ref=e109]:
+              - listitem [ref=e110]:
+                - link "Lookbook" [ref=e111] [cursor=pointer]:
+                  - /url: /de/lookbook
+              - listitem [ref=e112]:
+                - link "Marken" [ref=e113] [cursor=pointer]:
+                  - /url: /de/shop
+              - listitem [ref=e114]:
+                - link "Kontakt" [ref=e115] [cursor=pointer]:
+                  - /url: mailto:hello@norevan.shop
+          - generic [ref=e116]:
+            - generic [ref=e117]: Konto
+            - list [ref=e118]:
+              - listitem [ref=e119]:
+                - link "Anmelden" [ref=e120] [cursor=pointer]:
+                  - /url: /de/login
+              - listitem [ref=e121]:
+                - link "Warenkorb" [ref=e122] [cursor=pointer]:
+                  - /url: /de/cart
+          - generic [ref=e123]:
+            - generic [ref=e124]: Rechtliches
+            - list [ref=e125]:
+              - listitem [ref=e126]:
+                - link "Impressum" [ref=e127] [cursor=pointer]:
+                  - /url: /de/legal/impressum
+              - listitem [ref=e128]:
+                - link "AGB" [ref=e129] [cursor=pointer]:
+                  - /url: /de/legal/agb
+              - listitem [ref=e130]:
+                - link "Datenschutz" [ref=e131] [cursor=pointer]:
+                  - /url: /de/legal/datenschutz
+              - listitem [ref=e132]:
+                - link "Widerruf" [ref=e133] [cursor=pointer]:
+                  - /url: /de/legal/widerruf
+        - generic [ref=e134]:
+          - generic [ref=e135]: © 2026 Norevan UG. Alle Rechte vorbehalten.
+          - generic [ref=e136]: Made with code & coffee.
+  - button "Open Next.js Dev Tools" [ref=e142] [cursor=pointer]:
+    - img [ref=e143]
+  - alert [ref=e146]

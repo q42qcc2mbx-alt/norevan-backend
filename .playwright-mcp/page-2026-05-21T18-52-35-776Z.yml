@@ -1,0 +1,44 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - progressbar [ref=e6]
+      - main [ref=e14]:
+        - generic [ref=e15]:
+          - img [ref=e18]
+          - generic [ref=e23]:
+            - heading "Anmeldung" [level=1] [ref=e24]
+            - generic [ref=e25]: Melden Sie sich mit Ihrem Google-Konto an, um die Google Cloud Platform zu nutzen. Dieses Konto ist dann für andere Google-Apps im Browser verfügbar.
+        - generic [ref=e28]:
+          - generic [ref=e33]:
+            - generic [ref=e38]:
+              - textbox "E-Mail oder Telefonnummer" [active] [ref=e39]
+              - generic: E-Mail oder Telefonnummer
+            - button "E-Mail-Adresse vergessen?" [ref=e43] [cursor=pointer]
+          - generic [ref=e46]:
+            - text: Nicht Ihr Computer? Dann können Sie den Gastmodus verwenden, um sich privat anzumelden.
+            - link "Weitere Informationen zur Verwendung des Gastmodus (extern, wird in einem neuen Fenster geöffnet)" [ref=e47] [cursor=pointer]:
+              - /url: https://support.google.com/chrome/answer/6130773?hl=de
+              - text: Weitere Informationen zur Verwendung des Gastmodus
+        - generic [ref=e49]:
+          - button "Weiter" [ref=e53]:
+            - generic [ref=e56]: Weiter
+          - button "Konto erstellen" [ref=e61]:
+            - generic [ref=e64]: Konto erstellen
+    - contentinfo [ref=e68]:
+      - combobox "Sprache ändern Deutsch" [ref=e72] [cursor=pointer]:
+        - generic:
+          - generic: Deutsch
+        - generic:
+          - img
+      - list [ref=e74]:
+        - listitem [ref=e75]:
+          - link "Hilfe" [ref=e76] [cursor=pointer]:
+            - /url: https://support.google.com/accounts?hl=de&p=account_iph
+        - listitem [ref=e77]:
+          - link "Datenschutz" [ref=e78] [cursor=pointer]:
+            - /url: https://accounts.google.com/TOS?loc=DE&hl=de&privacy=true
+        - listitem [ref=e79]:
+          - link "Nutzungsbedingungen" [ref=e80] [cursor=pointer]:
+            - /url: https://accounts.google.com/TOS?loc=DE&hl=de
+  - iframe [ref=e81]:
+    

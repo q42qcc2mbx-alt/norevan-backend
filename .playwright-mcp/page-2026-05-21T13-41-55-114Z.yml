@@ -1,0 +1,133 @@
+- generic [active] [ref=e1]:
+  - link "Zum Inhalt springen" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e3]:
+    - generic:
+      - main:
+        - generic [ref=e5]:
+          - generic [ref=e7]:
+            - generic [ref=e8]:
+              - img "Norevan" [ref=e10]
+              - text: Mitglieder
+              - heading "Willkommen zurück." [level=1] [ref=e11]
+            - generic [ref=e12]:
+              - button "Mit Google anmelden" [ref=e13]:
+                - img [ref=e14]
+                - text: Mit Google anmelden
+              - button "Mit Apple anmelden" [ref=e19]:
+                - img [ref=e20]
+                - text: Mit Apple anmelden
+              - generic [ref=e24]: oder
+              - generic [ref=e26]:
+                - generic [ref=e27]: E-Mail
+                - textbox "you@example.com" [ref=e28]
+              - generic [ref=e29]:
+                - generic [ref=e30]: Passwort
+                - generic [ref=e31]:
+                  - textbox "••••••••" [ref=e32]
+                  - button "Passwort anzeigen" [ref=e33]:
+                    - img [ref=e34]
+              - button "Passwort vergessen?" [ref=e37]
+              - button "Anmelden" [disabled] [ref=e38]
+              - generic [ref=e41]: oder
+              - button "Als Gast fortfahren" [ref=e43]
+              - paragraph [ref=e44]:
+                - text: Neu hier?
+                - button "Konto erstellen →" [ref=e45]
+          - generic [ref=e46]:
+            - generic [ref=e48]:
+              - link "Norevan" [ref=e49] [cursor=pointer]:
+                - /url: /de
+                - img "Norevan" [ref=e50]
+              - paragraph [ref=e51]: Berlin · Premium Streetwear
+            - generic [ref=e52]:
+              - text: Seit 2024
+              - heading "Streetwear, ohne Kompromisse." [level=2] [ref=e53]:
+                - text: Streetwear,
+                - emphasis [ref=e54]: ohne Kompromisse.
+              - paragraph [ref=e55]: Handverlesene Sneaker, Streetwear und Accessoires — kuratiert in Berlin, verschickt weltweit. Jedes Stück erzählt eine Geschichte.
+              - generic [ref=e56]:
+                - generic [ref=e59]:
+                  - generic [ref=e60]: Exklusive Drops
+                  - generic [ref=e61]: Früher Zugang zu limitierten Kollektionen
+                - generic [ref=e64]:
+                  - generic [ref=e65]: Kostenloser Versand
+                  - generic [ref=e66]: Innerhalb Deutschlands ab 120 €
+                - generic [ref=e69]:
+                  - generic [ref=e70]: Echtheit garantiert
+                  - generic [ref=e71]: Jedes Produkt handgeprüft
+                - generic [ref=e74]:
+                  - generic [ref=e75]: Kuratiert in Berlin
+                  - generic [ref=e76]: Sorgfältig ausgewählte Marken weltweit
+              - paragraph [ref=e78]: Wir prüfen jedes Produkt auf Echtheit, Verarbeitung und Charakter — bevor es deine Tür erreicht.
+            - paragraph [ref=e80]: © 2024 Norevan UG · Berlin, Deutschland
+    - contentinfo [ref=e81]:
+      - generic [ref=e82]:
+        - generic [ref=e83]:
+          - link "Norevan" [ref=e84] [cursor=pointer]:
+            - /url: /de
+            - text: Nor
+            - emphasis [ref=e85]: e
+            - text: van
+          - generic [ref=e86]: Berlin · seit 2026
+        - navigation "Footer-Navigation" [ref=e87]:
+          - generic [ref=e88]:
+            - generic [ref=e89]: Shop
+            - list [ref=e90]:
+              - listitem [ref=e91]:
+                - link "Alle Produkte" [ref=e92] [cursor=pointer]:
+                  - /url: /de/shop
+              - listitem [ref=e93]:
+                - link "Sneaker" [ref=e94] [cursor=pointer]:
+                  - /url: /de/shop?cat=sneaker
+              - listitem [ref=e95]:
+                - link "Streetwear" [ref=e96] [cursor=pointer]:
+                  - /url: /de/shop?cat=streetwear
+              - listitem [ref=e97]:
+                - link "Hosen & Jeans" [ref=e98] [cursor=pointer]:
+                  - /url: /de/shop?cat=hosen-jeans
+              - listitem [ref=e99]:
+                - link "Schmuck" [ref=e100] [cursor=pointer]:
+                  - /url: /de/shop?cat=schmuck
+          - generic [ref=e101]:
+            - generic [ref=e102]: Atelier
+            - list [ref=e103]:
+              - listitem [ref=e104]:
+                - link "Lookbook" [ref=e105] [cursor=pointer]:
+                  - /url: /de/lookbook
+              - listitem [ref=e106]:
+                - link "Marken" [ref=e107] [cursor=pointer]:
+                  - /url: /de/shop
+              - listitem [ref=e108]:
+                - link "Kontakt" [ref=e109] [cursor=pointer]:
+                  - /url: mailto:hello@norevan.shop
+          - generic [ref=e110]:
+            - generic [ref=e111]: Konto
+            - list [ref=e112]:
+              - listitem [ref=e113]:
+                - link "Anmelden" [ref=e114] [cursor=pointer]:
+                  - /url: /de/login
+              - listitem [ref=e115]:
+                - link "Warenkorb" [ref=e116] [cursor=pointer]:
+                  - /url: /de/cart
+          - generic [ref=e117]:
+            - generic [ref=e118]: Rechtliches
+            - list [ref=e119]:
+              - listitem [ref=e120]:
+                - link "Impressum" [ref=e121] [cursor=pointer]:
+                  - /url: /de/legal/impressum
+              - listitem [ref=e122]:
+                - link "AGB" [ref=e123] [cursor=pointer]:
+                  - /url: /de/legal/agb
+              - listitem [ref=e124]:
+                - link "Datenschutz" [ref=e125] [cursor=pointer]:
+                  - /url: /de/legal/datenschutz
+              - listitem [ref=e126]:
+                - link "Widerruf" [ref=e127] [cursor=pointer]:
+                  - /url: /de/legal/widerruf
+        - generic [ref=e128]:
+          - generic [ref=e129]: © 2026 Norevan UG. Alle Rechte vorbehalten.
+          - generic [ref=e130]: Made with code & coffee.
+  - button "Open Next.js Dev Tools" [ref=e136] [cursor=pointer]:
+    - img [ref=e137]
+  - alert [ref=e140]

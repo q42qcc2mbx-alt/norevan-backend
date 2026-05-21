@@ -7,6 +7,7 @@ import type { Locale } from "@/lib/i18n/config";
 export function NewsletterSection({ locale }: { locale: Locale }) {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const t = {
     de: {
@@ -31,9 +32,20 @@ export function NewsletterSection({ locale }: { locale: Locale }) {
     },
   }[locale];
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email) return;
+    setLoading(true);
+    try {
+      await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+    } catch {
+      // silent — UX shows success regardless to avoid email harvesting signals
+    }
+    setLoading(false);
     setSubmitted(true);
   }
 
@@ -74,11 +86,11 @@ export function NewsletterSection({ locale }: { locale: Locale }) {
             />
             <motion.button
               type="submit"
+              disabled={loading}
               whileTap={{ scale: 0.97 }}
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 font-mono text-[11px] uppercase tracking-[0.25em] text-background transition-opacity hover:opacity-90"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 font-mono text-[11px] uppercase tracking-[0.25em] text-background transition-opacity hover:opacity-90 disabled:opacity-50"
             >
-              {t.cta}
-              <span aria-hidden>→</span>
+              {loading ? "…" : <>{t.cta}<span aria-hidden>→</span></>}
             </motion.button>
           </form>
         ) : (

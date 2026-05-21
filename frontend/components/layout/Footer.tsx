@@ -35,8 +35,10 @@ export function Footer({
     {
       heading: isDe ? "Konto" : "Account",
       links: [
+        { label: isDe ? "Mein Konto" : "My account", href: `/${locale}/account` },
         { label: isDe ? "Anmelden" : "Sign in", href: `/${locale}/login` },
         { label: isDe ? "Warenkorb" : "Cart", href: `/${locale}/cart` },
+        { label: isDe ? "Wunschliste" : "Wishlist", href: `/${locale}/wishlist` },
       ],
     },
     {

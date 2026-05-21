@@ -12,6 +12,7 @@ import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries/de";
 import type { Product } from "@/lib/products";
 import { cn } from "@/lib/cn";
+import { useWishlist } from "@/lib/wishlist-store";
 
 function SearchIcon() {
   return (
@@ -75,6 +76,8 @@ export function Header({
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { items: wishlistItems } = useWishlist();
+  const wishlistCount = wishlistItems.length;
   const { scrollY } = useScroll();
   useMotionValueEvent(scrollY, "change", (v) => setScrolled(v > 12));
 
@@ -155,16 +158,21 @@ export function Header({
             >
               <SearchIcon />
             </button>
-            <button
-              type="button"
+            <Link
+              href={`/${locale}/wishlist`}
               aria-label={locale === "de" ? "Wunschliste" : "Wishlist"}
-              className="hidden h-9 w-9 items-center justify-center rounded-full border border-border transition-colors hover:border-foreground sm:inline-flex"
+              className="relative hidden h-9 w-9 items-center justify-center rounded-full border border-border transition-colors hover:border-foreground sm:inline-flex"
             >
               <HeartIcon />
-            </button>
+              {wishlistCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-foreground font-mono text-[9px] text-background">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
             <Link
-              href={`/${locale}/login`}
-              aria-label={dict.login.cta}
+              href={`/${locale}/account`}
+              aria-label={locale === "de" ? "Konto" : "Account"}
               className="hidden h-9 w-9 items-center justify-center rounded-full border border-border transition-colors hover:border-foreground sm:inline-flex"
             >
               <UserIcon />
@@ -267,20 +275,26 @@ export function Header({
                   <SearchIcon />
                   {locale === "de" ? "Suchen" : "Search"}
                 </button>
-                <button
-                  type="button"
+                <Link
+                  href={`/${locale}/wishlist`}
+                  onClick={() => setMobileOpen(false)}
                   className="mono flex items-center gap-3 px-3 py-2.5 text-sm text-foreground/50 transition-colors hover:text-foreground uppercase tracking-widest"
                 >
                   <HeartIcon />
                   {locale === "de" ? "Wunschliste" : "Wishlist"}
-                </button>
+                  {wishlistCount > 0 && (
+                    <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-foreground font-mono text-[9px] text-background">
+                      {wishlistCount}
+                    </span>
+                  )}
+                </Link>
                 <Link
-                  href={`/${locale}/login`}
+                  href={`/${locale}/account`}
                   onClick={() => setMobileOpen(false)}
                   className="mono flex items-center gap-3 px-3 py-2.5 text-sm text-foreground/50 transition-colors hover:text-foreground uppercase tracking-widest"
                 >
                   <UserIcon />
-                  {locale === "de" ? "Anmelden" : "Sign in"}
+                  {locale === "de" ? "Konto" : "Account"}
                 </Link>
               </div>
 
