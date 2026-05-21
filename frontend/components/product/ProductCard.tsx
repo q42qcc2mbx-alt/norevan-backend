@@ -95,19 +95,19 @@ export function ProductCard({
       </motion.button>
       </div>
 
-      <div className="flex items-start justify-between gap-3 pt-4">
+      <div className="flex items-start justify-between gap-2 pt-2 md:gap-3 md:pt-4">
         <div className="min-w-0 flex-1">
-          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+          <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-muted md:text-[10px] md:tracking-[0.25em]">
             {product.brand.replace(/-/g, " ")}
           </span>
           <Link
             href={`/${locale}/shop/${product.slug}`}
-            className="mt-1 block truncate text-sm font-medium text-foreground hover:underline"
+            className="mt-0.5 block truncate text-xs font-medium text-foreground hover:underline md:mt-1 md:text-sm"
           >
             {product.name}
           </Link>
         </div>
-        <span className="whitespace-nowrap pt-4 text-sm tabular-nums text-foreground">
+        <span className="whitespace-nowrap pt-3 text-xs tabular-nums text-foreground md:pt-4 md:text-sm">
           {formatPrice(product.priceCents, locale)}
         </span>
       </div>
@@ -115,7 +115,7 @@ export function ProductCard({
       <Link
         href={`/${locale}/shop/${product.slug}`}
         className={cn(
-          "mt-2 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.25em] text-muted transition-all duration-300",
+          "mt-1 hidden items-center gap-2 font-mono text-[10px] uppercase tracking-[0.25em] text-muted transition-all duration-300 md:inline-flex",
           hover ? "translate-x-1 text-foreground" : "",
         )}
       >

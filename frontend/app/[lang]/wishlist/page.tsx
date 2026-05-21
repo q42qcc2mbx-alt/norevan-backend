@@ -37,7 +37,7 @@ export default async function WishlistPage({
   const dict = await getDictionary(lang);
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-16 md:px-10 md:py-24">
+    <div className="mx-auto max-w-7xl px-4 py-8 md:px-10 md:py-24">
       <Reveal>
         <span className="eyebrow">
           {lang === "de" ? "Gespeichert" : "Saved"}

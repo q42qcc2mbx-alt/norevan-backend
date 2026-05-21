@@ -84,12 +84,12 @@ export function ShopBrowser({
         </motion.div>
       )}
 
-      <div className="mb-8 flex flex-wrap items-center gap-2">
+      <div className="mb-5 flex flex-wrap items-center gap-1.5 md:mb-8 md:gap-2">
         <button
           type="button"
           onClick={() => setActive(new Set())}
           className={cn(
-            "rounded-full border border-border px-4 py-1.5 text-xs font-medium transition-colors",
+            "rounded-full border border-border px-3 py-1 text-[11px] font-medium transition-colors md:px-4 md:py-1.5 md:text-xs",
             active.size === 0
               ? "bg-accent text-accent-foreground"
               : "hover:bg-muted-bg",
@@ -106,7 +106,7 @@ export function ShopBrowser({
               whileTap={{ scale: 0.96 }}
               onClick={() => toggle(cat)}
               className={cn(
-                "rounded-full border border-border px-4 py-1.5 text-xs font-medium transition-colors",
+                "rounded-full border border-border px-3 py-1 text-[11px] font-medium transition-colors md:px-4 md:py-1.5 md:text-xs",
                 on
                   ? "bg-accent text-accent-foreground"
                   : "hover:bg-muted-bg",

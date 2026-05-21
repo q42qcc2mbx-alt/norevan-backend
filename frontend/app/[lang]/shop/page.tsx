@@ -50,7 +50,7 @@ async function ShopContent({
           className="mt-4 font-serif"
           style={{
             fontFamily: "var(--font-cormorant), Georgia, serif",
-            fontSize: "clamp(2.25rem, 5vw, 4.25rem)",
+            fontSize: "clamp(1.6rem, 5vw, 4.25rem)",
             lineHeight: 1,
           }}
         >
@@ -84,7 +84,7 @@ export default function ShopPage({
   searchParams: Promise<{ brand?: string }>;
 }) {
   return (
-    <div className="mx-auto max-w-7xl px-6 py-16 md:px-10 md:py-24">
+    <div className="mx-auto max-w-7xl px-4 py-8 md:px-10 md:py-24">
       <Suspense fallback={<ShopSkeleton />}>
         <ShopContent params={params} searchParams={searchParams} />
       </Suspense>

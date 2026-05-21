@@ -48,7 +48,7 @@ export default function CartPage({
   params: Promise<{ lang: Locale }>;
 }) {
   return (
-    <div className="mx-auto max-w-6xl px-6 py-16 md:px-10 md:py-24">
+    <div className="mx-auto max-w-6xl px-4 py-8 md:px-10 md:py-24">
       <Suspense fallback={<div className="animate-pulse h-64 rounded-2xl bg-muted-bg" />}>
         <CartContent params={params} />
       </Suspense>

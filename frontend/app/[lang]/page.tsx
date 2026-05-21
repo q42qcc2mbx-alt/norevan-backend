@@ -60,7 +60,7 @@ async function HomeContent({ params }: { params: Promise<{ lang: Locale }> }) {
           className="absolute inset-0 bg-gradient-to-t from-[#04030a]/85 via-[#04030a]/40 to-[#04030a]/30"
         />
 
-        <div className="relative mx-auto flex min-h-[88vh] max-w-7xl flex-col justify-end px-6 pb-16 md:px-10 md:pb-24">
+        <div className="relative mx-auto flex min-h-[88vh] max-w-7xl flex-col justify-end px-4 pb-10 md:px-10 md:pb-24">
           <div className="max-w-2xl">
             <Reveal>
               <span className="text-[11px] uppercase tracking-[0.35em] text-white/60">
@@ -70,7 +70,7 @@ async function HomeContent({ params }: { params: Promise<{ lang: Locale }> }) {
             <Reveal delay={0.1}>
               <h1
                 className="headline mt-6 text-white"
-                style={{ fontSize: "clamp(2.75rem, 7vw, 5.5rem)" }}
+                style={{ fontSize: "clamp(1.9rem, 7vw, 5.5rem)" }}
               >
                 {lang === "de" ? (
                   <>
@@ -147,16 +147,16 @@ async function HomeContent({ params }: { params: Promise<{ lang: Locale }> }) {
 
 
       {/* Categories — full-bleed editorial wall, no padding bg between tiles */}
-      <section id="categories" className="relative pt-24 md:pt-32">
+      <section id="categories" className="relative pt-12 md:pt-32">
         {/* Heading sits on its own, above the photo wall */}
-        <div className="mx-auto mb-10 flex max-w-7xl items-end justify-between gap-4 px-6 md:mb-12 md:px-10">
+        <div className="mx-auto mb-6 flex max-w-7xl items-end justify-between gap-4 px-4 md:mb-12 md:px-10">
           <Reveal>
             <span className="eyebrow">
               {lang === "de" ? "Auswahl" : "Selection"}
             </span>
             <h2
-              className="headline mt-4"
-              style={{ fontSize: "clamp(2rem, 4vw, 3.75rem)" }}
+              className="headline mt-3 md:mt-4"
+              style={{ fontSize: "clamp(1.5rem, 4vw, 3.75rem)" }}
             >
               {lang === "de" ? (
                 <>
@@ -263,15 +263,15 @@ async function HomeContent({ params }: { params: Promise<{ lang: Locale }> }) {
       </section>
 
       {/* Featured products */}
-      <section className="border-t border-border-subtle bg-background-soft py-24 md:py-32">
-        <div className="mx-auto max-w-7xl px-6 md:px-10">
+      <section className="border-t border-border-subtle bg-background-soft py-12 md:py-32">
+        <div className="mx-auto max-w-7xl px-4 md:px-10">
           <Reveal>
-            <div className="mb-14 flex items-end justify-between gap-4">
+            <div className="mb-8 flex items-end justify-between gap-4 md:mb-14">
               <div>
                 <span className="eyebrow">Highlights</span>
                 <h2
-                  className="headline mt-4"
-                  style={{ fontSize: "clamp(2rem, 4vw, 3.75rem)" }}
+                  className="headline mt-3 md:mt-4"
+                  style={{ fontSize: "clamp(1.5rem, 4vw, 3.75rem)" }}
                 >
                   {lang === "de" ? (
                     <>
