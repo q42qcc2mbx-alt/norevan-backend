@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion, useMotionValueEvent, useScroll } from "motion/react";
+import { motion, AnimatePresence, useMotionValueEvent, useScroll } from "motion/react";
 import { useEffect, useState } from "react";
 import { CartIcon } from "@/components/cart/CartIcon";
 import { ThemeToggle } from "./ThemeToggle";
@@ -39,6 +39,30 @@ function UserIcon() {
   );
 }
 
+function HamburgerIcon({ open }: { open: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+      <motion.line
+        x1="3" y1="6" x2="21" y2="6"
+        animate={open ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }}
+        transition={{ duration: 0.25 }}
+        style={{ originX: "50%", originY: "50%" }}
+      />
+      <motion.line
+        x1="3" y1="12" x2="21" y2="12"
+        animate={open ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }}
+        transition={{ duration: 0.2 }}
+      />
+      <motion.line
+        x1="3" y1="18" x2="21" y2="18"
+        animate={open ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }}
+        transition={{ duration: 0.25 }}
+        style={{ originX: "50%", originY: "50%" }}
+      />
+    </svg>
+  );
+}
+
 export function Header({
   locale,
   dict,
@@ -50,6 +74,7 @@ export function Header({
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { scrollY } = useScroll();
   useMotionValueEvent(scrollY, "change", (v) => setScrolled(v > 12));
 
@@ -60,10 +85,23 @@ export function Header({
         e.preventDefault();
         setSearchOpen(true);
       }
+      if (e.key === "Escape") setMobileOpen(false);
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // Scroll lock when mobile menu is open
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
+
+  const navLinks = [
+    { href: `/${locale}/shop`, label: dict.nav.shop },
+    { href: `/${locale}/lookbook`, label: "Lookbook" },
+    { href: `/${locale}#categories`, label: dict.nav.categories },
+  ];
 
   return (
     <>
@@ -79,7 +117,8 @@ export function Header({
         )}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-10">
-          <Link href={`/${locale}`} aria-label="Norevan">
+          {/* Logo */}
+          <Link href={`/${locale}`} aria-label="Norevan" onClick={() => setMobileOpen(false)}>
             <Image
               src="/logo/norevan-shield.png"
               alt="Norevan"
@@ -91,27 +130,20 @@ export function Header({
             />
           </Link>
 
+          {/* Desktop nav */}
           <nav className="hidden items-center gap-8 md:flex">
-            <Link
-              href={`/${locale}/shop`}
-              className="mono transition-colors hover:text-muted"
-            >
-              {dict.nav.shop}
-            </Link>
-            <Link
-              href={`/${locale}/lookbook`}
-              className="mono transition-colors hover:text-muted"
-            >
-              Lookbook
-            </Link>
-            <Link
-              href={`/${locale}#categories`}
-              className="mono transition-colors hover:text-muted"
-            >
-              {dict.nav.categories}
-            </Link>
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="mono transition-colors hover:text-muted"
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
 
+          {/* Right icons */}
           <div className="flex items-center gap-2">
             <LangSwitcher current={locale} label={dict.lang.label} />
             <button
@@ -139,9 +171,128 @@ export function Header({
             </Link>
             <ThemeToggle label={dict.theme.toggle} />
             <CartIcon ariaLabel={dict.nav.cart} />
+
+            {/* Hamburger — mobile only */}
+            <button
+              type="button"
+              onClick={() => setMobileOpen((o) => !o)}
+              aria-label={mobileOpen ? "Menü schließen" : "Menü öffnen"}
+              aria-expanded={mobileOpen}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border transition-colors hover:border-foreground md:hidden"
+            >
+              <HamburgerIcon open={mobileOpen} />
+            </button>
           </div>
         </div>
       </motion.header>
+
+      {/* Mobile drawer */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm md:hidden"
+              onClick={() => setMobileOpen(false)}
+            />
+
+            {/* Drawer panel */}
+            <motion.div
+              key="drawer"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
+              className="fixed right-0 top-0 z-50 flex h-full w-72 flex-col bg-background shadow-2xl md:hidden"
+            >
+              {/* Drawer header */}
+              <div className="flex items-center justify-between border-b border-border-subtle px-6 py-5">
+                <Link href={`/${locale}`} onClick={() => setMobileOpen(false)}>
+                  <Image
+                    src="/logo/norevan-shield.png"
+                    alt="Norevan"
+                    width={32}
+                    height={32}
+                    className="h-8 w-8 object-contain"
+                    unoptimized
+                  />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setMobileOpen(false)}
+                  aria-label="Schließen"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-foreground/60 hover:border-foreground hover:text-foreground transition-colors"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Nav links */}
+              <nav className="flex flex-col gap-1 px-4 py-6">
+                {navLinks.map((link, i) => (
+                  <motion.div
+                    key={link.href}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.05 + i * 0.06, duration: 0.25 }}
+                  >
+                    <Link
+                      href={link.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="mono flex items-center px-3 py-3 text-lg tracking-widest text-foreground/70 transition-colors hover:text-foreground uppercase"
+                    >
+                      {link.label}
+                    </Link>
+                  </motion.div>
+                ))}
+              </nav>
+
+              {/* Divider */}
+              <div className="mx-6 border-t border-border-subtle" />
+
+              {/* Secondary actions */}
+              <div className="flex flex-col gap-1 px-4 py-4">
+                <button
+                  type="button"
+                  onClick={() => { setMobileOpen(false); setSearchOpen(true); }}
+                  className="mono flex items-center gap-3 px-3 py-2.5 text-sm text-foreground/50 transition-colors hover:text-foreground uppercase tracking-widest"
+                >
+                  <SearchIcon />
+                  {locale === "de" ? "Suchen" : "Search"}
+                </button>
+                <button
+                  type="button"
+                  className="mono flex items-center gap-3 px-3 py-2.5 text-sm text-foreground/50 transition-colors hover:text-foreground uppercase tracking-widest"
+                >
+                  <HeartIcon />
+                  {locale === "de" ? "Wunschliste" : "Wishlist"}
+                </button>
+                <Link
+                  href={`/${locale}/login`}
+                  onClick={() => setMobileOpen(false)}
+                  className="mono flex items-center gap-3 px-3 py-2.5 text-sm text-foreground/50 transition-colors hover:text-foreground uppercase tracking-widest"
+                >
+                  <UserIcon />
+                  {locale === "de" ? "Anmelden" : "Sign in"}
+                </Link>
+              </div>
+
+              {/* Bottom bar */}
+              <div className="mt-auto flex items-center justify-between border-t border-border-subtle px-6 py-5">
+                <LangSwitcher current={locale} label={dict.lang.label} />
+                <ThemeToggle label={dict.theme.toggle} />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <SearchOverlay
         open={searchOpen}
