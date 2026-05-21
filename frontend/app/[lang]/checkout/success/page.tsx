@@ -7,7 +7,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { getOrderById } from "@/lib/orders";
 import { formatPrice } from "@/lib/format";
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
@@ -15,7 +15,7 @@ export const metadata = {
   title: "Bestellung bestätigt — Norevan",
 };
 
-export default async function SuccessPage({
+async function SuccessContent({
   params,
   searchParams,
 }: {
@@ -26,7 +26,7 @@ export default async function SuccessPage({
   const dict = await getDictionary(lang);
 
   return (
-    <div className="mx-auto max-w-3xl px-5 py-24 text-center">
+    <>
       <Reveal>
         <span className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-accent text-accent-foreground">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -62,6 +62,22 @@ export default async function SuccessPage({
           {dict.success.home}
         </Link>
       </Reveal>
+    </>
+  );
+}
+
+export default function SuccessPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ lang: Locale }>;
+  searchParams: Promise<{ orderId?: string }>;
+}) {
+  return (
+    <div className="mx-auto max-w-3xl px-5 py-24 text-center">
+      <Suspense fallback={<div className="animate-pulse h-64 rounded-2xl bg-muted-bg" />}>
+        <SuccessContent params={params} searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
@@ -7,7 +8,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { Parallax } from "@/components/motion/ParallaxSection";
 import { buildMetadata } from "@/lib/seo";
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
@@ -42,11 +43,7 @@ type Spread = {
   link?: { href: string; label: string };
 };
 
-export default async function LookbookPage({
-  params,
-}: {
-  params: Promise<{ lang: Locale }>;
-}) {
+async function LookbookContent({ params }: { params: Promise<{ lang: Locale }> }) {
   const { lang } = await params;
   const dict = await getDictionary(lang);
 
@@ -139,7 +136,7 @@ export default async function LookbookPage({
 
       {/* Spreads */}
       {spreads.map((spread, i) => (
-        <Spread key={i} spread={spread} index={i} lang={lang} />
+        <SpreadSection key={i} spread={spread} index={i} lang={lang} />
       ))}
 
       {/* Closing tile — back to shop */}
@@ -171,7 +168,19 @@ export default async function LookbookPage({
   );
 }
 
-function Spread({
+export default function LookbookPage({
+  params,
+}: {
+  params: Promise<{ lang: Locale }>;
+}) {
+  return (
+    <Suspense fallback={<div className="min-h-screen animate-pulse bg-[#0a0604]" />}>
+      <LookbookContent params={params} />
+    </Suspense>
+  );
+}
+
+function SpreadSection({
   spread,
   index,
   lang,

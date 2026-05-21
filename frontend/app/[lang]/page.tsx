@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getAllProducts, CATEGORIES, getHeroProduct } from "@/lib/products";
 import { locales, type Locale } from "@/lib/i18n/config";
@@ -15,7 +16,7 @@ import { formatPrice } from "@/lib/format";
 import { buildMetadata, organizationLd, websiteLd, JsonLd, SITE_TAGLINE } from "@/lib/seo";
 import { MagneticLink } from "@/components/motion/MagneticButton";
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
@@ -36,11 +37,7 @@ export async function generateMetadata({
   });
 }
 
-export default async function LandingPage({
-  params,
-}: {
-  params: Promise<{ lang: Locale }>;
-}) {
+async function HomeContent({ params }: { params: Promise<{ lang: Locale }> }) {
   const { lang } = await params;
   const dict = await getDictionary(lang);
   const hero = await getHeroProduct();
@@ -366,5 +363,17 @@ export default async function LandingPage({
       {/* Newsletter — quiet ivory closer */}
       <NewsletterSection locale={lang} />
     </div>
+  );
+}
+
+export default function LandingPage({
+  params,
+}: {
+  params: Promise<{ lang: Locale }>;
+}) {
+  return (
+    <Suspense fallback={<div className="min-h-screen animate-pulse bg-[#04030a]" />}>
+      <HomeContent params={params} />
+    </Suspense>
   );
 }

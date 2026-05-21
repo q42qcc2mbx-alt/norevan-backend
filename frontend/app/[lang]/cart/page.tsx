@@ -1,22 +1,19 @@
+import { Suspense } from "react";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { CartView } from "@/components/cart/CartView";
 import { Reveal } from "@/components/motion/Reveal";
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
-export default async function CartPage({
-  params,
-}: {
-  params: Promise<{ lang: Locale }>;
-}) {
+async function CartContent({ params }: { params: Promise<{ lang: Locale }> }) {
   const { lang } = await params;
   const dict = await getDictionary(lang);
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-16 md:px-10 md:py-24">
+    <>
       <Reveal>
         <span className="eyebrow">
           {lang === "de" ? "Warenkorb" : "Bag"}
@@ -41,6 +38,20 @@ export default async function CartPage({
         </h1>
       </Reveal>
       <CartView locale={lang} dict={dict} />
+    </>
+  );
+}
+
+export default function CartPage({
+  params,
+}: {
+  params: Promise<{ lang: Locale }>;
+}) {
+  return (
+    <div className="mx-auto max-w-6xl px-6 py-16 md:px-10 md:py-24">
+      <Suspense fallback={<div className="animate-pulse h-64 rounded-2xl bg-muted-bg" />}>
+        <CartContent params={params} />
+      </Suspense>
     </div>
   );
 }

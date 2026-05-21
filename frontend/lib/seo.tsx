@@ -74,8 +74,13 @@ export function organizationLd() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: SITE_NAME,
+    alternateName: ["Norevan Shop", "Norevan UG", "Norevan Streetwear"],
     url: SITE_URL,
-    logo: `${SITE_URL}/logo/norevan.png`,
+    logo: `${SITE_URL}/logo/norevan-shield.png`,
+    image: `${SITE_URL}/logo/norevan-shield.png`,
+    description: "Norevan — Premium Streetwear, Sneaker und Accessoires, kuratiert in Berlin. Handverlesene Mode weltweit verschickt.",
+    foundingDate: "2024",
+    foundingLocation: { "@type": "Place", address: { "@type": "PostalAddress", addressLocality: "Berlin", addressCountry: "DE" } },
     sameAs: [],
     contactPoint: [
       {

@@ -1,6 +1,7 @@
+import { Suspense } from "react";
 import { locales, type Locale } from "@/lib/i18n/config";
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
@@ -9,11 +10,7 @@ export const metadata = {
   description: "Widerrufsrecht für Verbraucher.",
 };
 
-export default async function WiderrufPage({
-  params,
-}: {
-  params: Promise<{ lang: Locale }>;
-}) {
+async function WiderrufContent({ params }: { params: Promise<{ lang: Locale }> }) {
   const { lang } = await params;
   const isDe = lang === "de";
 
@@ -83,5 +80,13 @@ export default async function WiderrufPage({
         </p>
       </div>
     </>
+  );
+}
+
+export default function WiderrufPage({ params }: { params: Promise<{ lang: Locale }> }) {
+  return (
+    <Suspense fallback={null}>
+      <WiderrufContent params={params} />
+    </Suspense>
   );
 }

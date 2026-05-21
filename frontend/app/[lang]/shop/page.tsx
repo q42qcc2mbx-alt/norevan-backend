@@ -8,7 +8,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { buildMetadata } from "@/lib/seo";
 import type { Dictionary } from "@/lib/i18n/dictionaries/de";
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
@@ -32,7 +32,7 @@ export async function generateMetadata({
   });
 }
 
-export default async function ShopPage({
+async function ShopContent({
   params,
   searchParams,
 }: {
@@ -43,7 +43,7 @@ export default async function ShopPage({
   const dict = await getDictionary(lang);
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-16 md:px-10 md:py-24">
+    <>
       <Reveal>
         <span className="eyebrow">{lang === "de" ? "Shop" : "Shop"}</span>
         <h1
@@ -71,6 +71,22 @@ export default async function ShopPage({
       <div className="mt-12 md:mt-16" />
       <Suspense fallback={<ShopSkeleton />}>
         <ShopBody lang={lang} dict={dict} searchParams={searchParams} />
+      </Suspense>
+    </>
+  );
+}
+
+export default function ShopPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ lang: Locale }>;
+  searchParams: Promise<{ brand?: string }>;
+}) {
+  return (
+    <div className="mx-auto max-w-7xl px-6 py-16 md:px-10 md:py-24">
+      <Suspense fallback={<ShopSkeleton />}>
+        <ShopContent params={params} searchParams={searchParams} />
       </Suspense>
     </div>
   );

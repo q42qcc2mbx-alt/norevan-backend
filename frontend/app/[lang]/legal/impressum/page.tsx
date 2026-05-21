@@ -1,6 +1,7 @@
+import { Suspense } from "react";
 import { locales, type Locale } from "@/lib/i18n/config";
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
@@ -9,11 +10,7 @@ export const metadata = {
   description: "Impressum gemäß § 5 TMG.",
 };
 
-export default async function ImpressumPage({
-  params,
-}: {
-  params: Promise<{ lang: Locale }>;
-}) {
+async function ImpressumContent({ params }: { params: Promise<{ lang: Locale }> }) {
   const { lang } = await params;
   const isDe = lang === "de";
 
@@ -83,5 +80,13 @@ export default async function ImpressumPage({
         </p>
       </div>
     </>
+  );
+}
+
+export default function ImpressumPage({ params }: { params: Promise<{ lang: Locale }> }) {
+  return (
+    <Suspense fallback={null}>
+      <ImpressumContent params={params} />
+    </Suspense>
   );
 }

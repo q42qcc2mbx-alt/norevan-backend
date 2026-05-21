@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion, useMotionValueEvent, useScroll } from "motion/react";
 import { useEffect, useState } from "react";
 import { CartIcon } from "@/components/cart/CartIcon";
@@ -78,13 +79,16 @@ export function Header({
         )}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-10">
-          <Link
-            href={`/${locale}`}
-            aria-label="Norevan"
-            className="font-serif text-2xl tracking-tight"
-            style={{ fontFamily: "var(--font-cormorant), Georgia, serif" }}
-          >
-            Nor<em className="not-italic" style={{ color: "var(--gold)" }}>e</em>van
+          <Link href={`/${locale}`} aria-label="Norevan">
+            <Image
+              src="/logo/norevan-shield.png"
+              alt="Norevan"
+              width={40}
+              height={40}
+              className="h-10 w-10 object-contain"
+              priority
+              unoptimized
+            />
           </Link>
 
           <nav className="hidden items-center gap-8 md:flex">

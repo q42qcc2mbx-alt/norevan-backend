@@ -1,6 +1,7 @@
+import { Suspense } from "react";
 import { locales, type Locale } from "@/lib/i18n/config";
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
@@ -48,11 +49,7 @@ const SECTIONS = (isDe: boolean) => [
   },
 ];
 
-export default async function DatenschutzPage({
-  params,
-}: {
-  params: Promise<{ lang: Locale }>;
-}) {
+async function DatenschutzContent({ params }: { params: Promise<{ lang: Locale }> }) {
   const { lang } = await params;
   const isDe = lang === "de";
   const sections = SECTIONS(isDe);
@@ -89,5 +86,13 @@ export default async function DatenschutzPage({
         </p>
       </div>
     </>
+  );
+}
+
+export default function DatenschutzPage({ params }: { params: Promise<{ lang: Locale }> }) {
+  return (
+    <Suspense fallback={null}>
+      <DatenschutzContent params={params} />
+    </Suspense>
   );
 }

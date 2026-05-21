@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Cormorant_Garamond } from "next/font/google";
 import { notFound } from "next/navigation";
@@ -11,6 +12,7 @@ import { ScrollProgress } from "@/components/motion/ScrollProgress";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { getAllProducts } from "@/lib/products";
+import type { Dictionary } from "@/lib/i18n/dictionaries/de";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -23,6 +25,17 @@ const cormorant = Cormorant_Garamond({
 
 export async function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
+}
+
+async function HeaderWithProducts({
+  locale,
+  dict,
+}: {
+  locale: Locale;
+  dict: Dictionary;
+}) {
+  const products = await getAllProducts();
+  return <Header locale={locale} dict={dict} products={products} />;
 }
 
 export const metadata: Metadata = {
@@ -68,7 +81,9 @@ export default async function LangLayout({
           <LenisProvider>
             <ScrollProgress />
             <div className="relative flex min-h-screen flex-col">
-              <Header locale={locale} dict={dict} products={await getAllProducts()} />
+              <Suspense fallback={<div className="h-16 border-b border-border-subtle" />}>
+                <HeaderWithProducts locale={locale} dict={dict} />
+              </Suspense>
               <div id="main-content">
                 <PageTransition>{children}</PageTransition>
               </div>

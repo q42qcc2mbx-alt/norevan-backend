@@ -1,6 +1,7 @@
+import { Suspense } from "react";
 import { locales, type Locale } from "@/lib/i18n/config";
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
@@ -60,11 +61,7 @@ const SECTIONS = (isDe: boolean) => [
   },
 ];
 
-export default async function AgbPage({
-  params,
-}: {
-  params: Promise<{ lang: Locale }>;
-}) {
+async function AgbContent({ params }: { params: Promise<{ lang: Locale }> }) {
   const { lang } = await params;
   const isDe = lang === "de";
   const sections = SECTIONS(isDe);
@@ -103,5 +100,13 @@ export default async function AgbPage({
         </p>
       </div>
     </>
+  );
+}
+
+export default function AgbPage({ params }: { params: Promise<{ lang: Locale }> }) {
+  return (
+    <Suspense fallback={null}>
+      <AgbContent params={params} />
+    </Suspense>
   );
 }

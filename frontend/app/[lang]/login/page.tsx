@@ -1,63 +1,117 @@
+import { Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { LoginCard } from "@/components/auth/LoginCard";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
 export const metadata = {
-  title: "Sign in — Norevan",
+  title: "Anmelden — Norevan",
 };
 
-export default async function LoginPage({
+async function LoginContent({ params }: { params: Promise<{ lang: Locale }> }) {
+  const { lang } = await params;
+  const dict = await getDictionary(lang);
+
+  const features =
+    lang === "de"
+      ? [
+          ["Exklusive Drops", "Früher Zugang"],
+          ["Kostenloser Versand", "Ab 120 €"],
+          ["Echtheit garantiert", "Handgeprüft"],
+          ["Kuratiert in Berlin", "Weltweit verschickt"],
+        ]
+      : [
+          ["Exclusive drops", "Early access"],
+          ["Free shipping", "Over €120"],
+          ["Authenticity guaranteed", "Hand-verified"],
+          ["Curated in Berlin", "Shipped worldwide"],
+        ];
+
+  return (
+    <div
+      className="relative flex min-h-screen flex-col items-center justify-center px-4 py-16"
+      style={{ background: "var(--background)" }}
+    >
+      {/* Theme toggle — top right */}
+      <div className="absolute right-5 top-5">
+        <ThemeToggle label={lang === "de" ? "Design wechseln" : "Toggle theme"} />
+      </div>
+
+      {/* Back link — top left */}
+      <div className="absolute left-5 top-5">
+        <Link
+          href={`/${lang}`}
+          className="font-mono text-[10px] uppercase tracking-[0.25em] text-foreground/40 transition-colors hover:text-foreground"
+        >
+          ← {lang === "de" ? "Zurück" : "Back"}
+        </Link>
+      </div>
+
+      {/* Logo */}
+      <Link href={`/${lang}`} className="mb-8 inline-block">
+        <Image
+          src="/logo/norevan-shield.png"
+          alt="Norevan"
+          width={72}
+          height={72}
+          className="h-18 w-18 object-contain"
+          priority
+          unoptimized
+        />
+      </Link>
+
+      {/* Login card */}
+      <LoginCard locale={lang} dict={dict} />
+
+      {/* Small brand info box */}
+      <div
+        className="mt-8 w-full max-w-[360px] rounded-xl border px-5 py-4"
+        style={{
+          borderColor: "rgba(200,169,106,0.25)",
+          background: "linear-gradient(135deg, #2a1c08cc 0%, #1c1206cc 100%)",
+        }}
+      >
+        <div className="grid grid-cols-2 gap-3">
+          {features.map(([title, desc]) => (
+            <div key={title} className="flex items-start gap-2">
+              <span
+                className="mt-[5px] h-px w-3 shrink-0"
+                style={{ background: "#c8a96a", opacity: 0.7 }}
+              />
+              <div>
+                <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#efd598]/85">
+                  {title}
+                </div>
+                <div className="font-mono text-[8px] text-[#c8a96a]/55">
+                  {desc}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function LoginPage({
   params,
 }: {
   params: Promise<{ lang: Locale }>;
 }) {
-  const { lang } = await params;
-  const dict = await getDictionary(lang);
-
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-black">
-      {/* Voronoi splash background */}
-      <iframe
-        src="/wallpapers/02-voronoi.html"
-        className="absolute inset-0 h-full w-full border-0"
-        title="splash"
-        aria-hidden="true"
-      />
-
-      {/* Top bar with brand + close */}
-      <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-6 py-5 md:px-10">
-        <Link
-          href={`/${lang}`}
-          className="font-serif text-2xl tracking-tight text-white"
-          style={{ fontFamily: "var(--font-cormorant), Georgia, serif" }}
-        >
-          Nor<em className="not-italic" style={{ color: "var(--gold)" }}>e</em>van
-        </Link>
-        <Link
-          href={`/${lang}`}
-          aria-label="Close"
-          className="grid h-9 w-9 place-items-center rounded-full border border-white/30 text-white transition-colors hover:bg-white hover:text-black"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </Link>
-      </div>
-
-      {/* Centered card */}
-      <div className="relative z-10 flex h-full items-center justify-center px-6">
-        <LoginCard locale={lang} dict={dict} />
-      </div>
-
-      {/* Bottom hint */}
-      <div className="absolute inset-x-0 bottom-6 z-10 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-white/40">
-        Click the canvas — pin a sonar seed.
-      </div>
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <Suspense
+        fallback={<div className="min-h-screen" style={{ background: "var(--background)" }} />}
+      >
+        <LoginContent params={params} />
+      </Suspense>
     </div>
   );
 }
