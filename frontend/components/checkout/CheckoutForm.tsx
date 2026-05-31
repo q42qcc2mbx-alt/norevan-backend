@@ -54,11 +54,20 @@ export function CheckoutForm({
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          "x-norevan-locale": locale,
+        },
         body: JSON.stringify({ ...form, items }),
       });
       const data = await res.json();
-      if (res.ok && data?.orderId) {
+      if (res.ok && data?.checkoutUrl) {
+        // Stripe enabled — hand off to the hosted payment page. The cart is
+        // kept so a cancelled payment returns the customer to a full basket;
+        // it's cleared on the success page after payment.
+        window.location.href = data.checkoutUrl;
+      } else if (res.ok && data?.orderId) {
+        // No-payment / dev mode — order is confirmed immediately.
         clear();
         router.push(
           `/${locale}/checkout/success?orderId=${encodeURIComponent(

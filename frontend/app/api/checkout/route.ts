@@ -41,7 +41,12 @@ export async function POST(req: Request) {
     status: "success" | "error";
     message?: string;
     errors?: string[];
-    data?: { orderId: string; subtotalCents: number; paymentStatus: string };
+    data?: {
+      orderId: string;
+      subtotalCents: number;
+      paymentStatus: string;
+      checkoutUrl?: string;
+    };
   };
   const backend = (await res.json()) as BackendResponse;
 
@@ -58,5 +63,7 @@ export async function POST(req: Request) {
   return Response.json({
     status: backend.data?.paymentStatus ?? "pending",
     orderId: backend.data?.orderId,
+    // Present when Stripe is enabled — the client redirects here to pay.
+    checkoutUrl: backend.data?.checkoutUrl ?? null,
   });
 }

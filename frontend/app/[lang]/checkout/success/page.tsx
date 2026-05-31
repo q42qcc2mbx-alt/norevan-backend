@@ -6,6 +6,7 @@ import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { Reveal } from "@/components/motion/Reveal";
 import { getOrderById } from "@/lib/orders";
 import { formatPrice } from "@/lib/format";
+import { ClearCartOnMount } from "@/components/checkout/ClearCartOnMount";
 
 export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
@@ -27,6 +28,7 @@ async function SuccessContent({
 
   return (
     <>
+      <ClearCartOnMount />
       <Reveal>
         <span className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-accent text-accent-foreground">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

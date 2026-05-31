@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import pool from '../config/database.js';
 import { sendOrderConfirmation } from '../services/emailService.js';
+import { isStripeEnabled, createCheckoutSession } from '../services/stripeService.js';
 
 function orderRowToJson(row) {
   return {
@@ -90,6 +91,20 @@ export const createOrder = async (req, res, next) => {
       client.release();
     }
 
+    // With Stripe enabled, payment runs through a hosted Checkout Session and
+    // the confirmation email is sent once the webhook reports payment success.
+    // Without Stripe (dev / no-payment mode) we confirm the order immediately.
+    if (isStripeEnabled()) {
+      const locale = req.headers['x-norevan-locale'] === 'en' ? 'en' : 'de';
+      const session = await createCheckoutSession({
+        orderId, email: req.body.email, items: req.body.items, locale,
+      });
+      return res.status(201).json({
+        status: 'success',
+        data: { orderId, subtotalCents, paymentStatus: 'pending', checkoutUrl: session.url },
+      });
+    }
+
     sendOrderConfirmation({
       orderId, email: req.body.email, firstName: req.body.firstName,
       lastName: req.body.lastName, subtotalCents, items: req.body.items,
@@ -104,6 +119,34 @@ export const createOrder = async (req, res, next) => {
     next(err);
   }
 };
+
+/**
+ * Mark an order as paid and send the confirmation email. Idempotent: if the
+ * order is already paid (e.g. a duplicate webhook delivery) it does nothing.
+ * Called by the Stripe webhook on `checkout.session.completed`.
+ */
+export async function markOrderPaidAndNotify(orderId) {
+  const { rows } = await pool.query('SELECT * FROM orders WHERE id = $1', [orderId]);
+  if (rows.length === 0) {
+    console.warn(`[orders] webhook for unknown order ${orderId}`);
+    return;
+  }
+  const order = rows[0];
+  if (order.status === 'paid') return; // already processed
+
+  await pool.query("UPDATE orders SET status = 'paid' WHERE id = $1", [orderId]);
+
+  const { rows: items } = await pool.query('SELECT * FROM order_items WHERE order_id = $1', [orderId]);
+  await sendOrderConfirmation({
+    orderId,
+    email: order.email,
+    firstName: order.first_name,
+    lastName: order.last_name,
+    subtotalCents: order.subtotal_cents,
+    items: items.map((i) => ({ name: i.name, size: i.size, qty: i.qty, priceCents: i.price_cents })),
+    createdAt: order.created_at,
+  });
+}
 
 export const getOrderById = async (req, res, next) => {
   try {
