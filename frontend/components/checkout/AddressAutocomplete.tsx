@@ -9,7 +9,7 @@ export type AddressPick = {
   country: string;
 };
 
-type Suggestion = AddressPick & { label: string };
+type Suggestion = AddressPick & { label: string; de: boolean };
 
 type PhotonProps = {
   name?: string;
@@ -22,6 +22,7 @@ type PhotonProps = {
   municipality?: string;
   county?: string;
   country?: string;
+  countrycode?: string;
 };
 
 /**
@@ -65,8 +66,11 @@ export function AddressAutocomplete({
     }
     timer.current = setTimeout(async () => {
       try {
+        // Fetch a wider set ordered by relevance, then float German results to
+        // the top (keeping relevance order within each group). For a German
+        // shop this surfaces e.g. Berlin before Bern, without hiding abroad.
         const res = await fetch(
-          `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lang=de&limit=6`,
+          `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lang=de&limit=12`,
         );
         const data = (await res.json()) as { features?: { properties?: PhotonProps }[] };
         const seen = new Set<string>();
@@ -84,15 +88,19 @@ export function AddressAutocomplete({
               zip,
               city,
               country,
+              de: (p.countrycode || "").toUpperCase() === "DE",
               label: [street, [zip, city].filter(Boolean).join(" "), country]
                 .filter(Boolean)
                 .join(", "),
             };
           })
-          .filter((s) => s.street && s.city)
+          .filter((s) => s.city || s.zip)
           .filter((s) => (seen.has(s.label) ? false : (seen.add(s.label), true)));
-        setItems(mapped);
-        setOpen(mapped.length > 0);
+        // Stable sort → German first, relevance order preserved within groups.
+        mapped.sort((a, b) => (a.de === b.de ? 0 : a.de ? -1 : 1));
+        const top = mapped.slice(0, 6);
+        setItems(top);
+        setOpen(top.length > 0);
         setActive(-1);
       } catch {
         setItems([]);

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion } from "motion/react";
 import { useCart, cartSubtotalCents } from "@/lib/cart-store";
-import { AddressAutocomplete } from "./AddressAutocomplete";
+import { AddressAutocomplete, type AddressPick } from "./AddressAutocomplete";
 import { formatPrice } from "@/lib/format";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries/de";
@@ -46,6 +46,18 @@ export function CheckoutForm({
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((s) => ({ ...s, [key]: value }));
+  }
+
+  // Fill the whole address from a picked suggestion without wiping fields the
+  // suggestion doesn't cover (e.g. a city-only pick keeps the typed street).
+  function fillAddress(a: AddressPick) {
+    setForm((s) => ({
+      ...s,
+      address: a.street || s.address,
+      zip: a.zip || s.zip,
+      city: a.city || s.city,
+      country: a.country || s.country,
+    }));
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -147,45 +159,34 @@ export function CheckoutForm({
                 value={form.address}
                 inputCls={inputCls}
                 onChange={(v) => update("address", v)}
-                onPick={(a) =>
-                  setForm((s) => ({
-                    ...s,
-                    address: a.street,
-                    zip: a.zip || s.zip,
-                    city: a.city || s.city,
-                    country: a.country || s.country,
-                  }))
-                }
+                onPick={fillAddress}
               />
             </div>
             <div>
               <label className={labelCls}>{dict.checkout.zip}</label>
-              <input
-                required
+              <AddressAutocomplete
                 value={form.zip}
-                onChange={(e) => update("zip", e.target.value)}
-                className={inputCls}
-                autoComplete="postal-code"
+                inputCls={inputCls}
+                onChange={(v) => update("zip", v)}
+                onPick={fillAddress}
               />
             </div>
             <div>
               <label className={labelCls}>{dict.checkout.city}</label>
-              <input
-                required
+              <AddressAutocomplete
                 value={form.city}
-                onChange={(e) => update("city", e.target.value)}
-                className={inputCls}
-                autoComplete="address-level2"
+                inputCls={inputCls}
+                onChange={(v) => update("city", v)}
+                onPick={fillAddress}
               />
             </div>
             <div className="sm:col-span-2">
               <label className={labelCls}>{dict.checkout.country}</label>
-              <input
-                required
+              <AddressAutocomplete
                 value={form.country}
-                onChange={(e) => update("country", e.target.value)}
-                className={inputCls}
-                autoComplete="country-name"
+                inputCls={inputCls}
+                onChange={(v) => update("country", v)}
+                onPick={fillAddress}
               />
             </div>
           </div>
