@@ -10,7 +10,6 @@ import { Parallax } from "@/components/motion/ParallaxSection";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { BrandStrip } from "@/components/layout/BrandStrip";
 import { AnnouncementMarquee } from "@/components/layout/AnnouncementMarquee";
-import { MetaballsHero } from "@/components/motion/MetaballsHero";
 import { NewsletterSection } from "@/components/layout/NewsletterSection";
 import { formatPrice } from "@/lib/format";
 import { buildMetadata, organizationLd, websiteLd, JsonLd, SITE_TAGLINE } from "@/lib/seo";
@@ -52,12 +51,15 @@ async function HomeContent({ params }: { params: Promise<{ lang: Locale }> }) {
   return (
     <div className="flex flex-col">
       <JsonLd data={[organizationLd(), websiteLd(lang)]} />
-      {/* Hero — interactive metaballs backdrop with editorial overlay */}
+      {/* Hero — static dark editorial backdrop */}
       <section className="relative isolate min-h-[88vh] overflow-hidden bg-[#04030a] text-[#f3ede1]">
-        <MetaballsHero />
         <div
           aria-hidden
-          className="absolute inset-0 bg-gradient-to-t from-[#04030a]/85 via-[#04030a]/40 to-[#04030a]/30"
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(120% 90% at 70% 15%, rgba(48,28,120,0.45) 0%, rgba(12,8,30,0.4) 45%, #04030a 80%)",
+          }}
         />
 
         <div className="relative mx-auto flex min-h-[88vh] max-w-7xl flex-col justify-end px-4 pb-10 md:px-10 md:pb-24">
@@ -130,9 +132,6 @@ async function HomeContent({ params }: { params: Promise<{ lang: Locale }> }) {
           </div>
         )}
 
-        <div className="absolute right-6 top-24 hidden text-right font-mono text-[10px] uppercase tracking-[0.3em] text-white/45 md:block">
-          {lang === "de" ? "Maus bewegen" : "Move cursor"}
-        </div>
       </section>
 
       {/* Announcement marquee — wired below hero */}
