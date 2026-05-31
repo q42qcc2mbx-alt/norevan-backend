@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion } from "motion/react";
 import { useCart, cartSubtotalCents } from "@/lib/cart-store";
+import { AddressAutocomplete } from "./AddressAutocomplete";
 import { formatPrice } from "@/lib/format";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries/de";
@@ -142,12 +143,19 @@ export function CheckoutForm({
             </div>
             <div className="sm:col-span-2">
               <label className={labelCls}>{dict.checkout.address}</label>
-              <input
-                required
+              <AddressAutocomplete
                 value={form.address}
-                onChange={(e) => update("address", e.target.value)}
-                className={inputCls}
-                autoComplete="street-address"
+                inputCls={inputCls}
+                onChange={(v) => update("address", v)}
+                onPick={(a) =>
+                  setForm((s) => ({
+                    ...s,
+                    address: a.street,
+                    zip: a.zip || s.zip,
+                    city: a.city || s.city,
+                    country: a.country || s.country,
+                  }))
+                }
               />
             </div>
             <div>
