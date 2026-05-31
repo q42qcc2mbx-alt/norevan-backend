@@ -29,3 +29,9 @@ data/
 
 # Archives
 *.zip
+
+# Playwright MCP session dumps
+.playwright-mcp/
+
+# Graphify generated knowledge-graph outputs (regenerate with /graphify)
+graphify-out/
