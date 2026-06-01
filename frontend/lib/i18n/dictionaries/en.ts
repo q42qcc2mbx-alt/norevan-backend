@@ -77,9 +77,9 @@ const dict: Dictionary = {
     country: "Country",
     payment: "Payment",
     paymentNote:
-      "Real payment processing is coming soon. This order runs in demo mode.",
-    submit: "Place demo order",
-    processing: "Sending…",
+      "Secure payment by credit card, Apple Pay or Google Pay — encrypted via Stripe.",
+    submit: "Pay securely now",
+    processing: "Redirecting to Stripe…",
   },
   success: {
     title: "Thank you!",

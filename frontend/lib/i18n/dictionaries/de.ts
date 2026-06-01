@@ -75,9 +75,9 @@ const dict = {
     country: "Land",
     payment: "Zahlung",
     paymentNote:
-      "Echte Zahlungsabwicklung wird in Kürze freigeschaltet. Diese Bestellung läuft im Demo-Modus.",
-    submit: "Bestellung im Demo-Modus abschicken",
-    processing: "Wird gesendet…",
+      "Sichere Zahlung per Kreditkarte, Apple Pay oder Google Pay — verschlüsselt via Stripe.",
+    submit: "Jetzt sicher bezahlen",
+    processing: "Weiterleitung zu Stripe…",
   },
   success: {
     title: "Vielen Dank!",
