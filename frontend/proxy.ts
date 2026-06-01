@@ -17,7 +17,9 @@ function pickLocale(accept: string | null): string {
   return defaultLocale;
 }
 
-const OPEN_PREFIXES = ["/admin", "/api", "/_next"];
+// `/auth` holds the Supabase OAuth callback (app/auth/callback) which must NOT
+// be locale-prefixed, or the OAuth redirect 404s.
+const OPEN_PREFIXES = ["/admin", "/api", "/auth", "/_next"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
