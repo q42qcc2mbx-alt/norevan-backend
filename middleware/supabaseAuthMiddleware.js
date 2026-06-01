@@ -17,7 +17,11 @@ async function verifySupabaseToken(token) {
     if (!res.ok) return null;
     const user = await res.json();
     if (!user?.id) return null;
-    return { id: user.id, email: user.email ?? null };
+    return {
+      id: user.id,
+      email: user.email ?? null,
+      isAnonymous: user.is_anonymous === true,
+    };
   } catch {
     return null;
   }
@@ -47,6 +51,26 @@ export const requireSupabaseAuth = async (req, res, next) => {
   const user = await verifySupabaseToken(token);
   if (!user) {
     return res.status(401).json({ status: 'error', message: 'Invalid or expired session' });
+  }
+  req.supabaseUser = user;
+  next();
+};
+
+/**
+ * Requires a real (non-anonymous) Supabase account. Anonymous "guest" sessions
+ * may browse but are rejected here — used to gate purchasing.
+ */
+export const requireRealUser = async (req, res, next) => {
+  const token = bearer(req);
+  if (!token) {
+    return res.status(401).json({ status: 'error', message: 'Sign in required to purchase' });
+  }
+  const user = await verifySupabaseToken(token);
+  if (!user) {
+    return res.status(401).json({ status: 'error', message: 'Invalid or expired session' });
+  }
+  if (user.isAnonymous) {
+    return res.status(401).json({ status: 'error', message: 'Guests cannot purchase — please sign in' });
   }
   req.supabaseUser = user;
   next();

@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { useCart, cartSubtotalCents } from "@/lib/cart-store";
 import { AddressAutocomplete, type AddressPick } from "./AddressAutocomplete";
 import { formatPrice } from "@/lib/format";
+import { getSupabaseClient } from "@/lib/supabase/client";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries/de";
 
@@ -42,7 +43,30 @@ export function CheckoutForm({
 
   const [form, setForm] = useState<FormState>(initial);
   const [submitting, setSubmitting] = useState(false);
+  // Buying requires a real (non-guest) account. Browsing stays open.
+  const [authState, setAuthState] = useState<"checking" | "ok" | "denied">(
+    "checking",
+  );
   const subtotal = cartSubtotalCents(items);
+
+  const loginHref = `/${locale}/login?next=${encodeURIComponent(
+    `/${locale}/checkout`,
+  )}`;
+
+  useEffect(() => {
+    const supabase = getSupabaseClient();
+    supabase.auth.getUser().then(({ data }) => {
+      const u = data.user;
+      // Anonymous guests can browse but not buy — only real accounts may check out.
+      if (u && !u.is_anonymous) {
+        setAuthState("ok");
+        if (u.email) setForm((s) => (s.email ? s : { ...s, email: u.email! }));
+      } else {
+        setAuthState("denied");
+        router.replace(loginHref);
+      }
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((s) => ({ ...s, [key]: value }));
@@ -73,6 +97,11 @@ export function CheckoutForm({
         },
         body: JSON.stringify({ ...form, items }),
       });
+      if (res.status === 401) {
+        // Session expired or guest — send them to log in, then back here.
+        router.replace(loginHref);
+        return;
+      }
       const data = await res.json();
       if (res.ok && data?.checkoutUrl) {
         // Stripe enabled — hand off to the hosted payment page. The cart is
@@ -93,6 +122,34 @@ export function CheckoutForm({
     } catch {
       setSubmitting(false);
     }
+  }
+
+  if (authState === "checking") {
+    return (
+      <div className="grid place-items-center py-24">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-foreground" />
+      </div>
+    );
+  }
+
+  if (authState === "denied") {
+    return (
+      <div className="grid place-items-center gap-5 py-24 text-center">
+        <p className="text-muted">
+          {locale === "de"
+            ? "Zum Kaufen bitte anmelden oder ein Konto erstellen."
+            : "Please sign in or create an account to buy."}
+        </p>
+        <button
+          type="button"
+          onClick={() => router.push(loginHref)}
+          className="inline-flex h-12 items-center gap-3 rounded-full bg-foreground px-8 font-mono text-[11px] uppercase tracking-[0.25em] text-background transition-opacity hover:opacity-80"
+        >
+          {locale === "de" ? "Anmelden" : "Sign in"}
+          <span aria-hidden>→</span>
+        </button>
+      </div>
+    );
   }
 
   if (items.length === 0) {

@@ -8,15 +8,15 @@ import {
 } from '../controllers/orderController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import {
-  optionalSupabaseAuth,
   requireSupabaseAuth,
+  requireRealUser,
 } from '../middleware/supabaseAuthMiddleware.js';
 import { requireAdmin } from '../middleware/adminMiddleware.js';
 
 const router = Router();
 
-// Public — guest checkout allowed; if a valid Supabase token is present, links the order to the account.
-router.post('/checkout', optionalSupabaseAuth, createOrder);
+// Purchasing requires a real (non-guest) account. Anonymous guests may browse but not buy.
+router.post('/checkout', requireRealUser, createOrder);
 
 // Authenticated user (Supabase) — own orders. Must be before /orders/:id so "me" isn't treated as an id.
 router.get('/orders/me', requireSupabaseAuth, listMyOrders);
