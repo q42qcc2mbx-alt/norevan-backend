@@ -108,7 +108,10 @@ export const createOrder = async (req, res, next) => {
 
     sendOrderConfirmation({
       orderId, email: req.body.email, firstName: req.body.firstName,
-      lastName: req.body.lastName, subtotalCents, items: req.body.items,
+      lastName: req.body.lastName,
+      address: req.body.address, city: req.body.city,
+      zip: req.body.zip, country: req.body.country,
+      subtotalCents, items: req.body.items,
       createdAt: new Date().toISOString(),
     });
 
@@ -143,8 +146,12 @@ export async function markOrderPaidAndNotify(orderId) {
     email: order.email,
     firstName: order.first_name,
     lastName: order.last_name,
+    address: order.address,
+    city: order.city,
+    zip: order.zip,
+    country: order.country,
     subtotalCents: order.subtotal_cents,
-    items: items.map((i) => ({ name: i.name, size: i.size, qty: i.qty, priceCents: i.price_cents })),
+    items: items.map((i) => ({ name: i.name, size: i.size, qty: i.qty, priceCents: i.price_cents, image: i.image })),
     createdAt: order.created_at,
   });
 }

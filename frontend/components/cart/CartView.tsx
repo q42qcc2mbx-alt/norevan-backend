@@ -28,13 +28,28 @@ export function CartView({
 
   if (count === 0) {
     return (
-      <div className="grid place-items-center py-24 text-center">
-        <p className="mb-6 text-muted">{dict.cart.empty}</p>
+      <div className="grid place-items-center py-20 text-center">
+        <Image
+          src="/logo/norevan-shield.png"
+          alt="Norevan"
+          width={72}
+          height={72}
+          unoptimized
+          className="mb-6 h-16 w-16 object-contain opacity-90"
+        />
+        <p
+          className="mb-2 font-serif text-2xl"
+          style={{ fontFamily: "var(--font-cormorant), Georgia, serif" }}
+        >
+          {locale === "de" ? "Noch nichts drin." : "Nothing here yet."}
+        </p>
+        <p className="mb-7 max-w-xs text-sm text-muted">{dict.cart.empty}</p>
         <Link
           href={`/${locale}/shop`}
-          className="rounded-full bg-accent px-6 py-3 text-sm font-medium text-accent-foreground"
+          className="inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
         >
           {dict.cart.emptyCta}
+          <span aria-hidden>→</span>
         </Link>
       </div>
     );
@@ -112,30 +127,53 @@ export function CartView({
         </AnimatePresence>
       </ul>
 
-      <aside className="h-fit rounded-2xl border border-border bg-card p-6 lg:sticky lg:top-24">
-        <h2 className="mb-4 text-lg font-semibold">{dict.cart.title}</h2>
-        <div className="mb-2 flex justify-between text-sm">
-          <span className="text-muted">{dict.cart.subtotal}</span>
-          <span className="font-medium">
-            {formatPrice(subtotal, locale)}
+      <aside className="h-fit overflow-hidden rounded-2xl border border-border bg-card lg:sticky lg:top-24">
+        {/* Branded header */}
+        <div className="flex items-center gap-2.5 border-b border-border px-6 py-4">
+          <Image
+            src="/logo/norevan-shield.png"
+            alt="Norevan"
+            width={28}
+            height={28}
+            unoptimized
+            className="h-7 w-7 object-contain"
+          />
+          <span
+            className="text-lg leading-none"
+            style={{ fontFamily: "var(--font-cormorant), Georgia, serif" }}
+          >
+            Nor
+            <em className="not-italic" style={{ color: "var(--gold)" }}>
+              e
+            </em>
+            van
+          </span>
+          <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+            {count}
           </span>
         </div>
-        <div className="mb-5 flex justify-between text-sm">
-          <span className="text-muted">{dict.cart.shipping}</span>
-          <span>{dict.cart.shippingFree}</span>
+
+        <div className="p-6">
+          <div className="mb-2 flex justify-between text-sm">
+            <span className="text-muted">{dict.cart.subtotal}</span>
+            <span className="font-medium">{formatPrice(subtotal, locale)}</span>
+          </div>
+          <div className="mb-5 flex justify-between text-sm">
+            <span className="text-muted">{dict.cart.shipping}</span>
+            <span>{dict.cart.shippingFree}</span>
+          </div>
+          <div className="mb-6 flex justify-between border-t border-border pt-4 text-base">
+            <span className="font-semibold">{dict.cart.total}</span>
+            <span className="font-semibold">{formatPrice(subtotal, locale)}</span>
+          </div>
+          <Link
+            href={`/${locale}/checkout`}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-accent py-3 text-center text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
+          >
+            {dict.cart.checkout}
+            <span aria-hidden>→</span>
+          </Link>
         </div>
-        <div className="mb-6 flex justify-between border-t border-border pt-4 text-base">
-          <span className="font-semibold">{dict.cart.total}</span>
-          <span className="font-semibold">
-            {formatPrice(subtotal, locale)}
-          </span>
-        </div>
-        <Link
-          href={`/${locale}/checkout`}
-          className="block w-full rounded-full bg-accent py-3 text-center text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
-        >
-          {dict.cart.checkout}
-        </Link>
       </aside>
     </div>
   );
