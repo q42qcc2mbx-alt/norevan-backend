@@ -35,9 +35,15 @@ function wordmark(size = 22) {
   return `<span style="font-family:Georgia,'Times New Roman',serif;font-size:${size}px;letter-spacing:${Math.round(size * 0.18)}px;color:#ffffff;font-weight:400;">NOR<span style="color:${BRAND.gold};">E</span>VAN</span>`;
 }
 
+function absUrl(src) {
+  if (!src) return '';
+  return /^https?:\/\//i.test(src) ? src : `${BRAND.site}${src.startsWith('/') ? '' : '/'}${src}`;
+}
+
 function itemRowHtml(i) {
-  const img = i.image
-    ? `<img src="${i.image}" width="56" height="72" alt="" style="display:block;width:56px;height:72px;object-fit:cover;border-radius:6px;background:#f0f0f2;" />`
+  const src = absUrl(i.image);
+  const img = src
+    ? `<img src="${src}" width="56" height="72" alt="" style="display:block;width:56px;height:72px;object-fit:cover;border-radius:6px;background:#f0f0f2;" />`
     : `<div style="width:56px;height:72px;border-radius:6px;background:#f0f0f2;"></div>`;
   const size = i.size ? `<span style="color:${BRAND.muted};font-size:12px;"> · Gr. ${i.size}</span>` : '';
   return `<tr>
@@ -53,12 +59,7 @@ function itemRowHtml(i) {
 /**
  * @param {{ orderId, email, firstName, lastName, address, city, zip, country, items, subtotalCents, createdAt }} order
  */
-export async function sendOrderConfirmation(order) {
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    console.warn('[emailService] GMAIL_USER oder GMAIL_APP_PASSWORD fehlt — E-Mail wird nicht gesendet');
-    return;
-  }
-
+export function renderOrderEmail(order) {
   const orderNo = order.orderId.slice(0, 8).toUpperCase();
   const dateStr = new Date(order.createdAt ?? Date.now()).toLocaleDateString('de-DE', {
     day: '2-digit', month: 'long', year: 'numeric',
@@ -183,13 +184,24 @@ Wir melden uns, sobald deine Bestellung unterwegs ist.
 
 Norevan UG · Berlin · seit 2026 · hello@norevan.shop`;
 
+  return { subject: `Deine Norevan-Bestellung #${orderNo}`, html, text };
+}
+
+export async function sendOrderConfirmation(order) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.warn('[emailService] GMAIL_USER oder GMAIL_APP_PASSWORD fehlt — E-Mail wird nicht gesendet');
+    return;
+  }
+
+  const { subject, html, text } = renderOrderEmail(order);
+
   try {
     const notify = process.env.ORDER_NOTIFY_EMAIL || process.env.GMAIL_USER;
     await getTransporter().sendMail({
       from: `"Norevan" <${process.env.GMAIL_USER}>`,
       to: order.email,
       ...(notify ? { bcc: notify } : {}),
-      subject: `Deine Norevan-Bestellung #${orderNo}`,
+      subject,
       text,
       html,
     });
