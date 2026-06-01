@@ -81,7 +81,7 @@ const dict = {
   },
   success: {
     title: "Vielen Dank!",
-    body: "Bezahlung in Kürze verfügbar — deine Demo-Bestellung wurde erfasst.",
+    body: "Deine Zahlung war erfolgreich. Eine Bestätigung mit Rechnung ist auf dem Weg in dein Postfach.",
     orderId: "Bestellnummer",
     home: "Zurück zur Startseite",
   },

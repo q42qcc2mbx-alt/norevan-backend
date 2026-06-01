@@ -83,7 +83,7 @@ const dict: Dictionary = {
   },
   success: {
     title: "Thank you!",
-    body: "Payment coming soon — your demo order has been recorded.",
+    body: "Your payment was successful. A confirmation with your invoice is on its way to your inbox.",
     orderId: "Order ID",
     home: "Back to home",
   },
