@@ -1,5 +1,5 @@
-import { cookies } from "next/headers";
-import { API_BASE_URL, AUTH_COOKIE } from "@/lib/api/client";
+import { API_BASE_URL } from "@/lib/api/client";
+import { getSupabaseAccessToken } from "@/lib/supabase/server";
 import type { CartItem } from "@/lib/cart-store";
 
 type CheckoutBody = {
@@ -21,10 +21,9 @@ export async function POST(req: Request) {
     return Response.json({ error: "invalid_json" }, { status: 400 });
   }
 
-  // Forward to the Express backend. If the user is signed in, the Bearer
-  // token attaches the order to their account; otherwise it's a guest order.
-  const jar = await cookies();
-  const token = jar.get(AUTH_COOKIE)?.value ?? null;
+  // Forward to the Express backend. If the user is signed in (Supabase), the
+  // Bearer token attaches the order to their account; otherwise it's a guest order.
+  const token = await getSupabaseAccessToken();
 
   const res = await fetch(`${API_BASE_URL}/api/v1/checkout`, {
     method: "POST",

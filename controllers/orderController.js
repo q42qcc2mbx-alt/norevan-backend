@@ -63,15 +63,16 @@ export const createOrder = async (req, res, next) => {
     const orderId = crypto.randomUUID();
     const subtotalCents = req.body.items.reduce((s, it) => s + it.priceCents * it.qty, 0);
     const userId = req.user?.userId ?? null;
+    const supabaseUserId = req.supabaseUser?.id ?? null;
 
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
 
       await client.query(
-        `INSERT INTO orders (id, user_id, email, first_name, last_name, address, city, zip, country, subtotal_cents, status)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'pending')`,
-        [orderId, userId, req.body.email, req.body.firstName, req.body.lastName,
+        `INSERT INTO orders (id, user_id, supabase_user_id, email, first_name, last_name, address, city, zip, country, subtotal_cents, status)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'pending')`,
+        [orderId, userId, supabaseUserId, req.body.email, req.body.firstName, req.body.lastName,
          req.body.address, req.body.city, req.body.zip, req.body.country, subtotalCents],
       );
 
@@ -165,8 +166,8 @@ export const getOrderById = async (req, res, next) => {
 export const listMyOrders = async (req, res, next) => {
   try {
     const { rows: orders } = await pool.query(
-      'SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC',
-      [req.user.userId],
+      'SELECT * FROM orders WHERE supabase_user_id = $1 ORDER BY created_at DESC',
+      [req.supabaseUser.id],
     );
     const enriched = await Promise.all(
       orders.map(async (o) => {

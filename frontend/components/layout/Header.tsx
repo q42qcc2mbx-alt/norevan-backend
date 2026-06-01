@@ -13,6 +13,7 @@ import type { Dictionary } from "@/lib/i18n/dictionaries/de";
 import type { Product } from "@/lib/products";
 import { cn } from "@/lib/cn";
 import { useWishlist } from "@/lib/wishlist-store";
+import { getSupabaseClient } from "@/lib/supabase/client";
 
 function SearchIcon() {
   return (
@@ -76,10 +77,21 @@ export function Header({
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
   const { items: wishlistItems } = useWishlist();
   const wishlistCount = wishlistItems.length;
   const { scrollY } = useScroll();
   useMotionValueEvent(scrollY, "change", (v) => setScrolled(v > 12));
+
+  // Reflect auth state in the account icon (subtle gold dot when signed in).
+  useEffect(() => {
+    const supabase = getSupabaseClient();
+    supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
+      setSignedIn(!!session?.user),
+    );
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   // ⌘K / Ctrl+K opens search
   useEffect(() => {
@@ -168,6 +180,22 @@ export function Header({
                 <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-foreground font-mono text-[9px] text-background">
                   {wishlistCount}
                 </span>
+              )}
+            </Link>
+            <Link
+              href={`/${locale}/account`}
+              aria-label={locale === "de" ? "Konto" : "Account"}
+              className={cn(
+                "relative hidden h-9 w-9 items-center justify-center rounded-full border transition-colors sm:inline-flex",
+                signedIn ? "border-foreground" : "border-border hover:border-foreground",
+              )}
+            >
+              <UserIcon />
+              {signedIn && (
+                <span
+                  className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full"
+                  style={{ background: "var(--gold)" }}
+                />
               )}
             </Link>
             <ThemeToggle label={dict.theme.toggle} />
@@ -279,6 +307,20 @@ export function Header({
                     <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-foreground font-mono text-[9px] text-background">
                       {wishlistCount}
                     </span>
+                  )}
+                </Link>
+                <Link
+                  href={`/${locale}/account`}
+                  onClick={() => setMobileOpen(false)}
+                  className="mono flex items-center gap-3 px-3 py-2.5 text-sm text-foreground/50 transition-colors hover:text-foreground uppercase tracking-widest"
+                >
+                  <UserIcon />
+                  {locale === "de" ? "Konto" : "Account"}
+                  {signedIn && (
+                    <span
+                      className="ml-auto h-2 w-2 rounded-full"
+                      style={{ background: "var(--gold)" }}
+                    />
                   )}
                 </Link>
               </div>

@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import pool from './config/database.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
@@ -57,6 +58,20 @@ app.use((req, res) => {
 
 // Global error handler — must be last middleware
 app.use(errorHandler);
+
+// Ensure the column that links orders to a Supabase account exists. Idempotent,
+// runs through the working transaction pooler on each boot/deploy.
+async function ensureSchema() {
+  try {
+    await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS supabase_user_id TEXT');
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_orders_supabase_user ON orders(supabase_user_id)');
+    console.log('[db] schema ensured (orders.supabase_user_id)');
+  } catch (e) {
+    console.error('[db] ensureSchema failed (will retry next boot):', e.message);
+  }
+}
+
+await ensureSchema();
 
 app.listen(PORT, () => {
   console.log(`[${process.env.NODE_ENV ?? 'development'}] Server running on http://localhost:${PORT}`);
