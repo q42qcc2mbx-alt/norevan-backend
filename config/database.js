@@ -7,7 +7,13 @@ const { Pool } = pg;
 // has IPv4 addresses. The pooler URL format differs only in host, port, and
 // the username gains a ".PROJECTREF" suffix.
 function toPoolerUrl(connStr) {
-  const u = new URL(connStr);
+  if (!connStr) return connStr; // no DATABASE_URL (e.g. tests/CI) — leave as-is
+  let u;
+  try {
+    u = new URL(connStr);
+  } catch {
+    return connStr; // not a parseable URL — leave untouched
+  }
   const m = u.hostname.match(/^db\.([a-z0-9]+)\.supabase\.co$/);
   if (!m) return connStr; // already pooler or custom host — leave as-is
   const ref = m[1];

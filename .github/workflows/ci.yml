@@ -58,3 +58,5 @@ jobs:
             -not -path './frontend/*' \
             -print0 | xargs -0 -n1 node --check
           echo "All backend JS files parsed OK."
+      - name: Tests
+        run: npm test
