@@ -66,6 +66,12 @@ export default async function AdminDashboard() {
   const revenueSeries = dailyRevenueSeries(orders, 30);
   const last30Cents = revenueSeries.reduce((s, p) => s + p.valueCents, 0);
 
+  // Low / out-of-stock items (operational — shown to all back-office roles).
+  const lowStock = products
+    .filter((p) => typeof p.stock === "number" && (p.stock as number) <= 5)
+    .sort((a, b) => (a.stock ?? 0) - (b.stock ?? 0))
+    .slice(0, 8);
+
   return (
     <div className="mx-auto max-w-7xl px-6 py-12 md:px-10 md:py-16">
       <header className="mb-10 border-b border-border pb-6">
@@ -103,6 +109,42 @@ export default async function AdminDashboard() {
         />
         <Stat label="Pending / Paid" value={String(pendingCount)} sub="zu versenden" />
       </div>
+
+      {/* Low / out-of-stock alert */}
+      {lowStock.length > 0 && (
+        <div className="mt-10 rounded-md border border-border bg-card p-6">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+              Niedriger Bestand
+            </div>
+            <Link
+              href="/admin/products"
+              className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted hover:text-foreground"
+            >
+              Alle Produkte →
+            </Link>
+          </div>
+          <ul className="space-y-2 text-sm">
+            {lowStock.map((p) => (
+              <li key={p.slug} className="flex items-center justify-between gap-3">
+                <Link
+                  href={`/admin/products/${p.slug}`}
+                  className="truncate underline-offset-4 hover:underline"
+                >
+                  {p.name}
+                </Link>
+                <span
+                  className={`whitespace-nowrap font-mono text-[11px] tabular-nums ${
+                    p.stock === 0 ? "text-red-400" : "text-[var(--gold)]"
+                  }`}
+                >
+                  {p.stock === 0 ? "Ausverkauft" : `${p.stock} übrig`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Revenue over time — coordinate system (admins & owners only) */}
       {showRevenue && (
