@@ -34,7 +34,10 @@ function NavLinks({
         <Link href="/admin/analytics" className={navLink}>Analytics</Link>
       )}
       {showTeam && (
-        <Link href="/admin/team" className={navLink}>Team</Link>
+        <>
+          <Link href="/admin/team" className={navLink}>Team</Link>
+          <Link href="/admin/audit" className={navLink}>Protokoll</Link>
+        </>
       )}
     </>
   );

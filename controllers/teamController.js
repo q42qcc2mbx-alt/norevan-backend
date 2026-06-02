@@ -26,6 +26,25 @@ async function ownerCount() {
   return rows[0]?.c ?? 0;
 }
 
+/** GET /api/v1/admin/audit — recent admin actions (owner only). */
+export const listAudit = async (req, res, next) => {
+  try {
+    const limit = Math.min(Number(req.query.limit ?? 100), 500);
+    const { rows } = await pool.query(
+      `SELECT a.id, a.action, a.target, a.meta, a.created_at,
+              u.username AS actor_username, u.email AS actor_email
+       FROM admin_audit a
+       LEFT JOIN users u ON u.id = a.actor_id
+       ORDER BY a.created_at DESC
+       LIMIT $1`,
+      [limit],
+    );
+    res.json({ status: 'success', data: rows });
+  } catch (err) {
+    next(err);
+  }
+};
+
 /** GET /api/v1/admin/team — back-office members. */
 export const listTeam = async (req, res, next) => {
   try {
