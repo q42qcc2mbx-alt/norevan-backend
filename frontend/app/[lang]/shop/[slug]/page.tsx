@@ -6,6 +6,7 @@ import { locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { ProductDetailView } from "@/components/product/ProductDetailView";
 import { ProductGrid } from "@/components/product/ProductGrid";
+import { RecentlyViewed } from "@/components/product/RecentlyViewed";
 import { Reveal } from "@/components/motion/Reveal";
 import { buildMetadata, productLd, breadcrumbLd, JsonLd, SITE_URL } from "@/lib/seo";
 
@@ -97,6 +98,17 @@ export default async function ProductPage({
           />
         </section>
       )}
+
+      <RecentlyViewed
+        locale={lang}
+        current={{
+          slug: product.slug,
+          name: product.name,
+          image: product.images[0]?.src ?? "",
+          priceCents: product.priceCents,
+          brand: product.brand,
+        }}
+      />
     </div>
   );
 }
