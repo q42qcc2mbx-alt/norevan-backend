@@ -14,6 +14,10 @@ import { errorHandler } from './middleware/errorHandler.js';
 const app = express();
 const PORT = process.env.PORT ?? 4000;
 
+// Behind Render's proxy — trust it so req.ip reflects the real client for
+// rate limiting.
+app.set('trust proxy', 1);
+
 // ─── CORS (minimal, no extra dependency) ──────────────────────────────────
 // Allowed origins come from CORS_ORIGINS (comma-separated). For dev we default
 // to the Next.js shop on http://localhost:3000.

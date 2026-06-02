@@ -12,11 +12,17 @@ import {
   requireRealUser,
 } from '../middleware/supabaseAuthMiddleware.js';
 import { requireRole } from '../middleware/requireRole.js';
+import { rateLimit } from '../middleware/rateLimit.js';
 
 const router = Router();
 
 // Purchasing requires a real (non-guest) account. Anonymous guests may browse but not buy.
-router.post('/checkout', requireRealUser, createOrder);
+router.post(
+  '/checkout',
+  rateLimit({ windowMs: 60_000, max: 20, key: 'checkout' }),
+  requireRealUser,
+  createOrder,
+);
 
 // Authenticated user (Supabase) — own orders. Must be before /orders/:id so "me" isn't treated as an id.
 router.get('/orders/me', requireSupabaseAuth, listMyOrders);
