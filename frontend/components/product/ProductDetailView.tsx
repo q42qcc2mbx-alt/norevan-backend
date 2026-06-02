@@ -7,6 +7,7 @@ import { ExplodingInfoLazy } from "@/components/three/ExplodingInfoLazy";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { Stars } from "./Stars";
 import { ReviewsSection } from "./ReviewsSection";
+import { BackInStockForm } from "./BackInStockForm";
 import type { Product } from "@/lib/products";
 import type { ReviewSummary } from "@/lib/reviews";
 import type { Locale } from "@/lib/i18n/config";
@@ -277,6 +278,8 @@ export function ProductDetailView({
             </svg>
           </motion.button>
         </div>
+
+        {soldOut && <BackInStockForm slug={product.slug} locale={locale} />}
 
         <div className="mt-6 grid grid-cols-3 gap-3 text-center">
           <Trust label={locale === "de" ? "Versand" : "Shipping"} value={locale === "de" ? "Frei ab 100 €" : "Free over €100"} />

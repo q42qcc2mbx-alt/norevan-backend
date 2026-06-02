@@ -305,6 +305,47 @@ export async function sendShippingNotification(order) {
   }
 }
 
+export function renderBackInStockEmail(product) {
+  const logo = `${BRAND.site}/logo/norevan-shield.png`;
+  const url = `${BRAND.site}/de/shop/${product.slug}`;
+  const img = absUrl(product.image);
+  const html = `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:${BRAND.paper};">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND.paper};padding:28px 12px;"><tr><td align="center">
+  <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);">
+    <tr><td style="background:${BRAND.ink};padding:32px;text-align:center;">
+      <img src="${logo}" width="52" height="52" alt="Norevan" style="display:inline-block;margin-bottom:12px;" />
+      <div>${wordmark(22)}</div>
+      <div style="height:2px;width:44px;background:${BRAND.gold};margin:16px auto 0;border-radius:2px;"></div>
+    </td></tr>
+    <tr><td style="padding:34px 32px 8px;">
+      <h1 style="margin:0 0 10px;font-family:Georgia,serif;font-weight:400;font-size:24px;color:${BRAND.text};">Wieder da.</h1>
+      <p style="margin:0;font-size:15px;line-height:1.6;color:${BRAND.muted};"><strong style="color:${BRAND.text};">${product.name}</strong> ist wieder verfügbar — sei schnell, bevor es erneut vergriffen ist.</p>
+    </td></tr>
+    ${img ? `<tr><td style="padding:18px 32px 0;text-align:center;"><img src="${img}" width="220" alt="${product.name}" style="display:inline-block;max-width:220px;border-radius:10px;" /></td></tr>` : ''}
+    <tr><td style="padding:24px 32px 4px;text-align:center;">
+      <a href="${url}" style="display:inline-block;background:${BRAND.ink};color:#fff;text-decoration:none;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:14px 30px;border-radius:999px;">Jetzt ansehen</a>
+    </td></tr>
+    <tr><td style="padding:30px 32px;text-align:center;">
+      <div style="border-top:1px solid ${BRAND.line};padding-top:22px;font-size:11px;color:${BRAND.muted};line-height:1.7;">Norevan UG · Berlin · seit 2026<br><a href="mailto:hello@norevan.shop" style="color:${BRAND.muted};">hello@norevan.shop</a></div>
+    </td></tr>
+  </table>
+</td></tr></table></body></html>`;
+  const text = `Wieder da.\n\n${product.name} ist wieder verfügbar:\n${url}\n\nNorevan UG · Berlin`;
+  return { subject: `Wieder verfügbar: ${product.name}`, html, text };
+}
+
+export async function sendBackInStock(email, product) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD || !email) return;
+  const { subject, html, text } = renderBackInStockEmail(product);
+  try {
+    await getTransporter().sendMail({ from: `"Norevan" <${process.env.GMAIL_USER}>`, to: email, subject, text, html });
+    console.log(`[emailService] Back-in-stock an ${email}`);
+  } catch (err) {
+    console.error('[emailService] Back-in-stock fehlgeschlagen:', err.message);
+  }
+}
+
 export async function sendOrderConfirmation(order) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     console.warn('[emailService] GMAIL_USER oder GMAIL_APP_PASSWORD fehlt — E-Mail wird nicht gesendet');

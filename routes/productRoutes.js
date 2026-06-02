@@ -5,15 +5,18 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  subscribeBackInStock,
 } from '../controllers/productController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { requireRole } from '../middleware/requireRole.js';
+import { rateLimit } from '../middleware/rateLimit.js';
 
 const router = Router();
 
 // Public — anyone can browse the catalogue
 router.get('/',         listProducts);
 router.get('/:slug',    getProductBySlug);
+router.post('/:slug/notify-me', rateLimit({ windowMs: 60_000, max: 10, key: 'notify-me' }), subscribeBackInStock);
 
 // Back office — staff and up may manage the catalogue
 router.post('/',        protect, requireRole('staff'), createProduct);
