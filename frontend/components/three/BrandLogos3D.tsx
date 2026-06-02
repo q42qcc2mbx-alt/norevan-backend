@@ -1,5 +1,9 @@
 "use client";
 
+/* eslint-disable react-hooks/immutability --
+   react-three-fiber animation code: mutating Three.js objects inside the
+   useFrame render loop is the intended r3f pattern, not React state. */
+
 import { useRef, useMemo, useEffect } from "react";
 import { Canvas, useFrame, useLoader, useThree, type ThreeEvent } from "@react-three/fiber";
 import { Float } from "@react-three/drei";

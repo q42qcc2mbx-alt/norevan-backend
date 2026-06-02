@@ -136,7 +136,7 @@ async function LookbookContent({ params }: { params: Promise<{ lang: Locale }> }
 
       {/* Spreads */}
       {spreads.map((spread, i) => (
-        <SpreadSection key={i} spread={spread} index={i} lang={lang} />
+        <SpreadSection key={i} spread={spread} index={i} />
       ))}
 
       {/* Closing tile — back to shop */}
@@ -183,11 +183,9 @@ export default function LookbookPage({
 function SpreadSection({
   spread,
   index,
-  lang,
 }: {
   spread: Spread;
   index: number;
-  lang: Locale;
 }) {
   const isAlt = index % 2 === 1;
   const chapterNum = String(index + 1).padStart(2, "0");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 export type AddressPick = {
   street: string;
@@ -46,6 +46,7 @@ export function AddressAutocomplete({
   const [active, setActive] = useState(-1);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
+  const listId = useId();
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
@@ -145,11 +146,13 @@ export function AddressAutocomplete({
         onKeyDown={onKeyDown}
         className={inputCls}
         autoComplete="off"
+        role="combobox"
         aria-autocomplete="list"
         aria-expanded={open}
+        aria-controls={listId}
       />
       {open && items.length > 0 && (
-        <ul className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-lg border border-border bg-card py-1 shadow-lg">
+        <ul id={listId} role="listbox" className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-lg border border-border bg-card py-1 shadow-lg">
           {items.map((s, i) => (
             <li key={s.label}>
               <button

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import {
   createMemberAction,
   updateRoleAction,
@@ -33,9 +33,9 @@ export function TeamManager({
   const formRef = useRef<HTMLFormElement>(null);
 
   // Reset the inputs after a successful create (keep the credentials banner).
-  if (state?.ok && formRef.current) {
-    formRef.current.reset();
-  }
+  useEffect(() => {
+    if (state?.ok) formRef.current?.reset();
+  }, [state]);
 
   return (
     <div className="space-y-10">

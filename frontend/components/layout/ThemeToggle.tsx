@@ -24,6 +24,9 @@ function MoonIcon() {
 export function ThemeToggle({ label }: { label: string }) {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  // Standard hydration guard for next-themes: flag mount once so SSR and the
+  // first client render match. The single set on mount is intentional.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
   const isDark = mounted && resolvedTheme === "dark";
 

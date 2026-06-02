@@ -1,5 +1,9 @@
 "use client";
 
+/* eslint-disable react-hooks/purity, react-hooks/immutability --
+   react-three-fiber animation code: reading time/Math in useFrame and mutating
+   Three.js objects inside the render loop is the intended r3f pattern. */
+
 import { Suspense, useRef, useMemo, useEffect, useState } from "react";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { AnimatePresence, motion, useMotionValue, animate } from "motion/react";

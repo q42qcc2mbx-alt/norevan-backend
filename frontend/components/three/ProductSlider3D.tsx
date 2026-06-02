@@ -1,5 +1,10 @@
 "use client";
 
+/* eslint-disable react-hooks/immutability, react-hooks/refs --
+   react-three-fiber animation code: mutating Three.js objects (materials,
+   geometry, transforms) and reading refs inside the useFrame render loop is the
+   intended r3f pattern, not React state — the compiler rules don't apply here. */
+
 import { Suspense, useRef, useMemo, useState, useEffect } from "react";
 import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
 import * as THREE from "three";
@@ -118,11 +123,9 @@ function Card({
 // ─── Inner scene ─────────────────────────────────────────────────────────────
 function Scene({
   products,
-  locale,
   onNavigate,
 }: {
   products: Product[];
-  locale: Locale;
   onNavigate: (slug: string) => void;
 }) {
   const { gl } = useThree();
@@ -259,7 +262,7 @@ export function ProductSlider3D({
         gl={{ antialias: true, alpha: true }}
       >
         <Suspense fallback={null}>
-          <Scene products={products} locale={locale} onNavigate={onNavigate} />
+          <Scene products={products} onNavigate={onNavigate} />
         </Suspense>
       </Canvas>
 
