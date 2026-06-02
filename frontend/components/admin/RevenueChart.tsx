@@ -27,9 +27,12 @@ function euroShort(cents: number) {
 export function RevenueChart({
   data,
   className,
+  formatValue = euroShort,
 }: {
   data: ChartPoint[];
   className?: string;
+  /** Y-axis label formatter. Defaults to a compact euro format. */
+  formatValue?: (value: number) => string;
 }) {
   const innerW = W - PAD.left - PAD.right;
   const innerH = H - PAD.top - PAD.bottom;
@@ -81,7 +84,7 @@ export function RevenueChart({
             fill="var(--muted)"
             style={{ fontFamily: "var(--font-geist-mono), monospace" }}
           >
-            {euroShort(t)}
+            {formatValue(t)}
           </text>
         </g>
       ))}
