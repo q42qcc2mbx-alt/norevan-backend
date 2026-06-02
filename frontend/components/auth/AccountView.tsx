@@ -8,6 +8,8 @@ import { getSupabaseClient } from "@/lib/supabase/client";
 import { useWishlist } from "@/lib/wishlist-store";
 import { useCart } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/format";
+import { UseMyLocationButton } from "@/components/address/UseMyLocationButton";
+import type { AddressPick } from "@/components/checkout/AddressAutocomplete";
 
 type OrderItem = { name: string; size: string | null; qty: number };
 
@@ -152,6 +154,17 @@ export function AccountView({ locale }: { locale: Locale }) {
     setAddrSaved(false);
   };
 
+  const fillFromLocation = (a: AddressPick) => {
+    setAddr((s) => ({
+      ...s,
+      address: a.street || s.address,
+      zip: a.zip || s.zip,
+      city: a.city || s.city,
+      country: a.country || s.country,
+    }));
+    setAddrSaved(false);
+  };
+
   const handleSaveAddress = async () => {
     if (!user || addrSaving) return;
     setAddrSaving(true);
@@ -247,10 +260,15 @@ export function AccountView({ locale }: { locale: Locale }) {
           <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
             {isDe ? "Lieferadresse" : "Shipping address"}
           </span>
-          {addrSaved && (
+          {addrSaved ? (
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-foreground">
               {isDe ? "Gespeichert ✓" : "Saved ✓"}
             </span>
+          ) : (
+            <UseMyLocationButton
+              locale={isDe ? "de" : "en"}
+              onPick={fillFromLocation}
+            />
           )}
         </div>
 

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { useCart, cartSubtotalCents } from "@/lib/cart-store";
 import { AddressAutocomplete, type AddressPick } from "./AddressAutocomplete";
+import { UseMyLocationButton } from "@/components/address/UseMyLocationButton";
 import { formatPrice } from "@/lib/format";
 import { getSupabaseClient } from "@/lib/supabase/client";
 import type { Locale } from "@/lib/i18n/config";
@@ -204,9 +205,15 @@ export function CheckoutForm({
         </fieldset>
 
         <fieldset>
-          <legend className="mb-3 text-sm font-medium uppercase tracking-wide text-muted">
-            {dict.checkout.shipping}
-          </legend>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <legend className="text-sm font-medium uppercase tracking-wide text-muted">
+              {dict.checkout.shipping}
+            </legend>
+            <UseMyLocationButton
+              locale={locale === "de" ? "de" : "en"}
+              onPick={fillAddress}
+            />
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className={labelCls}>{dict.checkout.firstName}</label>
