@@ -2,6 +2,37 @@ import Link from "next/link";
 import { getAllOrders } from "@/lib/orders";
 import { getAllProducts } from "@/lib/products";
 import { formatPrice } from "@/lib/format";
+import { RevenueChart, type ChartPoint } from "@/components/admin/RevenueChart";
+
+const REALIZED = new Set(["paid", "shipped", "delivered"]);
+
+/** Daily realized revenue for the last `days` days (oldest → newest). */
+function dailyRevenueSeries(
+  orders: { status: string; subtotalCents: number; createdAt: string }[],
+  days = 30,
+): ChartPoint[] {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (days - 1));
+
+  const buckets = new Map<string, number>();
+  for (let i = 0; i < days; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    buckets.set(d.toISOString().slice(0, 10), 0);
+  }
+
+  for (const o of orders) {
+    if (!REALIZED.has(o.status)) continue;
+    const key = new Date(o.createdAt).toISOString().slice(0, 10);
+    if (buckets.has(key)) buckets.set(key, buckets.get(key)! + o.subtotalCents);
+  }
+
+  return Array.from(buckets.entries()).map(([iso, valueCents]) => {
+    const [, m, d] = iso.split("-");
+    return { label: `${Number(d)}.${Number(m)}`, valueCents };
+  });
+}
 
 export const metadata = {
   title: "Dashboard — Norevan Admin",
@@ -26,6 +57,9 @@ export default async function AdminDashboard() {
     (o) => o.status === "demo" || o.status === "paid",
   ).length;
 
+  const revenueSeries = dailyRevenueSeries(orders, 30);
+  const last30Cents = revenueSeries.reduce((s, p) => s + p.valueCents, 0);
+
   return (
     <div className="mx-auto max-w-7xl px-6 py-12 md:px-10 md:py-16">
       <header className="mb-10 border-b border-border pb-6">
@@ -49,6 +83,26 @@ export default async function AdminDashboard() {
         <Stat label="Bestellungen" value={String(orders.length)} href="/admin/orders" />
         <Stat label="Heute" value={String(ordersToday.length)} sub={`${ordersToday.reduce((s, o) => s + o.subtotalCents, 0) === 0 ? "—" : formatPrice(ordersToday.reduce((s, o) => s + o.subtotalCents, 0), "de")}`} />
         <Stat label="Pending / Paid" value={String(pendingCount)} sub="zu versenden" />
+      </div>
+
+      {/* Revenue over time — coordinate system */}
+      <div className="mt-10 rounded-md border border-border bg-card p-6">
+        <div className="mb-4 flex items-baseline justify-between gap-4">
+          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+            Umsatz · letzte 30 Tage
+          </div>
+          <div
+            className="font-serif tabular-nums"
+            style={{
+              fontFamily: "var(--font-cormorant), Georgia, serif",
+              fontSize: "1.5rem",
+              lineHeight: 1,
+            }}
+          >
+            {formatPrice(last30Cents, "de")}
+          </div>
+        </div>
+        <RevenueChart data={revenueSeries} />
       </div>
 
       <div className="mt-10 grid gap-4 md:grid-cols-2">
