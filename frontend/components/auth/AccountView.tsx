@@ -9,6 +9,7 @@ import { useWishlist } from "@/lib/wishlist-store";
 import { useCart } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/format";
 import { UseMyLocationButton } from "@/components/address/UseMyLocationButton";
+import { OrderTimeline } from "@/components/account/OrderTimeline";
 import type { AddressPick } from "@/components/checkout/AddressAutocomplete";
 
 type OrderItem = { name: string; size: string | null; qty: number };
@@ -361,6 +362,7 @@ export function AccountView({ locale }: { locale: Locale }) {
                       {formatPrice(o.subtotalCents, locale)}
                     </span>
                   </div>
+                  <OrderTimeline status={o.status} locale={isDe ? "de" : "en"} />
                 </li>
               );
             })}
