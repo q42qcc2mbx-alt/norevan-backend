@@ -226,3 +226,113 @@ Sag mir, **welche Phase oder welche einzelne Idee** ich zuerst umsetzen soll —
 ich empfehle die **Quick Wins (Abschnitt 1)** als Start, weil sie sofort sichtbar
 sind, kaum Risiko haben und den Premium-Look schärfen. Dann baue ich sie auf
 `claude/wo-sind-wir-PnKV9` und zeige dir das Ergebnis.
+
+---
+
+# Teil II — Noch mehr Ideen (Erweiterung)
+
+> Größer, eigenständiger, „Kult-Marke". Weiter nach Themen sortiert. Gleiche
+> Leitplanken wie oben (Ruhe, sparsames Gold, Material, 60fps, Reduced-Motion).
+
+## 11. Personalisierung & Wiedererkennung
+
+- [ ] **„Welcome back, {Name}"** dezent im Header für eingeloggte User (Supabase
+      `profiles`) — kein Popup, nur ein feiner Eyebrow-Gruß.
+- [ ] **Zuletzt angesehen**-Reihe (LocalStorage/Zustand) unten auf Produktseiten.
+- [ ] **„Für dich"-Drop**: einfache Heuristik (gleiche Kategorie/Brand wie
+      Wishlist) → personalisierte Sektion auf der Startseite.
+- [ ] **Gespeicherte Größe**: einmal gewählt, überall vorausgefüllt → ein Tap
+      weniger bis zum Kauf.
+- [ ] **Wiederkehr-Akzent**: Theme-Wahl (dark/light) pro User merken.
+
+## 12. Community & Social Proof (ohne Clutter)
+
+- [ ] **„Worn by"-Galerie**: kuratierte Kund:innen-Fotos pro Produkt
+      (moderiert, in Supabase Storage), als edle Masonry-Strip.
+- [ ] **Live-Aktivität dezent**: „3 sichern das gerade" via Supabase Realtime —
+      nur bei echten Events, nie fake.
+- [ ] **Wishlist teilen**: signierter Link auf die eigene Wunschliste
+      (Geschenk-Hint-Funktion).
+- [ ] **Restock-Bell**: bei ausverkauften Größen E-Mail/Push abonnieren
+      (Supabase Table + bestehender Mail-Flow).
+
+## 13. Storytelling & Editorial
+
+- [ ] **Produkt-„Origin"-Block**: kurze Story je Drop (Material, Inspiration),
+      Cormorant-Italic-Headline + Foto.
+- [ ] **Journal/Magazin**-Route (`/[lang]/journal`): MDX-Artikel, Lookbooks,
+      Behind-the-Scenes → SEO + Markenwelt.
+- [ ] **Kollektions-Landingpages** mit eigener Farb-/Bildstimmung pro Drop.
+- [ ] **Manifest-Sektion**: ein starkes Marken-Statement als Full-Bleed-Typo.
+
+## 14. Sinnliches UI (Sound, Haptik, Detail)
+
+- [ ] **Optionaler Sound-Layer**: extrem dezente Klicks/Whooshes (toggle-bar,
+      default aus) — Web Audio, < 5kb Samples.
+- [ ] **Haptik-Grammatik**: einheitliche `navigator.vibrate`-Muster (Add = kurz,
+      Kauf = doppelter Tick, Fehler = langes Brummen).
+- [ ] **„Unboxing"-Bestätigung**: nach Kauf eine ruhige Sequenz (Siegel/Logo
+      animiert), die sich wie Auspacken anfühlt.
+- [ ] **Idle-Atmosphäre**: nach Inaktivität sehr langsames Atmen des Hero-Grain.
+
+## 15. Visuelle Tiefe & 3D (vorhandenes Three.js nutzen)
+
+- [ ] **3D-Produkt-Spin** für Hero-Stücke (`ProductSlider3D` ausbauen): Drag zum
+      Drehen, auf Mobile Auto-Rotate + Tap-to-stop.
+- [ ] **Tiefen-Layer im Hero**: Logo/Typo auf mehreren Z-Ebenen mit
+      Maus-/Tilt-Parallax (`ExplodingInfo` weiterdenken).
+- [ ] **„Material-Showcase"**: ein Three-Shader, der Stoff-Falten/Glanz andeutet
+      — nur Desktop/idle, mobil statisches Fallback.
+
+## 16. Conversion-Schönheit (verkauft *und* sieht gut aus)
+
+- [ ] **Sticky Buy-Bar** auf Mobile-Produktseite: Preis + „Sichern" dockt unten an.
+- [ ] **Größen-Verfügbarkeit visuell**: ausverkaufte Größen durchgestrichen, nicht
+      versteckt → Begehrlichkeit.
+- [ ] **Bundle/„Complete the look"**: zwei, drei passende Teile als ein Tap-Add.
+- [ ] **Mini-Countdown** für Drops/Releases (ruhig, Mono-Ziffern, kein Blink-Stress).
+- [ ] **Free-Shipping-Fortschritt** im Cart-Drawer („noch 12 € bis Gratisversand").
+
+## 17. Onboarding & leere Zustände (oft vergessen, viel Wirkung)
+
+- [ ] **Schöne Empty-States**: leerer Warenkorb/Wishlist mit Illustration + CTA
+      statt nacktem Text.
+- [ ] **First-Visit-Hint**: einmalige, wegwischbare Geste-Erklärung beim Swipe-Deck.
+- [ ] **404/Error edel** (`not-found.tsx`, `error.tsx`): Marken-Typo + Rückweg.
+
+## 18. Barrierefreiheit als Premium-Merkmal
+
+- [ ] **Tastatur-Vollbedienung** für Drawer, Overlay, Swipe-Deck (Arrow-Keys).
+- [ ] **Sichtbarer Fokus + Skip-Link**; Kontraste AA prüfen (Gold nie für Text).
+- [ ] **`prefers-reduced-motion`**: zentrale Variante aller Effekte.
+- [ ] **Alt-Texte & ARIA** für alle Produktbilder/Buttons systematisch.
+
+## 19. Internationalisierung & Vertrauen
+
+- [ ] **Währungs-/Sprach-Switcher** (i18n ist da: `[lang]`) sichtbarer & schöner.
+- [ ] **Lokale Zahlungs-/Versand-Hinweise** je Region.
+- [ ] **Klar gestaltete Legal-/Trust-Seiten** (`legal/`) im Marken-Layout statt
+      Fließtext-Wüste.
+
+## 20. Saisonales & „lebendige" Marke
+
+- [ ] **Theme-Akzente nach Saison/Drop** (über CSS-Vars, ein Schalter).
+- [ ] **Easter-Egg**: Konami-/Logo-Tap → kleine Animation (Markenliebe, teilbar).
+- [ ] **„Coming soon"-Teaser** mit E-Mail-Capture für den nächsten Drop.
+
+---
+
+## Top-10-Empfehlung (wenn du schnell Wirkung willst)
+
+1. Film-Grain-Overlay (1)
+2. View-Transitions Karte→Detail (1)
+3. Sticky Buy-Bar mobil (16)
+4. Add-to-Cart-Flug + Haptik (6/14)
+5. Schöne Empty-States (17)
+6. `FABRIC_TILT` Glanzlicht (2)
+7. Free-Shipping-Fortschritt im Drawer (16)
+8. Editorial-/Bento-Grid Startseite (5)
+9. Zuletzt angesehen (11)
+10. ThemeToggle-Crossfade (8)
+
+Sag „mach Top 3" oder nenn Nummern — ich setze sie um.
