@@ -4,6 +4,7 @@ import { getAllProducts } from "@/lib/products";
 import { formatPrice } from "@/lib/format";
 import { RevenueChart, type ChartPoint } from "@/components/admin/RevenueChart";
 import { getAdminUser, canSeeRevenue, effectiveRole } from "@/lib/auth/admin";
+import { updateOrderStatusAction } from "@/app/admin/_actions/orders";
 
 const REALIZED = new Set(["paid", "shipped", "delivered"]);
 
@@ -66,6 +67,9 @@ export default async function AdminDashboard() {
   const revenueSeries = dailyRevenueSeries(orders, 30);
   const last30Cents = revenueSeries.reduce((s, p) => s + p.valueCents, 0);
 
+  // Paid orders awaiting shipment — the core fulfilment queue.
+  const toShip = orders.filter((o) => o.status === "paid").slice(0, 8);
+
   // Low / out-of-stock items (operational — shown to all back-office roles).
   const lowStock = products
     .filter((p) => typeof p.stock === "number" && (p.stock as number) <= 5)
@@ -109,6 +113,51 @@ export default async function AdminDashboard() {
         />
         <Stat label="Pending / Paid" value={String(pendingCount)} sub="zu versenden" />
       </div>
+
+      {/* Fulfilment queue — paid orders awaiting shipment */}
+      {toShip.length > 0 && (
+        <div className="mt-10 rounded-md border border-border bg-card p-6">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+              Zu versenden · {toShip.length}
+            </div>
+            <Link
+              href="/admin/orders"
+              className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted hover:text-foreground"
+            >
+              Alle Bestellungen →
+            </Link>
+          </div>
+          <ul className="divide-y divide-border-subtle">
+            {toShip.map((o) => (
+              <li key={o.id} className="flex flex-wrap items-center gap-3 py-3">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm text-foreground">
+                    {o.firstName} {o.lastName}
+                    <span className="ml-2 font-mono text-[10px] text-muted">
+                      #{o.id.slice(0, 8)}
+                    </span>
+                  </div>
+                  <div className="truncate font-mono text-[10px] text-muted">
+                    {o.items.reduce((s, i) => s + i.qty, 0)} Artikel ·{" "}
+                    {[o.zip, o.city].filter(Boolean).join(" ")} {o.country}
+                  </div>
+                </div>
+                <form action={updateOrderStatusAction}>
+                  <input type="hidden" name="id" value={o.id} />
+                  <input type="hidden" name="status" value="shipped" />
+                  <button
+                    type="submit"
+                    className="rounded-full border border-border px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-foreground transition-colors hover:border-foreground hover:bg-foreground hover:text-background"
+                  >
+                    Als versandt markieren
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Low / out-of-stock alert */}
       {lowStock.length > 0 && (
