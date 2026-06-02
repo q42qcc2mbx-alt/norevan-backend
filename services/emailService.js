@@ -187,6 +187,119 @@ Norevan UG · Berlin · seit 2026 · hello@norevan.shop`;
   return { subject: `Deine Norevan-Bestellung #${orderNo}`, html, text };
 }
 
+/**
+ * Shipping notification — sent when an order's status flips to "shipped".
+ * @param {{ orderId, email, firstName, lastName, address, city, zip, country, items, createdAt }} order
+ */
+export function renderShippingEmail(order) {
+  const orderNo = order.orderId.slice(0, 8).toUpperCase();
+  const logo = `${BRAND.site}/logo/norevan-shield.png`;
+
+  const itemsHtml = (order.items ?? []).map(itemRowHtml).join('');
+  const itemsText = (order.items ?? [])
+    .map((i) => `  • ${i.name}${i.size ? ` (Gr. ${i.size})` : ''} × ${i.qty}`)
+    .join('\n');
+
+  const addrLines = [
+    `${order.firstName ?? ''} ${order.lastName ?? ''}`.trim(),
+    order.address,
+    [order.zip, order.city].filter(Boolean).join(' '),
+    order.country,
+  ].filter(Boolean);
+  const addrHtml = addrLines
+    .map((l) => `<div style="font-size:13px;color:${BRAND.text};line-height:1.6;">${l}</div>`)
+    .join('');
+
+  const html = `<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting"></head>
+<body style="margin:0;padding:0;background:${BRAND.paper};">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Deine Bestellung ${orderNo} ist unterwegs.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND.paper};padding:28px 12px;">
+  <tr><td align="center">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+
+      <!-- Header -->
+      <tr><td style="background:${BRAND.ink};padding:32px 32px 28px;text-align:center;">
+        <img src="${logo}" width="52" height="52" alt="Norevan" style="display:inline-block;width:52px;height:52px;margin-bottom:12px;" />
+        <div>${wordmark(22)}</div>
+        <div style="height:2px;width:44px;background:${BRAND.gold};margin:16px auto 0;border-radius:2px;"></div>
+      </td></tr>
+
+      <!-- Greeting -->
+      <tr><td style="padding:34px 32px 8px;">
+        <h1 style="margin:0 0 10px;font-family:Georgia,serif;font-weight:400;font-size:24px;color:${BRAND.text};">Unterwegs zu dir, ${order.firstName ?? ''}.</h1>
+        <p style="margin:0;font-size:15px;line-height:1.6;color:${BRAND.muted};">Deine Bestellung <strong style="color:${BRAND.text};">#${orderNo}</strong> wurde verpackt und ist jetzt auf dem Weg. Bald hältst du sie in den Händen.</p>
+      </td></tr>
+
+      <!-- Items -->
+      <tr><td style="padding:18px 32px 0;">
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:${BRAND.muted};margin-bottom:4px;">Im Paket</div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${itemsHtml}</table>
+      </td></tr>
+
+      <!-- Address -->
+      <tr><td style="padding:26px 32px 0;">
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:${BRAND.muted};margin-bottom:8px;">Lieferadresse</div>
+        ${addrHtml}
+      </td></tr>
+
+      <!-- CTA -->
+      <tr><td style="padding:28px 32px 4px;text-align:center;">
+        <a href="${BRAND.site}/de/account" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:14px 30px;border-radius:999px;">Bestellung ansehen</a>
+      </td></tr>
+
+      <!-- Footer -->
+      <tr><td style="padding:30px 32px;text-align:center;">
+        <div style="border-top:1px solid ${BRAND.line};padding-top:22px;">
+          <div style="margin-bottom:8px;">${wordmark(16).replace(/#ffffff/g, BRAND.text)}</div>
+          <div style="font-size:11px;color:${BRAND.muted};line-height:1.7;">
+            Norevan UG · Berlin · seit 2026<br>
+            <a href="mailto:hello@norevan.shop" style="color:${BRAND.muted};">hello@norevan.shop</a>
+          </div>
+        </div>
+      </td></tr>
+
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Unterwegs zu dir, ${order.firstName ?? ''}.
+
+Deine Bestellung #${orderNo} wurde verpackt und ist jetzt auf dem Weg.
+
+Im Paket:
+${itemsText}
+
+Lieferadresse:
+${addrLines.join('\n')}
+
+Norevan UG · Berlin · seit 2026 · hello@norevan.shop`;
+
+  return { subject: `Deine Norevan-Bestellung #${orderNo} ist unterwegs`, html, text };
+}
+
+export async function sendShippingNotification(order) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.warn('[emailService] GMAIL_USER oder GMAIL_APP_PASSWORD fehlt — Versand-Mail wird nicht gesendet');
+    return;
+  }
+  const { subject, html, text } = renderShippingEmail(order);
+  try {
+    await getTransporter().sendMail({
+      from: `"Norevan" <${process.env.GMAIL_USER}>`,
+      to: order.email,
+      subject,
+      text,
+      html,
+    });
+    console.log(`[emailService] Versand-Mail gesendet an ${order.email}`);
+  } catch (err) {
+    console.error('[emailService] Versand-Mail fehlgeschlagen:', err.message);
+  }
+}
+
 export async function sendOrderConfirmation(order) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
     console.warn('[emailService] GMAIL_USER oder GMAIL_APP_PASSWORD fehlt — E-Mail wird nicht gesendet');

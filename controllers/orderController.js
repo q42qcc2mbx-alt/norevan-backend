@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import pool from '../config/database.js';
-import { sendOrderConfirmation } from '../services/emailService.js';
+import { sendOrderConfirmation, sendShippingNotification } from '../services/emailService.js';
 import { isStripeEnabled, createCheckoutSession } from '../services/stripeService.js';
 
 function orderRowToJson(row) {
@@ -213,12 +213,32 @@ export const updateOrderStatus = async (req, res, next) => {
     if (!ALLOWED_STATUSES.has(status)) {
       return res.status(400).json({ status: 'error', message: 'Invalid status' });
     }
-    const { rowCount } = await pool.query(
-      'UPDATE orders SET status = $1 WHERE id = $2',
-      [status, req.params.id],
-    );
-    if (rowCount === 0) return res.status(404).json({ status: 'error', message: 'Order not found' });
+
+    // Read the current row so we can tell when status actually *changes* to
+    // shipped (and avoid re-sending the email on repeat saves).
+    const { rows } = await pool.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ status: 'error', message: 'Order not found' });
+    const order = rows[0];
+
+    await pool.query('UPDATE orders SET status = $1 WHERE id = $2', [status, req.params.id]);
     res.json({ status: 'success', data: { id: req.params.id, status } });
+
+    if (status === 'shipped' && order.status !== 'shipped') {
+      const { rows: items } = await pool.query('SELECT * FROM order_items WHERE order_id = $1', [order.id]);
+      // Fire-and-forget — never block or fail the response on email issues.
+      sendShippingNotification({
+        orderId: order.id,
+        email: order.email,
+        firstName: order.first_name,
+        lastName: order.last_name,
+        address: order.address,
+        city: order.city,
+        zip: order.zip,
+        country: order.country,
+        items: items.map((i) => ({ name: i.name, size: i.size, qty: i.qty, priceCents: i.price_cents, image: i.image })),
+        createdAt: order.created_at,
+      }).catch((e) => console.error('[orders] shipping mail failed:', e.message));
+    }
   } catch (err) {
     next(err);
   }
