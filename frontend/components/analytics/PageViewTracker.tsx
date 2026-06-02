@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
+import { useConsent } from "@/lib/consent";
 
 /** Anonymous, per-session id (rotates when the tab session ends). */
 function sessionId(): string | undefined {
@@ -35,9 +36,12 @@ function referrer(): string {
  */
 export function PageViewTracker() {
   const pathname = usePathname();
+  const consent = useConsent((s) => s.status);
   const last = useRef<string | null>(null);
 
   useEffect(() => {
+    // Only track once the visitor has accepted the cookie notice.
+    if (consent !== "accepted") return;
     if (!pathname || last.current === pathname) return;
     last.current = pathname;
 
@@ -64,7 +68,7 @@ export function PageViewTracker() {
     } catch {
       // ignore
     }
-  }, [pathname]);
+  }, [pathname, consent]);
 
   return null;
 }
