@@ -109,7 +109,12 @@ export function websiteLd(lang: Locale) {
   };
 }
 
-export function productLd(product: Product, lang: Locale) {
+export function productLd(
+  product: Product,
+  lang: Locale,
+  rating?: { average: number; count: number },
+) {
+  const inStock = product.stock !== 0; // 0 = sold out, undefined = untracked
   return {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -126,10 +131,23 @@ export function productLd(product: Product, lang: Locale) {
       priceCurrency: "EUR",
       price: (product.priceCents / 100).toFixed(2),
       priceValidUntil: "2027-12-31",
-      availability: "https://schema.org/InStock",
+      availability: inStock
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
       seller: { "@type": "Organization", name: SITE_NAME },
     },
+    ...(rating && rating.count > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: rating.average.toFixed(1),
+            reviewCount: rating.count,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
     additionalProperty: product.specs.map((s) => ({
       "@type": "PropertyValue",
       name: s.label[lang],

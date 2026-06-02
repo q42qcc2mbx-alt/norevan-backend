@@ -56,7 +56,7 @@ export default async function ProductPage({
     <div className="mx-auto max-w-7xl px-5 py-10 md:py-14">
       <JsonLd
         data={[
-          productLd(product, lang),
+          productLd(product, lang, { average: reviews.average, count: reviews.count }),
           breadcrumbLd([
             { name: lang === "de" ? "Start" : "Home", url: `${SITE_URL}/${lang}` },
             { name: lang === "de" ? "Shop" : "Shop", url: `${SITE_URL}/${lang}/shop` },

@@ -44,6 +44,19 @@ async function decrementStock(client, items) {
   }
 }
 
+// Return stock to inventory (e.g. when a paid/shipped order is cancelled).
+async function incrementStock(client, items) {
+  for (const it of items) {
+    await client.query(
+      'UPDATE products SET stock = stock + $1, updated_at = NOW() WHERE slug = $2',
+      [it.qty, it.slug],
+    );
+  }
+}
+
+// Statuses for which stock has already been deducted.
+const STOCK_REDUCED = new Set(['paid', 'shipped', 'delivered']);
+
 function validateCheckout(body) {
   const errors = [];
   const required = ['email', 'firstName', 'lastName', 'address', 'city', 'zip', 'country'];
@@ -272,6 +285,26 @@ export const updateOrderStatus = async (req, res, next) => {
     const order = rows[0];
 
     await pool.query('UPDATE orders SET status = $1 WHERE id = $2', [status, req.params.id]);
+
+    // Cancelling an order whose stock was already deducted → return it.
+    if (status === 'cancelled' && STOCK_REDUCED.has(order.status)) {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        const { rows: items } = await client.query(
+          'SELECT slug, qty FROM order_items WHERE order_id = $1',
+          [order.id],
+        );
+        await incrementStock(client, items);
+        await client.query('COMMIT');
+      } catch (e) {
+        await client.query('ROLLBACK');
+        console.error('[orders] restock on cancel failed:', e.message);
+      } finally {
+        client.release();
+      }
+    }
+
     res.json({ status: 'success', data: { id: req.params.id, status } });
 
     if (status === 'shipped' && order.status !== 'shipped') {
