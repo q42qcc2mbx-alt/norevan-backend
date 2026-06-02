@@ -1,70 +1,20 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import {
-  isAdminAuthed,
-  getAdminUser,
-  canSeeRevenue,
-  effectiveRole,
-} from "@/lib/auth/admin";
+import { getAdminUser, effectiveRole, isAdminAuthed } from "@/lib/auth/admin";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
 
-async function AdminGuard({ children }: { children: React.ReactNode }) {
+async function Shell({ children }: { children: React.ReactNode }) {
   await connection();
-  const authed = await isAdminAuthed();
-  if (!authed) redirect("/admin/login");
-  return <>{children}</>;
-}
-
-const navLink = "hover:underline underline-offset-4";
-
-function NavLinks({
-  showAnalytics,
-  showTeam,
-}: {
-  showAnalytics: boolean;
-  showTeam: boolean;
-}) {
-  return (
-    <>
-      <Link href="/admin" className={navLink}>Dashboard</Link>
-      <Link href="/admin/products" className={navLink}>Produkte</Link>
-      <Link href="/admin/orders" className={navLink}>Bestellungen</Link>
-      {showAnalytics && (
-        <>
-          <Link href="/admin/analytics" className={navLink}>Analytics</Link>
-          <Link href="/admin/discounts" className={navLink}>Rabatte</Link>
-          <Link href="/admin/reviews" className={navLink}>Bewertungen</Link>
-        </>
-      )}
-      {showTeam && (
-        <>
-          <Link href="/admin/team" className={navLink}>Team</Link>
-          <Link href="/admin/audit" className={navLink}>Protokoll</Link>
-        </>
-      )}
-      <Link href="/admin/account" className={navLink}>Konto</Link>
-    </>
-  );
-}
-
-/** Role-aware nav: Analytics only for admins/owners; shows a role chip. */
-async function AdminNav() {
-  await connection();
+  if (!(await isAdminAuthed())) redirect("/admin/login");
   const user = await getAdminUser();
   const role = user ? effectiveRole(user) : "staff";
+
   return (
-    <nav className="flex items-center gap-6 font-mono text-[10px] uppercase tracking-[0.25em]">
-      <NavLinks showAnalytics={canSeeRevenue(role)} showTeam={role === "owner"} />
-      <span className="rounded-full border border-border-subtle px-2 py-0.5 text-[9px] tracking-[0.2em] text-muted">
-        {role}
-      </span>
-      <form action="/api/admin/logout" method="POST">
-        <button type="submit" className="text-muted hover:text-foreground">
-          Logout
-        </button>
-      </form>
-    </nav>
+    <div className="flex min-h-screen flex-col md:flex-row">
+      <AdminSidebar role={role} email={user?.email ?? ""} />
+      <main className="min-w-0 flex-1">{children}</main>
+    </div>
   );
 }
 
@@ -74,39 +24,14 @@ export default function AdminAuthedLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-border bg-background">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-10">
-          <Link href="/admin" className="flex items-baseline gap-3">
-            <span className="font-mono text-[10px] uppercase tracking-[0.35em] text-muted">
-              Norevan
-            </span>
-            <span
-              className="font-serif italic"
-              style={{
-                fontFamily: "var(--font-cormorant), Georgia, serif",
-                fontSize: "1.25rem",
-              }}
-            >
-              admin
-            </span>
-          </Link>
-          <Suspense
-            fallback={
-              <nav className="flex items-center gap-6 font-mono text-[10px] uppercase tracking-[0.25em]">
-                <NavLinks showAnalytics={false} showTeam={false} />
-              </nav>
-            }
-          >
-            <AdminNav />
-          </Suspense>
+    <Suspense
+      fallback={
+        <div className="grid min-h-screen place-items-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-foreground" />
         </div>
-      </header>
-      <main>
-        <Suspense>
-          <AdminGuard>{children}</AdminGuard>
-        </Suspense>
-      </main>
-    </div>
+      }
+    >
+      <Shell>{children}</Shell>
+    </Suspense>
   );
 }
