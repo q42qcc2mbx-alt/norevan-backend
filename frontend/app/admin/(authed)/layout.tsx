@@ -18,7 +18,13 @@ async function AdminGuard({ children }: { children: React.ReactNode }) {
 
 const navLink = "hover:underline underline-offset-4";
 
-function NavLinks({ showAnalytics }: { showAnalytics: boolean }) {
+function NavLinks({
+  showAnalytics,
+  showTeam,
+}: {
+  showAnalytics: boolean;
+  showTeam: boolean;
+}) {
   return (
     <>
       <Link href="/admin" className={navLink}>Dashboard</Link>
@@ -26,6 +32,9 @@ function NavLinks({ showAnalytics }: { showAnalytics: boolean }) {
       <Link href="/admin/orders" className={navLink}>Bestellungen</Link>
       {showAnalytics && (
         <Link href="/admin/analytics" className={navLink}>Analytics</Link>
+      )}
+      {showTeam && (
+        <Link href="/admin/team" className={navLink}>Team</Link>
       )}
     </>
   );
@@ -38,7 +47,7 @@ async function AdminNav() {
   const role = user ? effectiveRole(user) : "staff";
   return (
     <nav className="flex items-center gap-6 font-mono text-[10px] uppercase tracking-[0.25em]">
-      <NavLinks showAnalytics={canSeeRevenue(role)} />
+      <NavLinks showAnalytics={canSeeRevenue(role)} showTeam={role === "owner"} />
       <span className="rounded-full border border-border-subtle px-2 py-0.5 text-[9px] tracking-[0.2em] text-muted">
         {role}
       </span>
@@ -77,7 +86,7 @@ export default function AdminAuthedLayout({
           <Suspense
             fallback={
               <nav className="flex items-center gap-6 font-mono text-[10px] uppercase tracking-[0.25em]">
-                <NavLinks showAnalytics={false} />
+                <NavLinks showAnalytics={false} showTeam={false} />
               </nav>
             }
           >
