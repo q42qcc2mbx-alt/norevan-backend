@@ -38,6 +38,45 @@ export const listReviews = async (req, res, next) => {
   }
 };
 
+/** GET /api/v1/admin/reviews — all reviews for moderation (admin). */
+export const listAllReviews = async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, product_slug, author_name, rating, body, verified, created_at
+       FROM reviews ORDER BY created_at DESC LIMIT 300`,
+    );
+    res.json({
+      status: 'success',
+      data: rows.map((r) => ({
+        id: r.id,
+        productSlug: r.product_slug,
+        authorName: r.author_name || 'Kunde',
+        rating: r.rating,
+        body: r.body || '',
+        verified: r.verified,
+        createdAt: r.created_at,
+      })),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/** DELETE /api/v1/admin/reviews/:id — remove a review (admin). */
+export const deleteReview = async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isInteger(id)) {
+      return res.status(400).json({ status: 'error', message: 'Invalid id' });
+    }
+    const { rowCount } = await pool.query('DELETE FROM reviews WHERE id = $1', [id]);
+    if (rowCount === 0) return res.status(404).json({ status: 'error', message: 'Review not found' });
+    res.json({ status: 'success', data: { id } });
+  } catch (err) {
+    next(err);
+  }
+};
+
 /** POST /api/v1/reviews — create/update own review. requireRealUser. */
 export const createReview = async (req, res, next) => {
   try {

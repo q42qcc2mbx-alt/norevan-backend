@@ -16,6 +16,17 @@ export type ReviewSummary = {
   items: Review[];
 };
 
+export type AdminReview = Review & { productSlug: string };
+
+export async function getAllReviews(): Promise<AdminReview[]> {
+  try {
+    return await api.get<AdminReview[]>("/admin/reviews", { cache: "no-store" });
+  } catch (err) {
+    console.warn("[reviews] getAllReviews failed:", (err as Error).message);
+    return [];
+  }
+}
+
 export async function getReviews(slug: string): Promise<ReviewSummary> {
   try {
     return await api.get<ReviewSummary>(

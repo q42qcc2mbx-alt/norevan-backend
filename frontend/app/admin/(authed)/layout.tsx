@@ -31,7 +31,10 @@ function NavLinks({
       <Link href="/admin/products" className={navLink}>Produkte</Link>
       <Link href="/admin/orders" className={navLink}>Bestellungen</Link>
       {showAnalytics && (
-        <Link href="/admin/analytics" className={navLink}>Analytics</Link>
+        <>
+          <Link href="/admin/analytics" className={navLink}>Analytics</Link>
+          <Link href="/admin/reviews" className={navLink}>Bewertungen</Link>
+        </>
       )}
       {showTeam && (
         <>

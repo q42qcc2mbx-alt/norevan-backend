@@ -71,7 +71,7 @@ export function OrdersTable({ orders }: { orders: OrderWithItems[] }) {
               >
                 <td className="px-4 py-3">
                   <Link
-                    href={`/de/checkout/success?orderId=${o.id}`}
+                    href={`/admin/orders/${o.id}`}
                     className="font-mono text-[10px] uppercase tracking-[0.2em] hover:underline"
                   >
                     {o.id.slice(0, 8)}

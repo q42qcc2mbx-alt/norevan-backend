@@ -1,5 +1,12 @@
 import { Router } from 'express';
-import { listReviews, createReview } from '../controllers/reviewsController.js';
+import {
+  listReviews,
+  createReview,
+  listAllReviews,
+  deleteReview,
+} from '../controllers/reviewsController.js';
+import { protect } from '../middleware/authMiddleware.js';
+import { requireRole } from '../middleware/requireRole.js';
 import { requireRealUser } from '../middleware/supabaseAuthMiddleware.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 
@@ -15,5 +22,9 @@ router.post(
   requireRealUser,
   createReview,
 );
+
+// Moderation — admins & owners.
+router.get('/admin/reviews', protect, requireRole('admin'), listAllReviews);
+router.delete('/admin/reviews/:id', protect, requireRole('admin'), deleteReview);
 
 export default router;
