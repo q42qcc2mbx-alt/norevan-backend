@@ -61,3 +61,13 @@ CREATE TABLE IF NOT EXISTS admin_audit (
 
 CREATE INDEX IF NOT EXISTS admin_audit_created_at_idx ON admin_audit (created_at DESC);
 CREATE INDEX IF NOT EXISTS admin_audit_actor_idx      ON admin_audit (actor_id);
+
+-- ─── 4. Row Level Security ───────────────────────────────────────────────────
+-- The backend connects via the Postgres connection string and bypasses RLS.
+-- Both tables are written/read SERVER-SIDE only, so we enable RLS and add NO
+-- policies → the public API (anon/authenticated) can neither read nor write.
+-- This keeps analytics tamper-proof (page_views can't be spammed via the API).
+ALTER TABLE page_views  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_audit ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS page_views_insert ON page_views;
+
