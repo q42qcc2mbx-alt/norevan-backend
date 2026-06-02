@@ -39,6 +39,7 @@ function NavLinks({
           <Link href="/admin/audit" className={navLink}>Protokoll</Link>
         </>
       )}
+      <Link href="/admin/account" className={navLink}>Konto</Link>
     </>
   );
 }
