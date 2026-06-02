@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cookies } from "next/headers";
+import { api } from "@/lib/api/client";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -26,8 +27,18 @@ export async function GET(request: NextRequest) {
         },
       },
     );
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // Sign-in email for real (non-guest) accounts. The backend returns 204
+      // immediately and sends in the background, so this won't slow the redirect.
+      const token = data.session?.access_token;
+      if (token && !data.session?.user?.is_anonymous) {
+        try {
+          await api.post("/account/login-notify", undefined, { token });
+        } catch {
+          // best-effort
+        }
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

@@ -2,13 +2,70 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { isAdminAuthed } from "@/lib/auth/admin";
+import {
+  isAdminAuthed,
+  getAdminUser,
+  canSeeRevenue,
+  effectiveRole,
+} from "@/lib/auth/admin";
 
 async function AdminGuard({ children }: { children: React.ReactNode }) {
   await connection();
   const authed = await isAdminAuthed();
   if (!authed) redirect("/admin/login");
   return <>{children}</>;
+}
+
+const navLink = "hover:underline underline-offset-4";
+
+function NavLinks({
+  showAnalytics,
+  showTeam,
+}: {
+  showAnalytics: boolean;
+  showTeam: boolean;
+}) {
+  return (
+    <>
+      <Link href="/admin" className={navLink}>Dashboard</Link>
+      <Link href="/admin/products" className={navLink}>Produkte</Link>
+      <Link href="/admin/orders" className={navLink}>Bestellungen</Link>
+      {showAnalytics && (
+        <>
+          <Link href="/admin/analytics" className={navLink}>Analytics</Link>
+          <Link href="/admin/discounts" className={navLink}>Rabatte</Link>
+          <Link href="/admin/reviews" className={navLink}>Bewertungen</Link>
+        </>
+      )}
+      {showTeam && (
+        <>
+          <Link href="/admin/team" className={navLink}>Team</Link>
+          <Link href="/admin/audit" className={navLink}>Protokoll</Link>
+        </>
+      )}
+      <Link href="/admin/account" className={navLink}>Konto</Link>
+    </>
+  );
+}
+
+/** Role-aware nav: Analytics only for admins/owners; shows a role chip. */
+async function AdminNav() {
+  await connection();
+  const user = await getAdminUser();
+  const role = user ? effectiveRole(user) : "staff";
+  return (
+    <nav className="flex items-center gap-6 font-mono text-[10px] uppercase tracking-[0.25em]">
+      <NavLinks showAnalytics={canSeeRevenue(role)} showTeam={role === "owner"} />
+      <span className="rounded-full border border-border-subtle px-2 py-0.5 text-[9px] tracking-[0.2em] text-muted">
+        {role}
+      </span>
+      <form action="/api/admin/logout" method="POST">
+        <button type="submit" className="text-muted hover:text-foreground">
+          Logout
+        </button>
+      </form>
+    </nav>
+  );
 }
 
 export default function AdminAuthedLayout({
@@ -34,25 +91,15 @@ export default function AdminAuthedLayout({
               admin
             </span>
           </Link>
-          <nav className="flex items-center gap-6 font-mono text-[10px] uppercase tracking-[0.25em]">
-            <Link href="/admin" className="hover:underline underline-offset-4">
-              Dashboard
-            </Link>
-            <Link href="/admin/products" className="hover:underline underline-offset-4">
-              Produkte
-            </Link>
-            <Link href="/admin/orders" className="hover:underline underline-offset-4">
-              Bestellungen
-            </Link>
-            <form action="/api/admin/logout" method="POST">
-              <button
-                type="submit"
-                className="text-muted hover:text-foreground"
-              >
-                Logout
-              </button>
-            </form>
-          </nav>
+          <Suspense
+            fallback={
+              <nav className="flex items-center gap-6 font-mono text-[10px] uppercase tracking-[0.25em]">
+                <NavLinks showAnalytics={false} showTeam={false} />
+              </nav>
+            }
+          >
+            <AdminNav />
+          </Suspense>
         </div>
       </header>
       <main>

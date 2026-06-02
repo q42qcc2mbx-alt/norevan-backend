@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend (lint · types · build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Build
+        # Dummy public env so the build can compile; data fetchers degrade
+        # gracefully (return empty) when the backend isn't reachable in CI.
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-dummy-anon-key
+          JWT_SECRET: ci-dummy-jwt-secret
+          API_URL: http://localhost:4000
+        run: npm run build
+
+  backend:
+    name: Backend (syntax check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Syntax check (node --check)
+        run: |
+          set -e
+          find . -name '*.js' \
+            -not -path './node_modules/*' \
+            -not -path './frontend/*' \
+            -print0 | xargs -0 -n1 node --check
+          echo "All backend JS files parsed OK."
+      - name: Tests
+        run: npm test

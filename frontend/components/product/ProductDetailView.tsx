@@ -5,7 +5,11 @@ import { useState } from "react";
 import { ProductGallery } from "./ProductGallery";
 import { ExplodingInfoLazy } from "@/components/three/ExplodingInfoLazy";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import { Stars } from "./Stars";
+import { ReviewsSection } from "./ReviewsSection";
+import { BackInStockForm } from "./BackInStockForm";
 import type { Product } from "@/lib/products";
+import type { ReviewSummary } from "@/lib/reviews";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries/de";
 import { formatPrice } from "@/lib/format";
@@ -23,10 +27,12 @@ export function ProductDetailView({
   product,
   locale,
   dict,
+  reviews,
 }: {
   product: Product;
   locale: Locale;
   dict: Dictionary;
+  reviews?: ReviewSummary;
 }) {
   const [size, setSize] = useState<string | undefined>();
   const [view, setView] = useState<"gallery" | "exploding">("gallery");
@@ -36,6 +42,11 @@ export function ProductDetailView({
   const [wishlisted, setWishlisted] = useState(false);
 
   const needsSize = !!product.sizes && product.sizes.length > 0;
+
+  // stock: 0 = sold out, 1..5 = low (urgency), undefined/>5 = plenty/untracked.
+  const stock = product.stock;
+  const soldOut = stock === 0;
+  const lowStock = typeof stock === "number" && stock > 0 && stock <= 5;
 
   const sections = [
     {
@@ -68,6 +79,7 @@ export function ProductDetailView({
   ];
 
   return (
+    <>
     <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
       <div className="lg:col-span-7">
         {/* View toggle */}
@@ -160,6 +172,16 @@ export function ProductDetailView({
           </span>
         </div>
 
+        {reviews && reviews.count > 0 && (
+          <div className="mt-3 flex items-center gap-2">
+            <Stars value={reviews.average} size={14} />
+            <span className="font-mono text-[10px] text-muted">
+              {reviews.average.toFixed(1)} · {reviews.count}{" "}
+              {locale === "de" ? "Bewertungen" : "reviews"}
+            </span>
+          </div>
+        )}
+
         <p className="body-soft mt-6 max-w-md text-[15px] leading-[1.65]">
           {product.description[locale]}
         </p>
@@ -195,6 +217,23 @@ export function ProductDetailView({
           </div>
         )}
 
+        {(soldOut || lowStock) && (
+          <p
+            className={cn(
+              "mt-6 font-mono text-[11px] uppercase tracking-[0.2em]",
+              soldOut ? "text-muted" : "text-[var(--gold)]",
+            )}
+          >
+            {soldOut
+              ? locale === "de"
+                ? "Ausverkauft"
+                : "Sold out"
+              : locale === "de"
+                ? `Nur noch ${stock} verfügbar`
+                : `Only ${stock} left`}
+          </p>
+        )}
+
         <div className="mt-8 flex gap-3">
           <AddToCartButton
             item={{
@@ -207,6 +246,8 @@ export function ProductDetailView({
             size={size}
             label={dict.pdp.addToCart}
             sizeRequiredLabel={dict.pdp.sizeRequired}
+            soldOut={soldOut}
+            soldOutLabel={locale === "de" ? "Ausverkauft" : "Sold out"}
             className="h-12 flex-1"
           />
           <motion.button
@@ -237,6 +278,8 @@ export function ProductDetailView({
             </svg>
           </motion.button>
         </div>
+
+        {soldOut && <BackInStockForm slug={product.slug} locale={locale} />}
 
         <div className="mt-6 grid grid-cols-3 gap-3 text-center">
           <Trust label={locale === "de" ? "Versand" : "Shipping"} value={locale === "de" ? "Frei ab 100 €" : "Free over €100"} />
@@ -276,6 +319,10 @@ export function ProductDetailView({
         </div>
       </div>
     </div>
+    {reviews && (
+      <ReviewsSection slug={product.slug} locale={locale} initial={reviews} />
+    )}
+    </>
   );
 }
 

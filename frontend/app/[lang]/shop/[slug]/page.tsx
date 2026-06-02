@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getProduct, relatedProducts } from "@/lib/products";
+import { getReviews } from "@/lib/reviews";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { ProductDetailView } from "@/components/product/ProductDetailView";
 import { ProductGrid } from "@/components/product/ProductGrid";
+import { RecentlyViewed } from "@/components/product/RecentlyViewed";
 import { Reveal } from "@/components/motion/Reveal";
 import { buildMetadata, productLd, breadcrumbLd, JsonLd, SITE_URL } from "@/lib/seo";
 
@@ -49,12 +51,13 @@ export default async function ProductPage({
   if (!product) notFound();
 
   const related = await relatedProducts(slug, 4);
+  const reviews = await getReviews(slug);
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 md:py-14">
       <JsonLd
         data={[
-          productLd(product, lang),
+          productLd(product, lang, { average: reviews.average, count: reviews.count }),
           breadcrumbLd([
             { name: lang === "de" ? "Start" : "Home", url: `${SITE_URL}/${lang}` },
             { name: lang === "de" ? "Shop" : "Shop", url: `${SITE_URL}/${lang}/shop` },
@@ -62,7 +65,7 @@ export default async function ProductPage({
           ]),
         ]}
       />
-      <ProductDetailView product={product} locale={lang} dict={dict} />
+      <ProductDetailView product={product} locale={lang} dict={dict} reviews={reviews} />
 
       {related.length > 0 && (
         <section className="mt-24 border-t border-border-subtle pt-16 md:mt-32 md:pt-20">
@@ -95,6 +98,17 @@ export default async function ProductPage({
           />
         </section>
       )}
+
+      <RecentlyViewed
+        locale={lang}
+        current={{
+          slug: product.slug,
+          name: product.name,
+          image: product.images[0]?.src ?? "",
+          priceCents: product.priceCents,
+          brand: product.brand,
+        }}
+      />
     </div>
   );
 }

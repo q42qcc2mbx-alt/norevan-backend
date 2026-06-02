@@ -100,6 +100,41 @@ html, body {
 
 * { border-color: var(--border); }
 
+/* === Branded text selection === */
+::selection {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+/* === Tabular numerals — prices, counters, totals align cleanly === */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* === Shimmer — skeleton / loading placeholders === */
+.shimmer {
+  position: relative;
+  overflow: hidden;
+  background: var(--muted-bg);
+}
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--foreground) 7%, transparent),
+    transparent
+  );
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
 /* === Display headlines: Cormorant Garamond, weight 400, tight leading === */
 .headline {
   font-family: var(--font-cormorant), Georgia, serif;

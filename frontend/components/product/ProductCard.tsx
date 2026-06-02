@@ -68,6 +68,11 @@ export function ProductCard({
           />
         </motion.div>
       </Link>
+      {product.stock === 0 && (
+        <span className="absolute left-2 top-2 rounded-full bg-background/85 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.2em] text-foreground backdrop-blur-sm">
+          {locale === "de" ? "Ausverkauft" : "Sold out"}
+        </span>
+      )}
       <motion.button
         type="button"
         onClick={() =>

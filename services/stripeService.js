@@ -25,7 +25,7 @@ export function isStripeEnabled() {
  * @param {{ orderId, email, items, locale }} order
  * @returns {Promise<import('stripe').Stripe.Checkout.Session>}
  */
-export async function createCheckoutSession({ orderId, email, items, locale = 'de' }) {
+export async function createCheckoutSession({ orderId, email, items, locale = 'de', discountCents = 0 }) {
   const stripe = getStripe();
   if (!stripe) throw new Error('Stripe is not configured');
 
@@ -47,10 +47,23 @@ export async function createCheckoutSession({ orderId, email, items, locale = 'd
     };
   });
 
+  // Apply a discount as a one-off amount_off coupon (in cents).
+  let discounts;
+  if (discountCents > 0) {
+    const coupon = await stripe.coupons.create({
+      amount_off: discountCents,
+      currency: 'eur',
+      duration: 'once',
+      name: 'Rabatt',
+    });
+    discounts = [{ coupon: coupon.id }];
+  }
+
   return stripe.checkout.sessions.create({
     mode: 'payment',
     customer_email: email,
     line_items: lineItems,
+    ...(discounts ? { discounts } : {}),
     locale: locale === 'en' ? 'en' : 'de',
     metadata: { orderId },
     payment_intent_data: { metadata: { orderId } },

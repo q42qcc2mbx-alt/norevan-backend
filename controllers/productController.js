@@ -1,4 +1,46 @@
 import pool from '../config/database.js';
+import { sendBackInStock } from '../services/emailService.js';
+
+// Notify (once) everyone waiting on a product that just came back in stock.
+async function notifyBackInStock(product) {
+  try {
+    const { rows } = await pool.query(
+      'SELECT email FROM stock_notifications WHERE product_slug = $1 AND notified = false',
+      [product.slug],
+    );
+    if (rows.length === 0) return;
+    const image = product.images?.[0]?.src ?? '';
+    for (const r of rows) {
+      await sendBackInStock(r.email, { slug: product.slug, name: product.name, image });
+    }
+    await pool.query(
+      'UPDATE stock_notifications SET notified = true WHERE product_slug = $1 AND notified = false',
+      [product.slug],
+    );
+  } catch (e) {
+    console.error('[stock-notify] failed:', e.message);
+  }
+}
+
+/** POST /api/v1/products/:slug/notify-me — subscribe to a back-in-stock alert. */
+export const subscribeBackInStock = async (req, res, next) => {
+  try {
+    const slug = req.params.slug;
+    const email = String(req.body?.email ?? '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ status: 'error', message: 'Gültige E-Mail erforderlich' });
+    }
+    const { rows } = await pool.query('SELECT 1 FROM products WHERE slug = $1', [slug]);
+    if (rows.length === 0) return res.status(404).json({ status: 'error', message: 'Produkt nicht gefunden' });
+    await pool.query(
+      'INSERT INTO stock_notifications (product_slug, email) VALUES ($1, $2) ON CONFLICT (product_slug, email) DO NOTHING',
+      [slug, email],
+    );
+    res.status(201).json({ status: 'success', message: 'Wir benachrichtigen dich.' });
+  } catch (err) {
+    next(err);
+  }
+};
 
 function rowToProduct(row) {
   return {
@@ -139,6 +181,11 @@ export const updateProduct = async (req, res, next) => {
 
     const { rows } = await pool.query('SELECT * FROM products WHERE slug = $1', [merged.slug]);
     res.json({ status: 'success', data: rowToProduct(rows[0]) });
+
+    // Restocked from sold-out → fire back-in-stock alerts (best-effort).
+    if ((current.stock ?? 0) <= 0 && (merged.stock ?? 0) > 0) {
+      notifyBackInStock(merged).catch(() => {});
+    }
   } catch (err) {
     next(err);
   }

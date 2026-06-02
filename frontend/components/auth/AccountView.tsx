@@ -8,8 +8,31 @@ import { getSupabaseClient } from "@/lib/supabase/client";
 import { useWishlist } from "@/lib/wishlist-store";
 import { useCart } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/format";
+import { UseMyLocationButton } from "@/components/address/UseMyLocationButton";
+import { OrderTimeline } from "@/components/account/OrderTimeline";
+import type { AddressPick } from "@/components/checkout/AddressAutocomplete";
 
 type OrderItem = { name: string; size: string | null; qty: number };
+
+type Address = {
+  first_name: string;
+  last_name: string;
+  address: string;
+  city: string;
+  zip: string;
+  country: string;
+  phone: string;
+};
+const EMPTY_ADDRESS: Address = {
+  first_name: "",
+  last_name: "",
+  address: "",
+  city: "",
+  zip: "",
+  country: "",
+  phone: "",
+};
+
 type Order = {
   id: string;
   status: string;
@@ -45,11 +68,44 @@ function StatBox({
   );
 }
 
+function AddrField({
+  label,
+  value,
+  onChange,
+  autoComplete,
+  inputMode,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  autoComplete?: string;
+  inputMode?: "text" | "numeric" | "tel";
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1 block font-mono text-[9px] uppercase tracking-[0.3em] text-muted">
+        {label}
+      </span>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        autoComplete={autoComplete}
+        inputMode={inputMode}
+        className="h-11 w-full border-0 border-b border-border bg-transparent px-1 py-2 text-sm text-foreground placeholder:text-muted focus:border-foreground focus:outline-none"
+      />
+    </label>
+  );
+}
+
 export function AccountView({ locale }: { locale: Locale }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
+  const [addr, setAddr] = useState<Address>(EMPTY_ADDRESS);
+  const [addrSaving, setAddrSaving] = useState(false);
+  const [addrSaved, setAddrSaved] = useState(false);
   const supabase = getSupabaseClient();
   const { items: wishlistItems } = useWishlist();
   const { items: cartItems } = useCart();
@@ -66,6 +122,25 @@ export function AccountView({ locale }: { locale: Locale }) {
           .then((d) => setOrders(Array.isArray(d.orders) ? d.orders : []))
           .catch(() => setOrders([]))
           .finally(() => setOrdersLoading(false));
+
+        supabase
+          .from("profiles")
+          .select("first_name,last_name,address,city,zip,country,phone")
+          .eq("id", data.user.id)
+          .single()
+          .then(({ data: p }) => {
+            if (p) {
+              setAddr({
+                first_name: p.first_name ?? "",
+                last_name: p.last_name ?? "",
+                address: p.address ?? "",
+                city: p.city ?? "",
+                zip: p.zip ?? "",
+                country: p.country ?? "",
+                phone: p.phone ?? "",
+              });
+            }
+          });
       }
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -73,6 +148,40 @@ export function AccountView({ locale }: { locale: Locale }) {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
+  };
+
+  const setField = (k: keyof Address, v: string) => {
+    setAddr((a) => ({ ...a, [k]: v }));
+    setAddrSaved(false);
+  };
+
+  const fillFromLocation = (a: AddressPick) => {
+    setAddr((s) => ({
+      ...s,
+      address: a.street || s.address,
+      zip: a.zip || s.zip,
+      city: a.city || s.city,
+      country: a.country || s.country,
+    }));
+    setAddrSaved(false);
+  };
+
+  const handleSaveAddress = async () => {
+    if (!user || addrSaving) return;
+    setAddrSaving(true);
+    setAddrSaved(false);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update(addr)
+        .eq("id", user.id);
+      if (!error) {
+        setAddrSaved(true);
+        setTimeout(() => setAddrSaved(false), 2500);
+      }
+    } finally {
+      setAddrSaving(false);
+    }
   };
 
   if (loading) {
@@ -146,6 +255,46 @@ export function AccountView({ locale }: { locale: Locale }) {
         </div>
       </div>
 
+      {/* Shipping address */}
+      <div className="border border-border-subtle p-6">
+        <div className="flex items-center justify-between gap-4">
+          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+            {isDe ? "Lieferadresse" : "Shipping address"}
+          </span>
+          {addrSaved ? (
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-foreground">
+              {isDe ? "Gespeichert ✓" : "Saved ✓"}
+            </span>
+          ) : (
+            <UseMyLocationButton
+              locale={isDe ? "de" : "en"}
+              onPick={fillFromLocation}
+            />
+          )}
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <AddrField label={isDe ? "Vorname" : "First name"} value={addr.first_name} onChange={(v) => setField("first_name", v)} autoComplete="given-name" />
+          <AddrField label={isDe ? "Nachname" : "Last name"} value={addr.last_name} onChange={(v) => setField("last_name", v)} autoComplete="family-name" />
+          <div className="sm:col-span-2">
+            <AddrField label={isDe ? "Straße & Hausnummer" : "Street & number"} value={addr.address} onChange={(v) => setField("address", v)} autoComplete="street-address" />
+          </div>
+          <AddrField label={isDe ? "PLZ" : "ZIP"} value={addr.zip} onChange={(v) => setField("zip", v)} autoComplete="postal-code" inputMode="numeric" />
+          <AddrField label={isDe ? "Stadt" : "City"} value={addr.city} onChange={(v) => setField("city", v)} autoComplete="address-level2" />
+          <AddrField label={isDe ? "Land" : "Country"} value={addr.country} onChange={(v) => setField("country", v)} autoComplete="country-name" />
+          <AddrField label={isDe ? "Telefon (optional)" : "Phone (optional)"} value={addr.phone} onChange={(v) => setField("phone", v)} autoComplete="tel" inputMode="tel" />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleSaveAddress}
+          disabled={addrSaving}
+          className="mt-6 inline-flex h-11 items-center rounded-full bg-foreground px-7 font-mono text-[10px] uppercase tracking-[0.25em] text-background transition-opacity hover:opacity-90 disabled:opacity-40"
+        >
+          {addrSaving ? (isDe ? "Wird gespeichert…" : "Saving…") : (isDe ? "Adresse speichern" : "Save address")}
+        </button>
+      </div>
+
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <StatBox
@@ -213,6 +362,7 @@ export function AccountView({ locale }: { locale: Locale }) {
                       {formatPrice(o.subtotalCents, locale)}
                     </span>
                   </div>
+                  <OrderTimeline status={o.status} locale={isDe ? "de" : "en"} />
                 </li>
               );
             })}

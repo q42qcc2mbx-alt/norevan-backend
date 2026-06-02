@@ -11,12 +11,18 @@ import {
   requireSupabaseAuth,
   requireRealUser,
 } from '../middleware/supabaseAuthMiddleware.js';
-import { requireAdmin } from '../middleware/adminMiddleware.js';
+import { requireRole } from '../middleware/requireRole.js';
+import { rateLimit } from '../middleware/rateLimit.js';
 
 const router = Router();
 
 // Purchasing requires a real (non-guest) account. Anonymous guests may browse but not buy.
-router.post('/checkout', requireRealUser, createOrder);
+router.post(
+  '/checkout',
+  rateLimit({ windowMs: 60_000, max: 20, key: 'checkout' }),
+  requireRealUser,
+  createOrder,
+);
 
 // Authenticated user (Supabase) — own orders. Must be before /orders/:id so "me" isn't treated as an id.
 router.get('/orders/me', requireSupabaseAuth, listMyOrders);
@@ -24,8 +30,8 @@ router.get('/orders/me', requireSupabaseAuth, listMyOrders);
 // Public read by id (treat the orderId as a magic token for the confirmation page).
 router.get('/orders/:id', getOrderById);
 
-// Admin only.
-router.get('/admin/orders',          protect, requireAdmin, listAllOrders);
-router.patch('/admin/orders/:id',    protect, requireAdmin, updateOrderStatus);
+// Back office — staff and up may view & fulfil orders.
+router.get('/admin/orders',          protect, requireRole('staff'), listAllOrders);
+router.patch('/admin/orders/:id',    protect, requireRole('staff'), updateOrderStatus);
 
 export default router;

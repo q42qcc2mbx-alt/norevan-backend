@@ -90,7 +90,6 @@ export function AmbientMetaballs({ intensity = 0.55 }: { intensity?: number }) {
       gl!.shaderSource(s, src);
       gl!.compileShader(s);
       if (!gl!.getShaderParameter(s, gl!.COMPILE_STATUS)) {
-        // eslint-disable-next-line no-console
         console.error(gl!.getShaderInfoLog(s));
       }
       return s;

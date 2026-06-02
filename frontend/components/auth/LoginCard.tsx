@@ -9,13 +9,9 @@ import { cn } from "@/lib/cn";
 import { getSupabaseClient } from "@/lib/supabase/client";
 
 // ── View states ───────────────────────────────────────────────────────────────
-type View =
-  | "login"
-  | "forgot-email"
-  | "forgot-otp"
-  | "forgot-newpw"
-  | "register"
-  | "register-done";
+// Passwordless: enter email → receive a 6-digit code → verify. The same flow
+// signs in returning users and creates new ones (shouldCreateUser: true).
+type View = "email" | "otp";
 
 // ── Animation presets ─────────────────────────────────────────────────────────
 const FADE = {
@@ -67,62 +63,6 @@ function ErrorBox({ msg }: { msg: string }) {
   );
 }
 
-function EyeOpen() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-function EyeClosed() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-      <line x1="1" y1="1" x2="23" y2="23" />
-    </svg>
-  );
-}
-
-type PwFieldProps = {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  show: boolean;
-  onToggle: () => void;
-  placeholder?: string;
-  autoComplete?: string;
-  onEnter?: () => void;
-};
-function PwField({ label, value, onChange, show, onToggle, placeholder, autoComplete, onEnter }: PwFieldProps) {
-  return (
-    <div>
-      <label className="mb-1 block font-mono text-[9px] uppercase tracking-[0.3em] text-foreground/50">
-        {label}
-      </label>
-      <div className="relative">
-        <input
-          type={show ? "text" : "password"}
-          autoComplete={autoComplete ?? "current-password"}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && onEnter?.()}
-          className={cn(INPUT, "pr-10")}
-          placeholder={placeholder ?? "••••••••"}
-        />
-        <button
-          type="button"
-          onClick={onToggle}
-          tabIndex={-1}
-          aria-label={show ? "Passwort verstecken" : "Passwort anzeigen"}
-          className="absolute right-1 top-1/2 -translate-y-1/2 text-foreground/40 transition-colors hover:text-foreground"
-        >
-          {show ? <EyeOpen /> : <EyeClosed />}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function Divider({ label = "oder" }: { label?: string }) {
   return (
     <div className="flex items-center gap-3">
@@ -133,30 +73,15 @@ function Divider({ label = "oder" }: { label?: string }) {
   );
 }
 
-function BackLink({ onClick, label = "← Zurück" }: { onClick: () => void; label?: string }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="text-center font-mono text-[10px] text-foreground/40 transition-colors hover:text-foreground"
-    >
-      {label}
-    </button>
-  );
-}
-
 // ── Main component ─────────────────────────────────────────────────────────────
 export function LoginCard({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next") ?? `/${locale}`;
+  const isDe = locale === "de";
 
-  const [view, setView] = useState<View>("login");
+  const [view, setView] = useState<View>("email");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPw, setConfirmPw] = useState("");
-  const [showPw, setShowPw] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -169,28 +94,37 @@ export function LoginCard({ locale, dict }: { locale: Locale; dict: Dictionary }
 
   function parseError(msg: string): string {
     const m = msg.toLowerCase();
-    if (m.includes("invalid login") || m.includes("invalid credentials") || m.includes("wrong"))
-      return "Falsche E-Mail oder falsches Passwort.";
-    if (m.includes("email not confirmed"))
-      return "Bitte bestätige zuerst deine E-Mail.";
-    if (m.includes("already registered") || m.includes("user already"))
-      return "Diese E-Mail ist bereits registriert. Bitte melde dich an.";
     if (m.includes("rate") || m.includes("limit"))
-      return "Zu viele Versuche. Bitte kurz warten.";
-    if ((m.includes("invalid") && m.includes("otp")) || m.includes("expired"))
-      return "Falscher oder abgelaufener Code.";
-    if (m.includes("weak") && m.includes("password"))
-      return "Passwort zu schwach. Mindestens 8 Zeichen.";
+      return isDe ? "Zu viele Versuche. Bitte kurz warten." : "Too many attempts. Please wait a moment.";
+    if ((m.includes("invalid") && m.includes("otp")) || m.includes("expired") || m.includes("token"))
+      return isDe ? "Falscher oder abgelaufener Code." : "Wrong or expired code.";
     if (m.includes("network") || m.includes("fetch"))
-      return "Netzwerkfehler. Bitte erneut versuchen.";
+      return isDe ? "Netzwerkfehler. Bitte erneut versuchen." : "Network error. Please try again.";
+    if (m.includes("signups") && m.includes("disabled"))
+      return isDe ? "Registrierung ist derzeit deaktiviert." : "Sign-ups are currently disabled.";
     return msg;
   }
 
   function redirect() { router.push(nextPath); router.refresh(); }
 
+// Fire-and-forget: ask the backend to send the sign-in email. Passing the
+// fresh access token avoids any cookie-write race right after login.
+function fireLoginNotify(accessToken?: string) {
+  try {
+    void fetch("/api/login-notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ access_token: accessToken ?? null }),
+      keepalive: true,
+    });
+  } catch {
+    // ignore
+  }
+}
+
   // ── Handlers ────────────────────────────────────────────────────────────────
 
-  async function handleSocialLogin(provider: "google" | "apple") {
+  async function handleSocialLogin(provider: "google") {
     if (submitting) return;
     clearErr();
     setSubmitting(true);
@@ -202,92 +136,67 @@ export function LoginCard({ locale, dict }: { locale: Locale; dict: Dictionary }
         },
       });
       if (e) { setError(parseError(e.message)); setSubmitting(false); }
-      // On success Supabase redirects the browser — no need to call redirect()
+      // On success Supabase redirects the browser.
     } catch {
-      setError("Netzwerkfehler. Bitte erneut versuchen.");
+      setError(isDe ? "Netzwerkfehler. Bitte erneut versuchen." : "Network error. Please try again.");
       setSubmitting(false);
     }
   }
 
-  async function handleLogin() {
+  async function handleSendCode() {
     if (submitting) return;
     clearErr();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setError("Bitte eine gültige E-Mail eingeben."); return;
-    }
-    if (!password) { setError("Bitte Passwort eingeben."); return; }
-    setSubmitting(true);
-    try {
-      const { error: e } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-      if (e) setError(parseError(e.message)); else redirect();
-    } catch { setError("Netzwerkfehler. Bitte erneut versuchen."); }
-    finally { setSubmitting(false); }
-  }
-
-  async function handleForgotSend() {
-    if (submitting) return;
-    clearErr();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setError("Bitte eine gültige E-Mail eingeben."); return;
+      setError(isDe ? "Bitte eine gültige E-Mail eingeben." : "Please enter a valid email.");
+      return;
     }
     setSubmitting(true);
     try {
       const { error: e } = await supabase.auth.signInWithOtp({
         email: email.trim(),
-        options: { shouldCreateUser: false },
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+        },
       });
       if (e) setError(parseError(e.message));
-      else { setOtp(Array(6).fill("")); go("forgot-otp"); setTimeout(() => otpRefs.current[0]?.focus(), 60); }
-    } catch { setError("Netzwerkfehler. Bitte erneut versuchen."); }
-    finally { setSubmitting(false); }
+      else {
+        setOtp(Array(6).fill(""));
+        go("otp");
+        setTimeout(() => otpRefs.current[0]?.focus(), 60);
+      }
+    } catch {
+      setError(isDe ? "Netzwerkfehler. Bitte erneut versuchen." : "Network error. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
-  async function handleForgotVerify(direct?: string[]) {
+  async function handleVerify(direct?: string[]) {
     if (submitting) return;
     const token = (direct ?? otp).join("");
     if (token.length < 6) return;
     clearErr();
     setSubmitting(true);
     try {
-      const { error: e } = await supabase.auth.verifyOtp({ email: email.trim(), token, type: "email" });
+      const { data, error: e } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token,
+        type: "email",
+      });
       if (e) {
         setError(parseError(e.message));
         setOtp(Array(6).fill(""));
         setTimeout(() => otpRefs.current[0]?.focus(), 60);
-      } else { setPassword(""); setConfirmPw(""); go("forgot-newpw"); }
-    } catch { setError("Netzwerkfehler. Bitte erneut versuchen."); }
-    finally { setSubmitting(false); }
-  }
-
-  async function handleSetPassword() {
-    if (submitting) return;
-    clearErr();
-    if (password.length < 8) { setError("Passwort muss mindestens 8 Zeichen lang sein."); return; }
-    if (password !== confirmPw) { setError("Passwörter stimmen nicht überein."); return; }
-    setSubmitting(true);
-    try {
-      const { error: e } = await supabase.auth.updateUser({ password });
-      if (e) setError(parseError(e.message)); else redirect();
-    } catch { setError("Netzwerkfehler. Bitte erneut versuchen."); }
-    finally { setSubmitting(false); }
-  }
-
-  async function handleRegister() {
-    if (submitting) return;
-    clearErr();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setError("Bitte eine gültige E-Mail eingeben."); return;
+      } else {
+        fireLoginNotify(data.session?.access_token);
+        redirect();
+      }
+    } catch {
+      setError(isDe ? "Netzwerkfehler. Bitte erneut versuchen." : "Network error. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
-    if (password.length < 8) { setError("Passwort muss mindestens 8 Zeichen lang sein."); return; }
-    if (password !== confirmPw) { setError("Passwörter stimmen nicht überein."); return; }
-    setSubmitting(true);
-    try {
-      const { data, error: e } = await supabase.auth.signUp({ email: email.trim(), password });
-      if (e) setError(parseError(e.message));
-      else if (data.session) redirect();
-      else go("register-done");
-    } catch { setError("Netzwerkfehler. Bitte erneut versuchen."); }
-    finally { setSubmitting(false); }
   }
 
   async function handleGuest() {
@@ -297,8 +206,11 @@ export function LoginCard({ locale, dict }: { locale: Locale; dict: Dictionary }
     try {
       const { error: e } = await supabase.auth.signInAnonymously();
       if (e) setError(parseError(e.message)); else redirect();
-    } catch { setError("Netzwerkfehler. Bitte erneut versuchen."); }
-    finally { setSubmitting(false); }
+    } catch {
+      setError(isDe ? "Netzwerkfehler. Bitte erneut versuchen." : "Network error. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   // ── OTP handlers ─────────────────────────────────────────────────────────────
@@ -306,7 +218,7 @@ export function LoginCard({ locale, dict }: { locale: Locale; dict: Dictionary }
     const digit = raw.replace(/\D/g, "").slice(-1);
     const next = [...otp]; next[idx] = digit; setOtp(next);
     if (digit && idx < 5) otpRefs.current[idx + 1]?.focus();
-    if (digit && next.every((d) => d !== "")) handleForgotVerify(next);
+    if (digit && next.every((d) => d !== "")) handleVerify(next);
   }
   function onOtpKey(idx: number, e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Backspace" && !otp[idx] && idx > 0) otpRefs.current[idx - 1]?.focus();
@@ -316,17 +228,13 @@ export function LoginCard({ locale, dict }: { locale: Locale; dict: Dictionary }
     const p = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
     const next = Array(6).fill(""); p.split("").forEach((c, i) => { next[i] = c; });
     setOtp(next); otpRefs.current[Math.min(p.length, 5)]?.focus();
-    if (p.length === 6) handleForgotVerify(next);
+    if (p.length === 6) handleVerify(next);
   }
 
   // ── Heading per view ──────────────────────────────────────────────────────────
   const headings: Record<View, string> = {
-    "login":         "Willkommen zurück.",
-    "forgot-email":  "Passwort zurücksetzen",
-    "forgot-otp":    "Code eingeben",
-    "forgot-newpw":  "Neues Passwort",
-    "register":      "Konto erstellen",
-    "register-done": "Fast geschafft!",
+    email: isDe ? "Anmelden" : "Sign in",
+    otp: isDe ? "Code eingeben" : "Enter code",
   };
 
   // ── Render ────────────────────────────────────────────────────────────────────
@@ -352,11 +260,10 @@ export function LoginCard({ locale, dict }: { locale: Locale; dict: Dictionary }
 
       <AnimatePresence mode="wait" initial={false}>
 
-        {/* ── LOGIN ──────────────────────────────────────────────────────── */}
-        {view === "login" && (
-          <motion.div key="login" {...FADE} transition={T} className="flex flex-col gap-4">
+        {/* ── EMAIL ──────────────────────────────────────────────────────── */}
+        {view === "email" && (
+          <motion.div key="email" {...FADE} transition={T} className="flex flex-col gap-4">
 
-            {/* Social login buttons */}
             <motion.button
               type="button"
               onClick={() => handleSocialLogin("google")}
@@ -365,12 +272,11 @@ export function LoginCard({ locale, dict }: { locale: Locale; dict: Dictionary }
               className="flex h-11 w-full items-center justify-center gap-2.5 rounded-full border border-foreground/20 font-mono text-[10px] uppercase tracking-[0.15em] text-foreground/70 transition-all hover:border-foreground/40 hover:text-foreground disabled:opacity-40"
             >
               <GoogleIcon />
-              Mit Google anmelden
+              {isDe ? "Mit Google fortfahren" : "Continue with Google"}
             </motion.button>
 
-            <Divider />
+            <Divider label={isDe ? "oder" : "or"} />
 
-            {/* Email / password */}
             <div>
               <label className="mb-1 block font-mono text-[9px] uppercase tracking-[0.3em] text-foreground/50">
                 E-Mail
@@ -378,95 +284,45 @@ export function LoginCard({ locale, dict }: { locale: Locale; dict: Dictionary }
               <input
                 type="email" autoComplete="email" inputMode="email"
                 value={email} onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                onKeyDown={(e) => e.key === "Enter" && handleSendCode()}
                 className={INPUT} placeholder="you@example.com"
               />
             </div>
 
-            <PwField
-              label="Passwort" value={password} onChange={setPassword}
-              show={showPw} onToggle={() => setShowPw(!showPw)}
-              autoComplete="current-password" onEnter={handleLogin}
-            />
-
-            <button
-              type="button"
-              onClick={() => { clearErr(); go("forgot-email"); }}
-              className="-mt-1 self-end font-mono text-[9px] uppercase tracking-[0.2em] text-foreground/40 transition-colors hover:text-foreground/70"
-            >
-              Passwort vergessen?
-            </button>
+            <p className="-mt-1 font-mono text-[10px] leading-relaxed text-foreground/45">
+              {isDe
+                ? "Wir senden dir einen 6-stelligen Code per E-Mail. Kein Passwort nötig."
+                : "We'll email you a 6-digit code. No password needed."}
+            </p>
 
             {error && <ErrorBox msg={error} />}
 
             <motion.button
-              type="button" onClick={handleLogin}
-              disabled={submitting || !email.trim() || !password}
+              type="button" onClick={handleSendCode}
+              disabled={submitting || !email.trim()}
               whileTap={{ scale: 0.98 }}
               className="h-12 w-full rounded-full bg-foreground font-mono text-[11px] uppercase tracking-[0.25em] text-background transition-opacity hover:opacity-90 disabled:opacity-40"
             >
-              {submitting ? "Wird angemeldet…" : "Anmelden"}
+              {submitting ? (isDe ? "Wird gesendet…" : "Sending…") : (isDe ? "Code senden" : "Send code")}
             </motion.button>
 
-            <Divider />
+            <Divider label={isDe ? "oder" : "or"} />
 
             <motion.button
               type="button" onClick={handleGuest} disabled={submitting}
               whileTap={{ scale: 0.98 }}
               className="h-11 w-full rounded-full border border-foreground/20 font-mono text-[10px] uppercase tracking-[0.2em] text-foreground/60 transition-all hover:border-foreground/45 hover:text-foreground disabled:opacity-40"
             >
-              Als Gast fortfahren
+              {isDe ? "Als Gast fortfahren" : "Continue as guest"}
             </motion.button>
-
-            <p className="text-center font-mono text-[10px] text-foreground/40">
-              Neu hier?{" "}
-              <button
-                type="button"
-                onClick={() => { clearErr(); setPassword(""); setConfirmPw(""); go("register"); }}
-                className="text-foreground/70 underline underline-offset-2 transition-colors hover:text-foreground"
-              >
-                Konto erstellen →
-              </button>
-            </p>
           </motion.div>
         )}
 
-        {/* ── FORGOT — enter email ─────────────────────────────────────── */}
-        {view === "forgot-email" && (
-          <motion.div key="forgot-email" {...FADE} transition={T} className="flex flex-col gap-5">
-            <p className="font-mono text-[10px] leading-relaxed text-foreground/50">
-              Gib deine E-Mail ein. Wir schicken dir einen 6-stelligen Code.
-            </p>
-            <div>
-              <label className="mb-1 block font-mono text-[9px] uppercase tracking-[0.3em] text-foreground/50">E-Mail</label>
-              <input
-                type="email" autoComplete="email" inputMode="email"
-                value={email} onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleForgotSend()}
-                className={INPUT} placeholder="you@example.com"
-              />
-            </div>
-
-            {error && <ErrorBox msg={error} />}
-
-            <motion.button
-              type="button" onClick={handleForgotSend}
-              disabled={submitting || !email.trim()}
-              whileTap={{ scale: 0.98 }}
-              className="h-12 w-full rounded-full bg-foreground font-mono text-[11px] uppercase tracking-[0.25em] text-background transition-opacity hover:opacity-90 disabled:opacity-40"
-            >
-              {submitting ? "Wird gesendet…" : "Code senden"}
-            </motion.button>
-
-            <BackLink onClick={() => go("login")} label="← Zurück zum Login" />
-          </motion.div>
-        )}
-
-        {/* ── FORGOT — enter OTP ──────────────────────────────────────── */}
-        {view === "forgot-otp" && (
-          <motion.div key="forgot-otp" {...FADE} transition={T}>
+        {/* ── OTP ────────────────────────────────────────────────────────── */}
+        {view === "otp" && (
+          <motion.div key="otp" {...FADE} transition={T}>
             <p className="mb-1 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-foreground/50">
-              Code gesendet an
+              {isDe ? "Code gesendet an" : "Code sent to"}
             </p>
             <p className="mb-6 truncate text-center font-mono text-[11px] text-foreground/75">
               {email.trim()}
@@ -483,7 +339,7 @@ export function LoginCard({ locale, dict }: { locale: Locale; dict: Dictionary }
                   onKeyDown={(e) => onOtpKey(idx, e)}
                   onPaste={idx === 0 ? onOtpPaste : undefined}
                   autoComplete={idx === 0 ? "one-time-code" : "off"}
-                  aria-label={`Ziffer ${idx + 1}`}
+                  aria-label={`${isDe ? "Ziffer" : "Digit"} ${idx + 1}`}
                   className={cn(
                     "h-12 w-full rounded-lg border text-center font-mono text-lg text-foreground transition-colors focus:outline-none focus:border-foreground",
                     digit ? "border-foreground/55 bg-foreground/8" : "border-foreground/20 bg-transparent",
@@ -495,127 +351,22 @@ export function LoginCard({ locale, dict }: { locale: Locale; dict: Dictionary }
             {error && <div className="mt-4"><ErrorBox msg={error} /></div>}
 
             <motion.button
-              type="button" onClick={() => handleForgotVerify()}
+              type="button" onClick={() => handleVerify()}
               disabled={submitting || otp.join("").length < 6}
               whileTap={{ scale: 0.98 }}
-              className="mt-6 h-12 w-full rounded-full bg-white font-mono text-[11px] uppercase tracking-[0.25em] text-black transition-opacity hover:opacity-90 disabled:opacity-40"
+              className="mt-6 h-12 w-full rounded-full bg-foreground font-mono text-[11px] uppercase tracking-[0.25em] text-background transition-opacity hover:opacity-90 disabled:opacity-40"
             >
-              {submitting ? "Wird geprüft…" : "Bestätigen"}
+              {submitting ? (isDe ? "Wird geprüft…" : "Verifying…") : (isDe ? "Bestätigen" : "Confirm")}
             </motion.button>
 
             <div className="mt-5 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.2em] text-foreground/45">
-              <button type="button" onClick={() => go("forgot-email")} className="transition-colors hover:text-foreground">
-                ← Zurück
+              <button type="button" onClick={() => go("email")} className="transition-colors hover:text-foreground">
+                {isDe ? "← Zurück" : "← Back"}
               </button>
-              <button type="button" onClick={handleForgotSend} disabled={submitting} className="transition-colors hover:text-foreground disabled:opacity-35">
-                Erneut senden
+              <button type="button" onClick={handleSendCode} disabled={submitting} className="transition-colors hover:text-foreground disabled:opacity-35">
+                {isDe ? "Erneut senden" : "Resend"}
               </button>
             </div>
-          </motion.div>
-        )}
-
-        {/* ── FORGOT — set new password ────────────────────────────────── */}
-        {view === "forgot-newpw" && (
-          <motion.div key="forgot-newpw" {...FADE} transition={T} className="flex flex-col gap-5">
-            <p className="font-mono text-[10px] leading-relaxed text-foreground/50">
-              Code bestätigt. Lege jetzt dein neues Passwort fest.
-            </p>
-
-            <PwField
-              label="Neues Passwort" value={password} onChange={setPassword}
-              show={showPw} onToggle={() => setShowPw(!showPw)}
-              autoComplete="new-password" placeholder="Mindestens 8 Zeichen"
-            />
-            <PwField
-              label="Passwort wiederholen" value={confirmPw} onChange={setConfirmPw}
-              show={showConfirm} onToggle={() => setShowConfirm(!showConfirm)}
-              autoComplete="new-password" onEnter={handleSetPassword}
-            />
-
-            {error && <ErrorBox msg={error} />}
-
-            <motion.button
-              type="button" onClick={handleSetPassword}
-              disabled={submitting || password.length < 8 || !confirmPw}
-              whileTap={{ scale: 0.98 }}
-              className="h-12 w-full rounded-full bg-foreground font-mono text-[11px] uppercase tracking-[0.25em] text-background transition-opacity hover:opacity-90 disabled:opacity-40"
-            >
-              {submitting ? "Wird gespeichert…" : "Passwort speichern"}
-            </motion.button>
-          </motion.div>
-        )}
-
-        {/* ── REGISTER ─────────────────────────────────────────────────── */}
-        {view === "register" && (
-          <motion.div key="register" {...FADE} transition={T} className="flex flex-col gap-4">
-
-            {/* Social register */}
-            <motion.button
-              type="button"
-              onClick={() => handleSocialLogin("google")}
-              disabled={submitting}
-              whileTap={{ scale: 0.98 }}
-              className="flex h-11 w-full items-center justify-center gap-2.5 rounded-full border border-foreground/20 font-mono text-[10px] uppercase tracking-[0.15em] text-foreground/70 transition-all hover:border-foreground/40 hover:text-foreground disabled:opacity-40"
-            >
-              <GoogleIcon />
-              Mit Google registrieren
-            </motion.button>
-
-            <Divider />
-
-            <div>
-              <label className="mb-1 block font-mono text-[9px] uppercase tracking-[0.3em] text-foreground/50">E-Mail</label>
-              <input
-                type="email" autoComplete="email" inputMode="email"
-                value={email} onChange={(e) => setEmail(e.target.value)}
-                className={INPUT} placeholder="you@example.com"
-              />
-            </div>
-
-            <PwField
-              label="Passwort" value={password} onChange={setPassword}
-              show={showPw} onToggle={() => setShowPw(!showPw)}
-              autoComplete="new-password" placeholder="Mindestens 8 Zeichen"
-            />
-            <PwField
-              label="Passwort wiederholen" value={confirmPw} onChange={setConfirmPw}
-              show={showConfirm} onToggle={() => setShowConfirm(!showConfirm)}
-              autoComplete="new-password" onEnter={handleRegister}
-            />
-
-            {error && <ErrorBox msg={error} />}
-
-            <motion.button
-              type="button" onClick={handleRegister}
-              disabled={submitting || !email.trim() || password.length < 8 || !confirmPw}
-              whileTap={{ scale: 0.98 }}
-              className="h-12 w-full rounded-full bg-foreground font-mono text-[11px] uppercase tracking-[0.25em] text-background transition-opacity hover:opacity-90 disabled:opacity-40"
-            >
-              {submitting ? "Wird erstellt…" : "Konto erstellen"}
-            </motion.button>
-
-            <p className="text-center font-mono text-[10px] text-foreground/40">
-              Schon ein Konto?{" "}
-              <button type="button" onClick={() => go("login")}
-                className="text-foreground/70 underline underline-offset-2 transition-colors hover:text-foreground"
-              >
-                Anmelden →
-              </button>
-            </p>
-          </motion.div>
-        )}
-
-        {/* ── REGISTER DONE ──────────────────────────────────────────────── */}
-        {view === "register-done" && (
-          <motion.div key="register-done" {...FADE} transition={T} className="flex flex-col items-center gap-6 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-foreground/15 text-3xl text-foreground/60">
-              ✉
-            </div>
-            <p className="font-mono text-[10px] leading-relaxed text-foreground/55">
-              Wir haben dir eine Bestätigungs-E-Mail geschickt.<br />
-              Öffne sie und klicke auf den Link — danach kannst du dich anmelden.
-            </p>
-            <BackLink onClick={() => go("login")} label="Zum Login" />
           </motion.div>
         )}
 

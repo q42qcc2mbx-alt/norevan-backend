@@ -5,20 +5,23 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  subscribeBackInStock,
 } from '../controllers/productController.js';
 import { protect } from '../middleware/authMiddleware.js';
-import { requireAdmin } from '../middleware/adminMiddleware.js';
+import { requireRole } from '../middleware/requireRole.js';
+import { rateLimit } from '../middleware/rateLimit.js';
 
 const router = Router();
 
 // Public — anyone can browse the catalogue
 router.get('/',         listProducts);
 router.get('/:slug',    getProductBySlug);
+router.post('/:slug/notify-me', rateLimit({ windowMs: 60_000, max: 10, key: 'notify-me' }), subscribeBackInStock);
 
-// Admin-only — must be logged in AND have is_admin = 1
-router.post('/',        protect, requireAdmin, createProduct);
-router.put('/:slug',    protect, requireAdmin, updateProduct);
-router.patch('/:slug',  protect, requireAdmin, updateProduct);
-router.delete('/:slug', protect, requireAdmin, deleteProduct);
+// Back office — staff and up may manage the catalogue
+router.post('/',        protect, requireRole('staff'), createProduct);
+router.put('/:slug',    protect, requireRole('staff'), updateProduct);
+router.patch('/:slug',  protect, requireRole('staff'), updateProduct);
+router.delete('/:slug', protect, requireRole('staff'), deleteProduct);
 
 export default router;

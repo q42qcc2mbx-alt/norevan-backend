@@ -5,11 +5,20 @@ import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
+import teamRoutes from './routes/teamRoutes.js';
+import accountRoutes from './routes/accountRoutes.js';
+import reviewsRoutes from './routes/reviewsRoutes.js';
+import discountRoutes from './routes/discountRoutes.js';
 import { handleStripeWebhook } from './controllers/paymentController.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
 const PORT = process.env.PORT ?? 4000;
+
+// Behind Render's proxy — trust it so req.ip reflects the real client for
+// rate limiting.
+app.set('trust proxy', 1);
 
 // ─── CORS (minimal, no extra dependency) ──────────────────────────────────
 // Allowed origins come from CORS_ORIGINS (comma-separated). For dev we default
@@ -50,6 +59,11 @@ app.use('/api/v1/auth',     authRoutes);
 app.use('/api/v1',          userRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1',          orderRoutes);
+app.use('/api/v1',          analyticsRoutes);
+app.use('/api/v1',          teamRoutes);
+app.use('/api/v1',          accountRoutes);
+app.use('/api/v1',          reviewsRoutes);
+app.use('/api/v1',          discountRoutes);
 
 // 404 — must come after all routes
 app.use((req, res) => {
