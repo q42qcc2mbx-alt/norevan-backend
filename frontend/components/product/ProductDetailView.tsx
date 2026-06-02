@@ -5,7 +5,10 @@ import { useState } from "react";
 import { ProductGallery } from "./ProductGallery";
 import { ExplodingInfoLazy } from "@/components/three/ExplodingInfoLazy";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import { Stars } from "./Stars";
+import { ReviewsSection } from "./ReviewsSection";
 import type { Product } from "@/lib/products";
+import type { ReviewSummary } from "@/lib/reviews";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries/de";
 import { formatPrice } from "@/lib/format";
@@ -23,10 +26,12 @@ export function ProductDetailView({
   product,
   locale,
   dict,
+  reviews,
 }: {
   product: Product;
   locale: Locale;
   dict: Dictionary;
+  reviews?: ReviewSummary;
 }) {
   const [size, setSize] = useState<string | undefined>();
   const [view, setView] = useState<"gallery" | "exploding">("gallery");
@@ -73,6 +78,7 @@ export function ProductDetailView({
   ];
 
   return (
+    <>
     <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
       <div className="lg:col-span-7">
         {/* View toggle */}
@@ -164,6 +170,16 @@ export function ProductDetailView({
             {locale === "de" ? "inkl. MwSt." : "incl. VAT"}
           </span>
         </div>
+
+        {reviews && reviews.count > 0 && (
+          <div className="mt-3 flex items-center gap-2">
+            <Stars value={reviews.average} size={14} />
+            <span className="font-mono text-[10px] text-muted">
+              {reviews.average.toFixed(1)} · {reviews.count}{" "}
+              {locale === "de" ? "Bewertungen" : "reviews"}
+            </span>
+          </div>
+        )}
 
         <p className="body-soft mt-6 max-w-md text-[15px] leading-[1.65]">
           {product.description[locale]}
@@ -300,6 +316,10 @@ export function ProductDetailView({
         </div>
       </div>
     </div>
+    {reviews && (
+      <ReviewsSection slug={product.slug} locale={locale} initial={reviews} />
+    )}
+    </>
   );
 }
 

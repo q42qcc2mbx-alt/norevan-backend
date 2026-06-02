@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getProduct, relatedProducts } from "@/lib/products";
+import { getReviews } from "@/lib/reviews";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { ProductDetailView } from "@/components/product/ProductDetailView";
@@ -49,6 +50,7 @@ export default async function ProductPage({
   if (!product) notFound();
 
   const related = await relatedProducts(slug, 4);
+  const reviews = await getReviews(slug);
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 md:py-14">
@@ -62,7 +64,7 @@ export default async function ProductPage({
           ]),
         ]}
       />
-      <ProductDetailView product={product} locale={lang} dict={dict} />
+      <ProductDetailView product={product} locale={lang} dict={dict} reviews={reviews} />
 
       {related.length > 0 && (
         <section className="mt-24 border-t border-border-subtle pt-16 md:mt-32 md:pt-20">
