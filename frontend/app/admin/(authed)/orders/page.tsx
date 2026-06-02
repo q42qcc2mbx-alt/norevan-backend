@@ -36,6 +36,13 @@ export default async function AdminOrdersPage() {
           <div className="mt-1 text-foreground">
             {formatPrice(totalRevenueCents, "de")}
           </div>
+          <a
+            href="/api/admin/orders/export"
+            download
+            className="mt-2 inline-block rounded-full border border-border px-3 py-1 text-muted transition-colors hover:text-foreground"
+          >
+            CSV-Export
+          </a>
         </div>
       </header>
 
