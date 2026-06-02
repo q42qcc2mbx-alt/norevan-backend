@@ -459,3 +459,131 @@ Sag „mach Top 3" oder nenn Nummern — ich setze sie um.
 
 Sag mir, womit ich starten soll — sinnvoll ist **A → B → C** (erst Rollen sicher,
 dann Daten sammeln, dann hübsch visualisieren).
+
+---
+
+# Teil IV — Alles fürs Admin / Back-Office
+
+> Kompletter Werkzeugkasten: was ein Shop-Backend wie Norevan noch haben kann.
+> Wieder nach Themen, mit Impact-Gedanke. Vieles baut auf Bestehendem auf
+> (`controllers/*`, `app/admin/*`, Supabase, Stripe).
+
+## 27. Lager & Bestand (Inventory)
+
+- [ ] **Bestand pro Größe/Variante** verwalten (nicht nur pro Produkt).
+- [ ] **Low-Stock-Warnung** + Schwellenwert je Produkt (Badge im Dashboard).
+- [ ] **„Ausverkauft"-Automatik**: Größe wird automatisch deaktiviert bei 0.
+- [ ] **Wareneingang buchen** (Stück hinzufügen) mit kleinem Verlauf.
+- [ ] **SKU/Barcode-Feld** pro Variante.
+- [ ] **Bestandshistorie**: was wurde wann verkauft/nachgelegt.
+
+## 28. Produkte verwalten (über das Formular hinaus)
+
+- [ ] **Bulk-Aktionen**: mehrere Produkte gleichzeitig veröffentlichen, ausblenden,
+      Kategorie/Preis ändern.
+- [ ] **Drag-&-Drop-Sortierung** der Produkt-Reihenfolge / „Featured"-Flag.
+- [ ] **Entwurf vs. Live** (Status `draft`/`published`) + Vorschau-Link.
+- [ ] **Bild-Upload mit Reorder** direkt im Admin (Supabase Storage), Drag-Sort,
+      Alt-Text-Felder.
+- [ ] **Duplizieren** eines Produkts als Vorlage.
+- [ ] **Geplantes Veröffentlichen** (Drop-Datum/-Uhrzeit) → erscheint automatisch.
+- [ ] **Kategorien/Tags-Verwaltung** als eigener Bereich.
+
+## 29. Bestellungen & Fulfillment
+
+- [ ] **Status-Workflow** klar: demo → paid → shipped → delivered → returned.
+- [ ] **Tracking-Nummer** + Versanddienstleister je Bestellung, Kunde bekommt Mail.
+- [ ] **Teil-/Stornorückerstattung** über Stripe direkt aus dem Admin.
+- [ ] **Rechnung/Lieferschein als PDF** generieren & herunterladen.
+- [ ] **Notizen** an einer Bestellung (intern, nicht für Kunden sichtbar).
+- [ ] **Bestellungen drucken / Pick-Liste** für den Versandtag.
+- [ ] **Filter & Suche**: nach Status, Datum, Kunde, Produkt.
+
+## 30. Kunden / CRM
+
+- [ ] **Kundenliste** mit Bestellanzahl, Gesamtumsatz, letztem Kauf.
+- [ ] **Kundendetail**: Bestellhistorie, Adressen, Wishlist, Notizen.
+- [ ] **Segmente**: Neukunden, Wiederkäufer, „VIP" (> X € Umsatz).
+- [ ] **Kunde sperren/Spam markieren**.
+- [ ] **DSGVO-Tools**: Kundendaten exportieren / löschen auf Anfrage.
+
+## 31. Rabatte, Gutscheine & Aktionen
+
+- [ ] **Gutschein-Codes**: Prozent/Betrag, Mindestbestellwert, Ablaufdatum,
+      Nutzungslimit, einmal-pro-Kunde.
+- [ ] **Automatische Aktionen**: „20 % aufs ganze Sortiment" für Zeitraum.
+- [ ] **Free-Shipping-Schwelle** einstellbar.
+- [ ] **Geschenkkarten** (später).
+- [ ] **Aktions-Banner** schaltbar (steuert `AnnouncementMarquee`).
+
+## 32. Marketing & Reichweite
+
+- [ ] **Newsletter-Verwaltung**: Abonnentenliste (es gibt `api/newsletter`),
+      Export, einfacher Kampagnen-Versand über bestehenden Mail-Flow.
+- [ ] **„Verlassener Warenkorb"-Mail** automatisch nach X Stunden.
+- [ ] **Restock-Benachrichtigungen** auslösen, wenn Bestand zurück ist.
+- [ ] **SEO-Felder** je Produkt/Seite (Title, Description, OG-Bild) im Admin.
+- [ ] **UTM-/Kampagnen-Auswertung** (knüpft an Analytics, Teil III).
+- [ ] **Social-Sharing-Vorschau** prüfen (OG-Tags).
+
+## 33. Content & Erscheinungsbild (CMS-light)
+
+- [ ] **Startseiten-Editor**: Hero-Bild/Text, Sektionen-Reihenfolge ohne Code.
+- [ ] **Lookbook/Journal** pflegen (knüpft an Teil II, Abschn. 13).
+- [ ] **Banner/Marquee-Texte** editierbar.
+- [ ] **Legal-Seiten** (`legal/`) im Admin editierbar.
+- [ ] **Übersetzungen** je Sprache pflegen (i18n ist vorhanden).
+- [ ] **Media-Bibliothek** (alle Uploads zentral verwalten).
+
+## 34. Benachrichtigungen fürs Team
+
+- [ ] **In-App-Glocke** im Admin: neue Bestellung, Low-Stock, neue Anfrage.
+- [ ] **Sound/Toast bei neuer Bestellung** (Realtime) — „Cha-ching".
+- [ ] **Tägliche/Wöchentliche Zusammenfassung** per Mail (Umsatz, Top-Seller).
+- [ ] **Optional**: Push an Handy / Slack-/Discord-Webhook bei Bestellung.
+
+## 35. Einstellungen & Betrieb
+
+- [ ] **Shop-Settings**: Name, Logo, Kontakt, Währung, Steuersatz, Versandkosten.
+- [ ] **Versandzonen/-preise** je Land konfigurieren.
+- [ ] **Zahlungs-Status** (Stripe live/test sichtbar), Webhook-Health.
+- [ ] **Integrationen**: Mail-Provider, Storage, Analytics an einem Ort.
+- [ ] **Wartungsmodus** (Shop temporär „Coming soon").
+- [ ] **Backup/Export** der wichtigsten Daten.
+
+## 36. Sicherheit & Konto (Admin)
+
+- [ ] **2-Faktor-Login** für Admin/Owner.
+- [ ] **Session-/Login-Verlauf** (wer hat sich wann eingeloggt).
+- [ ] **Passwort-Richtlinien** + erzwungener Reset bei Verdacht.
+- [ ] **Rate-Limiting** am Admin-Login.
+- [ ] **Audit-Log** (schon in Teil III, Abschn. 23) hier sichtbar machen.
+
+## 37. Reports & Export
+
+- [ ] **CSV/Excel-Export**: Bestellungen, Kunden, Umsatz, Bestand.
+- [ ] **Buchhaltungs-Export** (Umsatz nach Monat, Steuern).
+- [ ] **Geplante Reports** per Mail (z. B. Monatsabschluss).
+- [ ] **Lager-Wert-Report** (Bestand × Einkaufspreis).
+
+## 38. Komfort & UX im Admin
+
+- [ ] **Globale Suche** (⌘K): Produkt/Bestellung/Kunde sofort finden.
+- [ ] **Tastatur-Shortcuts** für häufige Aktionen.
+- [ ] **Mobile-taugliches Admin** (Bestellungen unterwegs abhaken).
+- [ ] **„Onboarding-Checkliste"** für neue Mitarbeiter.
+- [ ] **Hilfe-/Tooltip-Texte** an komplexen Stellen.
+
+---
+
+## Wenn du nichts auslassen willst — die Prioritäts-Sicht
+
+**Muss bald** (Betrieb): Bestand/Größen (27), Tracking-Nr. + Versandmail (29),
+Bestell-Suche/Filter (29), Team-Rollen (Teil III).
+**Großer Hebel** (Umsatz): Gutschein-Codes (31), verlassener Warenkorb (32),
+Restock-Mails (32), Analytics/Charts (Teil III).
+**Komfort/Schliff**: ⌘K-Suche (38), Notifications (34), CMS-light (33),
+Reports/Export (37), 2FA (36).
+
+Sag mir, **welche Nummern** dich am meisten reizen — oder ob ich nach der
+empfohlenen Reihenfolge (Teil III: A → B → C) einfach loslege.
