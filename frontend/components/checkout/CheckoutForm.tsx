@@ -55,16 +55,34 @@ export function CheckoutForm({
 
   useEffect(() => {
     const supabase = getSupabaseClient();
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       const u = data.user;
       // Anonymous guests can browse but not buy — only real accounts may check out.
-      if (u && !u.is_anonymous) {
-        setAuthState("ok");
-        if (u.email) setForm((s) => (s.email ? s : { ...s, email: u.email! }));
-      } else {
+      if (!u || u.is_anonymous) {
         setAuthState("denied");
         router.replace(loginHref);
+        return;
       }
+      setAuthState("ok");
+
+      // Prefill from the saved profile address. Only fills empty fields so we
+      // never clobber anything the customer has already typed.
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("first_name,last_name,address,city,zip,country")
+        .eq("id", u.id)
+        .single();
+
+      setForm((s) => ({
+        ...s,
+        email: s.email || u.email || "",
+        firstName: s.firstName || p?.first_name || "",
+        lastName: s.lastName || p?.last_name || "",
+        address: s.address || p?.address || "",
+        city: s.city || p?.city || "",
+        zip: s.zip || p?.zip || "",
+        country: s.country || p?.country || "",
+      }));
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
