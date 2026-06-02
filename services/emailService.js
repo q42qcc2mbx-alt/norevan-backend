@@ -323,3 +323,81 @@ export async function sendOrderConfirmation(order) {
     console.error('[emailService] E-Mail fehlgeschlagen:', err.message);
   }
 }
+
+/** Sign-in notification — sent on each login of a real account. */
+export function renderLoginEmail(email, when = new Date()) {
+  const logo = `${BRAND.site}/logo/norevan-shield.png`;
+  const timeStr = new Date(when).toLocaleString('de-DE', {
+    day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+
+  const html = `<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting"></head>
+<body style="margin:0;padding:0;background:${BRAND.paper};">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Du hast dich bei Norevan angemeldet.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND.paper};padding:28px 12px;">
+  <tr><td align="center">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <tr><td style="background:${BRAND.ink};padding:32px 32px 28px;text-align:center;">
+        <img src="${logo}" width="52" height="52" alt="Norevan" style="display:inline-block;width:52px;height:52px;margin-bottom:12px;" />
+        <div>${wordmark(22)}</div>
+        <div style="height:2px;width:44px;background:${BRAND.gold};margin:16px auto 0;border-radius:2px;"></div>
+      </td></tr>
+      <tr><td style="padding:34px 32px 8px;">
+        <h1 style="margin:0 0 10px;font-family:Georgia,serif;font-weight:400;font-size:24px;color:${BRAND.text};">Schön, dich zu sehen.</h1>
+        <p style="margin:0;font-size:15px;line-height:1.6;color:${BRAND.muted};">Du hast dich gerade bei Norevan angemeldet — am ${timeStr} Uhr. Schau dich um, deine Auswahl wartet.</p>
+      </td></tr>
+      <tr><td style="padding:24px 32px 4px;text-align:center;">
+        <a href="${BRAND.site}/de/shop" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:14px 30px;border-radius:999px;">Zum Shop</a>
+      </td></tr>
+      <tr><td style="padding:22px 32px 0;">
+        <p style="margin:0;font-size:12px;line-height:1.6;color:${BRAND.muted};">Warst du das nicht? Dann ignoriere diese E-Mail oder melde dich bei <a href="mailto:hello@norevan.shop" style="color:${BRAND.muted};">hello@norevan.shop</a>.</p>
+      </td></tr>
+      <tr><td style="padding:30px 32px;text-align:center;">
+        <div style="border-top:1px solid ${BRAND.line};padding-top:22px;">
+          <div style="margin-bottom:8px;">${wordmark(16).replace(/#ffffff/g, BRAND.text)}</div>
+          <div style="font-size:11px;color:${BRAND.muted};line-height:1.7;">
+            Norevan UG · Berlin · seit 2026<br>
+            <a href="mailto:hello@norevan.shop" style="color:${BRAND.muted};">hello@norevan.shop</a>
+          </div>
+        </div>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Schön, dich zu sehen.
+
+Du hast dich gerade bei Norevan angemeldet — am ${timeStr} Uhr.
+
+Zum Shop: ${BRAND.site}/de/shop
+
+Warst du das nicht? Melde dich bei hello@norevan.shop.
+
+Norevan UG · Berlin · seit 2026`;
+
+  return { subject: 'Schön, dich zu sehen — Anmeldung bei Norevan', html, text };
+}
+
+export async function sendLoginNotification(email) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.warn('[emailService] GMAIL_USER oder GMAIL_APP_PASSWORD fehlt — Login-Mail wird nicht gesendet');
+    return;
+  }
+  if (!email) return;
+  const { subject, html, text } = renderLoginEmail(email);
+  try {
+    await getTransporter().sendMail({
+      from: `"Norevan" <${process.env.GMAIL_USER}>`,
+      to: email,
+      subject,
+      text,
+      html,
+    });
+    console.log(`[emailService] Login-Mail gesendet an ${email}`);
+  } catch (err) {
+    console.error('[emailService] Login-Mail fehlgeschlagen:', err.message);
+  }
+}

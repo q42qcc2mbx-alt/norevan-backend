@@ -107,6 +107,21 @@ export function LoginCard({ locale, dict }: { locale: Locale; dict: Dictionary }
 
   function redirect() { router.push(nextPath); router.refresh(); }
 
+// Fire-and-forget: ask the backend to send the sign-in email. Passing the
+// fresh access token avoids any cookie-write race right after login.
+function fireLoginNotify(accessToken?: string) {
+  try {
+    void fetch("/api/login-notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ access_token: accessToken ?? null }),
+      keepalive: true,
+    });
+  } catch {
+    // ignore
+  }
+}
+
   // ── Handlers ────────────────────────────────────────────────────────────────
 
   async function handleSocialLogin(provider: "google") {
@@ -164,7 +179,7 @@ export function LoginCard({ locale, dict }: { locale: Locale; dict: Dictionary }
     clearErr();
     setSubmitting(true);
     try {
-      const { error: e } = await supabase.auth.verifyOtp({
+      const { data, error: e } = await supabase.auth.verifyOtp({
         email: email.trim(),
         token,
         type: "email",
@@ -174,6 +189,7 @@ export function LoginCard({ locale, dict }: { locale: Locale; dict: Dictionary }
         setOtp(Array(6).fill(""));
         setTimeout(() => otpRefs.current[0]?.focus(), 60);
       } else {
+        fireLoginNotify(data.session?.access_token);
         redirect();
       }
     } catch {
