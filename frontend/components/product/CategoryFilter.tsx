@@ -34,11 +34,17 @@ export function ShopBrowser({
   activeBrand?: Brand | null;
 }) {
   const [active, setActive] = useState<Set<Category>>(new Set());
+  const [sort, setSort] = useState<"featured" | "price-asc" | "price-desc">("featured");
 
   const filtered = useMemo(() => {
-    if (active.size === 0) return products;
-    return products.filter((p) => p.categories.some((c) => active.has(c)));
-  }, [active, products]);
+    const base =
+      active.size === 0
+        ? products
+        : products.filter((p) => p.categories.some((c) => active.has(c)));
+    if (sort === "price-asc") return [...base].sort((a, b) => a.priceCents - b.priceCents);
+    if (sort === "price-desc") return [...base].sort((a, b) => b.priceCents - a.priceCents);
+    return base;
+  }, [active, products, sort]);
 
   function toggle(cat: Category) {
     setActive((prev) => {
@@ -116,6 +122,17 @@ export function ShopBrowser({
             </motion.button>
           );
         })}
+
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value as typeof sort)}
+          aria-label={locale === "de" ? "Sortierung" : "Sort"}
+          className="ml-auto rounded-full border border-border bg-background px-3 py-1 text-[11px] font-medium md:py-1.5 md:text-xs"
+        >
+          <option value="featured">{locale === "de" ? "Empfohlen" : "Featured"}</option>
+          <option value="price-asc">{locale === "de" ? "Preis ↑" : "Price ↑"}</option>
+          <option value="price-desc">{locale === "de" ? "Preis ↓" : "Price ↓"}</option>
+        </select>
       </div>
       <ProductGrid
         products={filtered}
