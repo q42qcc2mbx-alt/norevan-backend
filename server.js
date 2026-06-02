@@ -10,6 +10,7 @@ import teamRoutes from './routes/teamRoutes.js';
 import accountRoutes from './routes/accountRoutes.js';
 import reviewsRoutes from './routes/reviewsRoutes.js';
 import discountRoutes from './routes/discountRoutes.js';
+import taskRoutes from './routes/taskRoutes.js';
 import { handleStripeWebhook } from './controllers/paymentController.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -64,6 +65,7 @@ app.use('/api/v1',          teamRoutes);
 app.use('/api/v1',          accountRoutes);
 app.use('/api/v1',          reviewsRoutes);
 app.use('/api/v1',          discountRoutes);
+app.use('/api/v1',          taskRoutes);
 
 // 404 — must come after all routes
 app.use((req, res) => {

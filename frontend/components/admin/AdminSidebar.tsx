@@ -19,6 +19,7 @@ const ICONS = {
   analytics: "M3 3v18h18M7 14l3-3 3 3 4-5",
   team: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 10v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8",
   audit: "M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
+  tasks: "M9 11l3 3 8-8M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11",
   account: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
 } as const;
 
@@ -46,7 +47,10 @@ export function AdminSidebar({ role, email }: { role: string; email: string }) {
   const groups: Group[] = [
     {
       heading: "Übersicht",
-      items: [{ href: "/admin", label: "Dashboard", icon: "dashboard", show: true }],
+      items: [
+        { href: "/admin", label: "Dashboard", icon: "dashboard", show: true },
+        { href: "/admin/tasks", label: "Aufgaben", icon: "tasks", show: true },
+      ],
     },
     {
       heading: "Shop",
