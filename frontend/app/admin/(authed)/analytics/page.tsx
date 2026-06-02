@@ -1,12 +1,17 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getAdminUser, canSeeRevenue, effectiveRole } from "@/lib/auth/admin";
 import { getAnalytics } from "@/lib/analytics";
+import { getAllOrders } from "@/lib/orders";
 import { RevenueChart, type ChartPoint } from "@/components/admin/RevenueChart";
+import { cn } from "@/lib/cn";
 
 export const metadata = {
   title: "Analytics — Norevan Admin",
   robots: { index: false, follow: false },
 };
+
+const RANGES = [7, 30, 90] as const;
 
 /** ISO-3166 alpha-2 → flag emoji. */
 function flag(cc: string): string {
@@ -28,11 +33,28 @@ function countryName(cc: string): string {
   }
 }
 
-export default async function AnalyticsPage() {
+export default async function AnalyticsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ days?: string }>;
+}) {
   const user = await getAdminUser();
   if (!user || !canSeeRevenue(effectiveRole(user))) redirect("/admin");
 
-  const data = await getAnalytics(30);
+  const sp = await searchParams;
+  const days = RANGES.includes(Number(sp?.days) as (typeof RANGES)[number])
+    ? Number(sp.days)
+    : 30;
+
+  const [data, orders] = await Promise.all([getAnalytics(days), getAllOrders(1000)]);
+
+  // Orders placed within the window → conversion against unique visitors.
+  const since = new Date().getTime() - days * 24 * 60 * 60 * 1000;
+  const ordersInPeriod = orders.filter(
+    (o) => new Date(o.createdAt).getTime() >= since,
+  ).length;
+  const visitors = data?.totals.visitors ?? 0;
+  const conversion = visitors > 0 ? (ordersInPeriod / visitors) * 100 : 0;
 
   const series: ChartPoint[] = (data?.series ?? []).map((s) => {
     const [, m, d] = s.day.split("-");
@@ -44,28 +66,53 @@ export default async function AnalyticsPage() {
     <div className="mx-auto max-w-7xl px-6 py-12 md:px-10 md:py-16">
       <header className="mb-10 border-b border-border pb-6">
         <span className="font-mono text-[10px] uppercase tracking-[0.35em] text-muted">
-          Letzte 30 Tage
+          Letzte {days} Tage
         </span>
-        <h1
-          className="mt-2 font-serif"
-          style={{
-            fontFamily: "var(--font-cormorant), Georgia, serif",
-            fontSize: "clamp(1.75rem, 3vw, 2.75rem)",
-            lineHeight: 1,
-          }}
-        >
-          Analytics
-        </h1>
+        <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+          <h1
+            className="font-serif"
+            style={{
+              fontFamily: "var(--font-cormorant), Georgia, serif",
+              fontSize: "clamp(1.75rem, 3vw, 2.75rem)",
+              lineHeight: 1,
+            }}
+          >
+            Analytics
+          </h1>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 rounded-full border border-border p-1">
+              {RANGES.map((r) => (
+                <Link
+                  key={r}
+                  href={`/admin/analytics?days=${r}`}
+                  className={cn(
+                    "rounded-full px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] transition-colors",
+                    r === days ? "bg-foreground text-background" : "text-muted hover:text-foreground",
+                  )}
+                >
+                  {r}T
+                </Link>
+              ))}
+            </div>
+            <a
+              href={`/api/admin/analytics/export?days=${days}`}
+              className="rounded-full border border-border px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted transition-colors hover:text-foreground"
+            >
+              CSV
+            </a>
+          </div>
+        </div>
       </header>
 
       {!data ? (
         <p className="text-muted">Analytics konnten nicht geladen werden.</p>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <Stat label="Besucher" value={data.totals.visitors.toLocaleString("de-DE")} />
             <Stat label="Seitenaufrufe" value={data.totals.views.toLocaleString("de-DE")} />
-            <Stat label="Heute" value={data.totals.today.toLocaleString("de-DE")} />
+            <Stat label="Bestellungen" value={ordersInPeriod.toLocaleString("de-DE")} />
+            <Stat label="Conversion" value={`${conversion.toFixed(1)} %`} />
             <Stat
               label="Gerade online"
               value={data.totals.online.toLocaleString("de-DE")}
