@@ -44,11 +44,44 @@ export function CheckoutForm({
 
   const [form, setForm] = useState<FormState>(initial);
   const [submitting, setSubmitting] = useState(false);
+  const [codeInput, setCodeInput] = useState("");
+  const [discount, setDiscount] = useState<{ code: string; cents: number } | null>(null);
+  const [codeMsg, setCodeMsg] = useState<string | null>(null);
+  const [codeBusy, setCodeBusy] = useState(false);
   // Buying requires a real (non-guest) account. Browsing stays open.
   const [authState, setAuthState] = useState<"checking" | "ok" | "denied">(
     "checking",
   );
   const subtotal = cartSubtotalCents(items);
+  const discountCents = discount ? Math.min(discount.cents, subtotal) : 0;
+  const total = subtotal - discountCents;
+  const isDe = locale === "de";
+
+  async function applyCode() {
+    const code = codeInput.trim();
+    if (!code || codeBusy) return;
+    setCodeBusy(true);
+    setCodeMsg(null);
+    try {
+      const res = await fetch("/api/discount/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subtotalCents: subtotal }),
+      });
+      const d = (await res.json()) as { valid: boolean; code?: string; discountCents?: number; message?: string };
+      if (d.valid && d.discountCents) {
+        setDiscount({ code: d.code ?? code.toUpperCase(), cents: d.discountCents });
+        setCodeMsg(null);
+      } else {
+        setDiscount(null);
+        setCodeMsg(d.message ?? (isDe ? "Code ungültig" : "Invalid code"));
+      }
+    } catch {
+      setCodeMsg(isDe ? "Fehler — bitte erneut" : "Error — try again");
+    } finally {
+      setCodeBusy(false);
+    }
+  }
 
   const loginHref = `/${locale}/login?next=${encodeURIComponent(
     `/${locale}/checkout`,
@@ -114,7 +147,7 @@ export function CheckoutForm({
           "content-type": "application/json",
           "x-norevan-locale": locale,
         },
-        body: JSON.stringify({ ...form, items }),
+        body: JSON.stringify({ ...form, items, discountCode: discount?.code }),
       });
       if (res.status === 401) {
         // Session expired or guest — send them to log in, then back here.
@@ -304,6 +337,33 @@ export function CheckoutForm({
             </li>
           ))}
         </ul>
+        {/* Discount code */}
+        <div className="mb-4 border-t border-border pt-4">
+          <div className="flex gap-2">
+            <input
+              value={codeInput}
+              onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
+              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyCode())}
+              placeholder={isDe ? "Rabattcode" : "Discount code"}
+              className="h-10 flex-1 rounded-lg border border-border bg-background px-3 font-mono text-xs uppercase tracking-[0.15em] focus:border-foreground focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={applyCode}
+              disabled={codeBusy || !codeInput.trim()}
+              className="h-10 rounded-lg border border-border px-4 font-mono text-[10px] uppercase tracking-[0.2em] text-muted transition-colors hover:text-foreground disabled:opacity-40"
+            >
+              {codeBusy ? "…" : isDe ? "Einlösen" : "Apply"}
+            </button>
+          </div>
+          {codeMsg && <p className="mt-2 font-mono text-[10px] text-red-400">{codeMsg}</p>}
+          {discount && (
+            <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--gold)]">
+              {discount.code} {isDe ? "angewendet" : "applied"}
+            </p>
+          )}
+        </div>
+
         <div className="border-t border-border pt-4">
           <div className="mb-2 flex justify-between text-sm">
             <span className="text-muted">{dict.cart.subtotal}</span>
@@ -311,6 +371,14 @@ export function CheckoutForm({
               {formatPrice(subtotal, locale)}
             </span>
           </div>
+          {discountCents > 0 && (
+            <div className="mb-2 flex justify-between text-sm">
+              <span className="text-muted">{isDe ? "Rabatt" : "Discount"}</span>
+              <span className="font-medium text-[var(--gold)]">
+                −{formatPrice(discountCents, locale)}
+              </span>
+            </div>
+          )}
           <div className="mb-4 flex justify-between text-sm">
             <span className="text-muted">{dict.cart.shipping}</span>
             <span>{dict.cart.shippingFree}</span>
@@ -318,7 +386,7 @@ export function CheckoutForm({
           <div className="mb-6 flex justify-between border-t border-border pt-4 text-base">
             <span className="font-semibold">{dict.cart.total}</span>
             <span className="font-semibold">
-              {formatPrice(subtotal, locale)}
+              {formatPrice(total, locale)}
             </span>
           </div>
         </div>

@@ -64,7 +64,11 @@ export function renderOrderEmail(order) {
   const dateStr = new Date(order.createdAt ?? Date.now()).toLocaleDateString('de-DE', {
     day: '2-digit', month: 'long', year: 'numeric',
   });
-  const subtotal = eur(order.subtotalCents);
+  const discountCents = order.discountCents ?? 0;
+  const grossCents = order.subtotalCents + discountCents;
+  const subtotal = eur(grossCents); // pre-discount items total
+  const total = eur(order.subtotalCents); // net charged
+  const discountStr = discountCents > 0 ? `−${eur(discountCents)}` : null;
   const logo = `${BRAND.site}/logo/norevan-shield.png`;
 
   const itemsHtml = order.items.map(itemRowHtml).join('');
@@ -129,8 +133,9 @@ export function renderOrderEmail(order) {
       <tr><td style="padding:6px 32px 0;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;">
           <tr><td style="padding:8px 0;color:${BRAND.muted};">Zwischensumme</td><td style="padding:8px 0;text-align:right;color:${BRAND.text};">${subtotal}</td></tr>
+          ${discountStr ? `<tr><td style="padding:0 0 8px;color:${BRAND.muted};">Rabatt${order.discountCode ? ` (${order.discountCode})` : ''}</td><td style="padding:0 0 8px;text-align:right;color:${BRAND.gold};">${discountStr}</td></tr>` : ''}
           <tr><td style="padding:0 0 8px;color:${BRAND.muted};">Versand</td><td style="padding:0 0 8px;text-align:right;color:${BRAND.text};">Kostenlos</td></tr>
-          <tr><td style="padding:14px 0 0;border-top:2px solid ${BRAND.ink};font-size:16px;font-weight:700;color:${BRAND.text};">Gesamt</td><td style="padding:14px 0 0;border-top:2px solid ${BRAND.ink};text-align:right;font-size:16px;font-weight:700;color:${BRAND.text};">${subtotal}</td></tr>
+          <tr><td style="padding:14px 0 0;border-top:2px solid ${BRAND.ink};font-size:16px;font-weight:700;color:${BRAND.text};">Gesamt</td><td style="padding:14px 0 0;border-top:2px solid ${BRAND.ink};text-align:right;font-size:16px;font-weight:700;color:${BRAND.text};">${total}</td></tr>
         </table>
         <div style="font-size:11px;color:${BRAND.muted};margin-top:8px;">Alle Preise inkl. gesetzl. MwSt. · Versand kostenlos</div>
       </td></tr>
@@ -173,8 +178,8 @@ Datum      : ${dateStr}
 ${itemsText}
 ──────────────────────────────────────
 Zwischensumme : ${subtotal}
-Versand       : Kostenlos
-Gesamt        : ${subtotal}
+${discountStr ? `Rabatt        : ${discountStr}\n` : ''}Versand       : Kostenlos
+Gesamt        : ${total}
 (Alle Preise inkl. gesetzl. MwSt.)
 
 Lieferadresse:

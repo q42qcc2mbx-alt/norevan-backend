@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import pool from '../config/database.js';
 import { sendOrderConfirmation, sendShippingNotification } from '../services/emailService.js';
 import { isStripeEnabled, createCheckoutSession } from '../services/stripeService.js';
+import { applyDiscountInTx } from './discountController.js';
 
 function orderRowToJson(row) {
   return {
@@ -15,6 +16,8 @@ function orderRowToJson(row) {
     zip: row.zip,
     country: row.country,
     subtotalCents: row.subtotal_cents,
+    discountCents: row.discount_cents ?? 0,
+    discountCode: row.discount_code ?? null,
     status: row.status,
     createdAt: row.created_at,
   };
@@ -85,11 +88,15 @@ export const createOrder = async (req, res, next) => {
     if (errors.length) return res.status(400).json({ status: 'error', message: 'Validation failed', errors });
 
     const orderId = crypto.randomUUID();
-    const subtotalCents = req.body.items.reduce((s, it) => s + it.priceCents * it.qty, 0);
+    const grossCents = req.body.items.reduce((s, it) => s + it.priceCents * it.qty, 0);
     const userId = req.user?.userId ?? null;
     const supabaseUserId = req.supabaseUser?.id ?? null;
 
     const stripe = isStripeEnabled();
+    let discountCode = null;
+    let discountCents = 0;
+    let netCents = grossCents;
+
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
@@ -109,11 +116,19 @@ export const createOrder = async (req, res, next) => {
         }
       }
 
+      // Optional discount code (opt-in — absent ⇒ unchanged behaviour).
+      if (req.body.discountCode) {
+        const applied = await applyDiscountInTx(client, req.body.discountCode, grossCents);
+        discountCode = applied.discountCode;
+        discountCents = applied.discountCents;
+        netCents = grossCents - discountCents;
+      }
+
       await client.query(
-        `INSERT INTO orders (id, user_id, supabase_user_id, email, first_name, last_name, address, city, zip, country, subtotal_cents, status)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'pending')`,
+        `INSERT INTO orders (id, user_id, supabase_user_id, email, first_name, last_name, address, city, zip, country, subtotal_cents, status, discount_code, discount_cents)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'pending',$12,$13)`,
         [orderId, userId, supabaseUserId, req.body.email, req.body.firstName, req.body.lastName,
-         req.body.address, req.body.city, req.body.zip, req.body.country, subtotalCents],
+         req.body.address, req.body.city, req.body.zip, req.body.country, netCents, discountCode, discountCents],
       );
 
       for (const it of req.body.items) {
@@ -142,11 +157,11 @@ export const createOrder = async (req, res, next) => {
     if (stripe) {
       const locale = req.headers['x-norevan-locale'] === 'en' ? 'en' : 'de';
       const session = await createCheckoutSession({
-        orderId, email: req.body.email, items: req.body.items, locale,
+        orderId, email: req.body.email, items: req.body.items, locale, discountCents,
       });
       return res.status(201).json({
         status: 'success',
-        data: { orderId, subtotalCents, paymentStatus: 'pending', checkoutUrl: session.url },
+        data: { orderId, subtotalCents: netCents, discountCents, paymentStatus: 'pending', checkoutUrl: session.url },
       });
     }
 
@@ -155,15 +170,18 @@ export const createOrder = async (req, res, next) => {
       lastName: req.body.lastName,
       address: req.body.address, city: req.body.city,
       zip: req.body.zip, country: req.body.country,
-      subtotalCents, items: req.body.items,
+      subtotalCents: netCents, discountCents, items: req.body.items,
       createdAt: new Date().toISOString(),
     });
 
     res.status(201).json({
       status: 'success',
-      data: { orderId, subtotalCents, paymentStatus: 'pending' },
+      data: { orderId, subtotalCents: netCents, discountCents, paymentStatus: 'pending' },
     });
   } catch (err) {
+    if (err?.code === 'DISCOUNT_INVALID') {
+      return res.status(400).json({ status: 'error', message: err.message, errors: ['discount_invalid'] });
+    }
     if (err?.code === 'OUT_OF_STOCK') {
       return res.status(409).json({
         status: 'error',
@@ -215,6 +233,7 @@ export async function markOrderPaidAndNotify(orderId) {
     zip: order.zip,
     country: order.country,
     subtotalCents: order.subtotal_cents,
+    discountCents: order.discount_cents ?? 0,
     items: items.map((i) => ({ name: i.name, size: i.size, qty: i.qty, priceCents: i.price_cents, image: i.image })),
     createdAt: order.created_at,
   });

@@ -33,6 +33,7 @@ function NavLinks({
       {showAnalytics && (
         <>
           <Link href="/admin/analytics" className={navLink}>Analytics</Link>
+          <Link href="/admin/discounts" className={navLink}>Rabatte</Link>
           <Link href="/admin/reviews" className={navLink}>Bewertungen</Link>
         </>
       )}

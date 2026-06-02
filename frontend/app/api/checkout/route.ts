@@ -11,6 +11,7 @@ type CheckoutBody = {
   zip: string;
   country: string;
   items: CartItem[];
+  discountCode?: string;
 };
 
 export async function POST(req: Request) {
