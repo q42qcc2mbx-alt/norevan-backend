@@ -5,6 +5,7 @@ import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
 import { handleStripeWebhook } from './controllers/paymentController.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -50,6 +51,7 @@ app.use('/api/v1/auth',     authRoutes);
 app.use('/api/v1',          userRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1',          orderRoutes);
+app.use('/api/v1',          analyticsRoutes);
 
 // 404 — must come after all routes
 app.use((req, res) => {
