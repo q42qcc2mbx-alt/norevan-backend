@@ -13,6 +13,8 @@ export function AddToCartButton({
   sizeRequiredLabel,
   className,
   onMissingSize,
+  soldOut,
+  soldOutLabel = "Ausverkauft",
 }: {
   item: Omit<CartItem, "qty" | "size">;
   needsSize?: boolean;
@@ -21,6 +23,8 @@ export function AddToCartButton({
   sizeRequiredLabel: string;
   className?: string;
   onMissingSize?: () => void;
+  soldOut?: boolean;
+  soldOutLabel?: string;
 }) {
   const add = useCart((s) => s.add);
   const [tooltip, setTooltip] = useState<string | null>(null);
@@ -33,6 +37,22 @@ export function AddToCartButton({
       return;
     }
     add({ ...item, size });
+  }
+
+  if (soldOut) {
+    return (
+      <button
+        type="button"
+        disabled
+        aria-disabled
+        className={cn(
+          "inline-flex h-11 cursor-not-allowed items-center justify-center rounded-full border border-border bg-muted-bg px-6 text-sm font-medium text-muted",
+          className,
+        )}
+      >
+        {soldOutLabel}
+      </button>
+    );
   }
 
   return (

@@ -37,6 +37,11 @@ export function ProductDetailView({
 
   const needsSize = !!product.sizes && product.sizes.length > 0;
 
+  // stock: 0 = sold out, 1..5 = low (urgency), undefined/>5 = plenty/untracked.
+  const stock = product.stock;
+  const soldOut = stock === 0;
+  const lowStock = typeof stock === "number" && stock > 0 && stock <= 5;
+
   const sections = [
     {
       id: "details" as const,
@@ -195,6 +200,23 @@ export function ProductDetailView({
           </div>
         )}
 
+        {(soldOut || lowStock) && (
+          <p
+            className={cn(
+              "mt-6 font-mono text-[11px] uppercase tracking-[0.2em]",
+              soldOut ? "text-muted" : "text-[var(--gold)]",
+            )}
+          >
+            {soldOut
+              ? locale === "de"
+                ? "Ausverkauft"
+                : "Sold out"
+              : locale === "de"
+                ? `Nur noch ${stock} verfügbar`
+                : `Only ${stock} left`}
+          </p>
+        )}
+
         <div className="mt-8 flex gap-3">
           <AddToCartButton
             item={{
@@ -207,6 +229,8 @@ export function ProductDetailView({
             size={size}
             label={dict.pdp.addToCart}
             sizeRequiredLabel={dict.pdp.sizeRequired}
+            soldOut={soldOut}
+            soldOutLabel={locale === "de" ? "Ausverkauft" : "Sold out"}
             className="h-12 flex-1"
           />
           <motion.button

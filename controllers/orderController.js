@@ -33,6 +33,17 @@ function itemRowToJson(row) {
   };
 }
 
+// Reduce stock for purchased items. stock is clamped at 0 (never negative).
+// Products with stock 0 are treated as sold out and rejected before this runs.
+async function decrementStock(client, items) {
+  for (const it of items) {
+    await client.query(
+      'UPDATE products SET stock = GREATEST(stock - $1, 0), updated_at = NOW() WHERE slug = $2',
+      [it.qty, it.slug],
+    );
+  }
+}
+
 function validateCheckout(body) {
   const errors = [];
   const required = ['email', 'firstName', 'lastName', 'address', 'city', 'zip', 'country'];
@@ -65,9 +76,25 @@ export const createOrder = async (req, res, next) => {
     const userId = req.user?.userId ?? null;
     const supabaseUserId = req.supabaseUser?.id ?? null;
 
+    const stripe = isStripeEnabled();
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+
+      // Lock product rows and verify availability before taking the order.
+      for (const it of req.body.items) {
+        const { rows } = await client.query(
+          'SELECT name, stock FROM products WHERE slug = $1 FOR UPDATE',
+          [it.slug],
+        );
+        const avail = rows[0]?.stock;
+        if (avail != null && avail < it.qty) {
+          const err = new Error(`Insufficient stock for ${rows[0]?.name ?? it.slug}`);
+          err.code = 'OUT_OF_STOCK';
+          err.item = rows[0]?.name ?? it.name;
+          throw err;
+        }
+      }
 
       await client.query(
         `INSERT INTO orders (id, user_id, supabase_user_id, email, first_name, last_name, address, city, zip, country, subtotal_cents, status)
@@ -84,6 +111,10 @@ export const createOrder = async (req, res, next) => {
         );
       }
 
+      // Without Stripe the order is confirmed immediately, so reserve stock now.
+      // With Stripe we decrement once payment succeeds (markOrderPaidAndNotify).
+      if (!stripe) await decrementStock(client, req.body.items);
+
       await client.query('COMMIT');
     } catch (e) {
       await client.query('ROLLBACK');
@@ -95,7 +126,7 @@ export const createOrder = async (req, res, next) => {
     // With Stripe enabled, payment runs through a hosted Checkout Session and
     // the confirmation email is sent once the webhook reports payment success.
     // Without Stripe (dev / no-payment mode) we confirm the order immediately.
-    if (isStripeEnabled()) {
+    if (stripe) {
       const locale = req.headers['x-norevan-locale'] === 'en' ? 'en' : 'de';
       const session = await createCheckoutSession({
         orderId, email: req.body.email, items: req.body.items, locale,
@@ -120,6 +151,13 @@ export const createOrder = async (req, res, next) => {
       data: { orderId, subtotalCents, paymentStatus: 'pending' },
     });
   } catch (err) {
+    if (err?.code === 'OUT_OF_STOCK') {
+      return res.status(409).json({
+        status: 'error',
+        message: `Leider ausverkauft: ${err.item}`,
+        errors: ['out_of_stock'],
+      });
+    }
     next(err);
   }
 };
@@ -138,9 +176,22 @@ export async function markOrderPaidAndNotify(orderId) {
   const order = rows[0];
   if (order.status === 'paid') return; // already processed
 
-  await pool.query("UPDATE orders SET status = 'paid' WHERE id = $1", [orderId]);
+  // Mark paid and reserve stock atomically.
+  const client = await pool.connect();
+  let items;
+  try {
+    await client.query('BEGIN');
+    await client.query("UPDATE orders SET status = 'paid' WHERE id = $1", [orderId]);
+    ({ rows: items } = await client.query('SELECT * FROM order_items WHERE order_id = $1', [orderId]));
+    await decrementStock(client, items.map((i) => ({ slug: i.slug, qty: i.qty })));
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
 
-  const { rows: items } = await pool.query('SELECT * FROM order_items WHERE order_id = $1', [orderId]);
   await sendOrderConfirmation({
     orderId,
     email: order.email,
