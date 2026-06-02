@@ -21,6 +21,7 @@ constraints), so re-running them is safe.
 |------|--------------|--------|
 | `001_roles_and_analytics.sql` | `users.role` (owner/admin/staff/viewer), `page_views` analytics table, `admin_audit` log | ✅ applied to project `akzuhdogmzefszoredcj` |
 | `002_role_customer_default.sql` | adds `customer` role, makes it the default (public `/register` must not grant back-office), reclassifies legacy staff | ✅ applied to project `akzuhdogmzefszoredcj` |
+| `003_profile_address.sql` | adds shipping-address columns to `profiles` (first/last name, address, city, zip, country) | ✅ applied to project `akzuhdogmzefszoredcj` |
 
 > After applying 001, promote the real owner by editing and running the
 > commented `UPDATE users SET role = 'owner' …` line inside the file.
