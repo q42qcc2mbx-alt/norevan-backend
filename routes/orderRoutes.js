@@ -11,7 +11,7 @@ import {
   requireSupabaseAuth,
   requireRealUser,
 } from '../middleware/supabaseAuthMiddleware.js';
-import { requireAdmin } from '../middleware/adminMiddleware.js';
+import { requireRole } from '../middleware/requireRole.js';
 
 const router = Router();
 
@@ -24,8 +24,8 @@ router.get('/orders/me', requireSupabaseAuth, listMyOrders);
 // Public read by id (treat the orderId as a magic token for the confirmation page).
 router.get('/orders/:id', getOrderById);
 
-// Admin only.
-router.get('/admin/orders',          protect, requireAdmin, listAllOrders);
-router.patch('/admin/orders/:id',    protect, requireAdmin, updateOrderStatus);
+// Back office — staff and up may view & fulfil orders.
+router.get('/admin/orders',          protect, requireRole('staff'), listAllOrders);
+router.patch('/admin/orders/:id',    protect, requireRole('staff'), updateOrderStatus);
 
 export default router;

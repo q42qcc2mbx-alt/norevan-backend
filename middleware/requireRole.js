@@ -3,11 +3,12 @@ import pool from '../config/database.js';
 /**
  * Role-based access control. Must run AFTER `protect` (which sets req.user).
  *
- * Roles (see db/migrations/001_roles_and_analytics.sql), most → least power:
- *   owner  — full access incl. team/role management & settings
- *   admin  — orders, products, revenue & analytics
- *   staff  — orders & products (NO revenue/analytics, NO team management)
- *   viewer — read-only
+ * Roles (see db/migrations/*), most → least power:
+ *   owner    — full access incl. team/role management & settings
+ *   admin    — orders, products, revenue & analytics
+ *   staff    — orders & products (NO revenue/analytics, NO team management)
+ *   viewer   — read-only back office
+ *   customer — normal account, NO back-office access (default)
  *
  * Looks the role up in the DB (never trusts a role claim from the JWT) so a
  * forged token can't escalate. Postgres/pg — matches the rest of the app.
@@ -17,7 +18,7 @@ import pool from '../config/database.js';
  *
  * Passing a single role means "this role OR anything more powerful".
  */
-const RANK = { viewer: 0, staff: 1, admin: 2, owner: 3 };
+const RANK = { customer: 0, viewer: 1, staff: 2, admin: 3, owner: 4 };
 
 export const requireRole =
   (minRole = 'staff') =>
@@ -38,7 +39,7 @@ export const requireRole =
       }
 
       // Fall back to is_admin for rows not yet migrated to a role.
-      const role = user.role ?? (user.is_admin === 1 ? 'admin' : 'staff');
+      const role = user.role ?? (user.is_admin === 1 ? 'admin' : 'customer');
       const have = RANK[role] ?? 0;
       const need = RANK[minRole] ?? RANK.staff;
 

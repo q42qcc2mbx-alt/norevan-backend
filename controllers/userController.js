@@ -3,7 +3,7 @@ import pool from '../config/database.js';
 export const getDashboard = async (req, res, next) => {
   try {
     const { rows } = await pool.query(
-      'SELECT id, username, email, is_admin, created_at FROM users WHERE id = $1',
+      'SELECT id, username, email, is_admin, role, created_at FROM users WHERE id = $1',
       [req.user.userId],
     );
 

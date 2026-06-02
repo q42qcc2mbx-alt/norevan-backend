@@ -7,7 +7,7 @@ import {
   deleteProduct,
 } from '../controllers/productController.js';
 import { protect } from '../middleware/authMiddleware.js';
-import { requireAdmin } from '../middleware/adminMiddleware.js';
+import { requireRole } from '../middleware/requireRole.js';
 
 const router = Router();
 
@@ -15,10 +15,10 @@ const router = Router();
 router.get('/',         listProducts);
 router.get('/:slug',    getProductBySlug);
 
-// Admin-only — must be logged in AND have is_admin = 1
-router.post('/',        protect, requireAdmin, createProduct);
-router.put('/:slug',    protect, requireAdmin, updateProduct);
-router.patch('/:slug',  protect, requireAdmin, updateProduct);
-router.delete('/:slug', protect, requireAdmin, deleteProduct);
+// Back office — staff and up may manage the catalogue
+router.post('/',        protect, requireRole('staff'), createProduct);
+router.put('/:slug',    protect, requireRole('staff'), updateProduct);
+router.patch('/:slug',  protect, requireRole('staff'), updateProduct);
+router.delete('/:slug', protect, requireRole('staff'), deleteProduct);
 
 export default router;

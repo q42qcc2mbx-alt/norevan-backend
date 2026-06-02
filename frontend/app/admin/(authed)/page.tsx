@@ -3,6 +3,7 @@ import { getAllOrders } from "@/lib/orders";
 import { getAllProducts } from "@/lib/products";
 import { formatPrice } from "@/lib/format";
 import { RevenueChart, type ChartPoint } from "@/components/admin/RevenueChart";
+import { getAdminUser, canSeeRevenue, effectiveRole } from "@/lib/auth/admin";
 
 const REALIZED = new Set(["paid", "shipped", "delivered"]);
 
@@ -40,8 +41,13 @@ export const metadata = {
 };
 
 export default async function AdminDashboard() {
-  const orders = await getAllOrders(500);
-  const products = await getAllProducts();
+  const [orders, products, user] = await Promise.all([
+    getAllOrders(500),
+    getAllProducts(),
+    getAdminUser(),
+  ]);
+  const role = user ? effectiveRole(user) : "staff";
+  const showRevenue = canSeeRevenue(role);
 
   const totalRevenueCents = orders
     .filter((o) => o.status === "paid" || o.status === "shipped")
@@ -81,49 +87,66 @@ export default async function AdminDashboard() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Produkte" value={String(products.length)} href="/admin/products" />
         <Stat label="Bestellungen" value={String(orders.length)} href="/admin/orders" />
-        <Stat label="Heute" value={String(ordersToday.length)} sub={`${ordersToday.reduce((s, o) => s + o.subtotalCents, 0) === 0 ? "—" : formatPrice(ordersToday.reduce((s, o) => s + o.subtotalCents, 0), "de")}`} />
+        <Stat
+          label="Heute"
+          value={String(ordersToday.length)}
+          sub={
+            showRevenue
+              ? ordersToday.reduce((s, o) => s + o.subtotalCents, 0) === 0
+                ? "—"
+                : formatPrice(
+                    ordersToday.reduce((s, o) => s + o.subtotalCents, 0),
+                    "de",
+                  )
+              : "Bestellungen"
+          }
+        />
         <Stat label="Pending / Paid" value={String(pendingCount)} sub="zu versenden" />
       </div>
 
-      {/* Revenue over time — coordinate system */}
-      <div className="mt-10 rounded-md border border-border bg-card p-6">
-        <div className="mb-4 flex items-baseline justify-between gap-4">
-          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
-            Umsatz · letzte 30 Tage
+      {/* Revenue over time — coordinate system (admins & owners only) */}
+      {showRevenue && (
+        <div className="mt-10 rounded-md border border-border bg-card p-6">
+          <div className="mb-4 flex items-baseline justify-between gap-4">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+              Umsatz · letzte 30 Tage
+            </div>
+            <div
+              className="font-serif tabular-nums"
+              style={{
+                fontFamily: "var(--font-cormorant), Georgia, serif",
+                fontSize: "1.5rem",
+                lineHeight: 1,
+              }}
+            >
+              {formatPrice(last30Cents, "de")}
+            </div>
           </div>
-          <div
-            className="font-serif tabular-nums"
-            style={{
-              fontFamily: "var(--font-cormorant), Georgia, serif",
-              fontSize: "1.5rem",
-              lineHeight: 1,
-            }}
-          >
-            {formatPrice(last30Cents, "de")}
-          </div>
+          <RevenueChart data={revenueSeries} />
         </div>
-        <RevenueChart data={revenueSeries} />
-      </div>
+      )}
 
       <div className="mt-10 grid gap-4 md:grid-cols-2">
-        <div className="rounded-md border border-border bg-card p-6">
-          <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
-            Realisierter Umsatz
+        {showRevenue && (
+          <div className="rounded-md border border-border bg-card p-6">
+            <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+              Realisierter Umsatz
+            </div>
+            <div
+              className="font-serif"
+              style={{
+                fontFamily: "var(--font-cormorant), Georgia, serif",
+                fontSize: "clamp(2rem, 4vw, 3rem)",
+                lineHeight: 1,
+              }}
+            >
+              {formatPrice(totalRevenueCents, "de")}
+            </div>
+            <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+              aus paid + shipped
+            </div>
           </div>
-          <div
-            className="font-serif"
-            style={{
-              fontFamily: "var(--font-cormorant), Georgia, serif",
-              fontSize: "clamp(2rem, 4vw, 3rem)",
-              lineHeight: 1,
-            }}
-          >
-            {formatPrice(totalRevenueCents, "de")}
-          </div>
-          <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
-            aus paid + shipped
-          </div>
-        </div>
+        )}
         <div className="rounded-md border border-border bg-card p-6">
           <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
             Letzte Bestellungen
