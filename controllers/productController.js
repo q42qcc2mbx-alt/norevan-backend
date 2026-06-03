@@ -56,10 +56,26 @@ function rowToProduct(row) {
     highlight: !!row.highlight,
     hero: !!row.hero,
     stock: row.stock,
+    // Per-size inventory (pg parses jsonb → object). undefined when not used.
+    stockBySize: row.stock_by_size ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
 }
+
+// Normalise a {size: units} map: coerce to non-negative integers, drop junk.
+// Returns null when there's nothing usable (→ product uses aggregate stock).
+function normalizeStockBySize(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
+  const out = {};
+  for (const [k, v] of Object.entries(input)) {
+    const n = Math.max(0, Math.floor(Number(v)));
+    if (Number.isFinite(n)) out[String(k)] = n;
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+const sumStock = (map) => Object.values(map).reduce((s, v) => s + Number(v || 0), 0);
 
 function validateProduct(p) {
   const errors = [];
@@ -102,11 +118,13 @@ export const createProduct = async (req, res, next) => {
     if (existing.length > 0) return res.status(409).json({ status: 'error', message: 'Slug already exists' });
 
     const p = req.body;
+    const sbs = normalizeStockBySize(p.stockBySize);
+    const stockVal = sbs ? sumStock(sbs) : (Number.isFinite(p.stock) ? p.stock : 0);
     await pool.query(
       `INSERT INTO products (
         slug, name, brand, price_cents, categories_json, images_json, sizes_json,
-        description_de, description_en, specs_json, highlight, hero, stock
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+        description_de, description_en, specs_json, highlight, hero, stock, stock_by_size
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
       [
         p.slug, p.name, p.brand, p.priceCents,
         JSON.stringify(p.categories ?? []),
@@ -115,7 +133,8 @@ export const createProduct = async (req, res, next) => {
         p.description?.de ?? '', p.description?.en ?? '',
         JSON.stringify(p.specs ?? []),
         p.highlight ? 1 : 0, p.hero ? 1 : 0,
-        Number.isFinite(p.stock) ? p.stock : 0,
+        stockVal,
+        sbs ? JSON.stringify(sbs) : null,
       ],
     );
 
@@ -150,15 +169,17 @@ export const updateProduct = async (req, res, next) => {
         await client.query('DELETE FROM products WHERE slug = $1', [slug]);
       }
 
+      const sbs = normalizeStockBySize(merged.stockBySize);
+      const stockVal = sbs ? sumStock(sbs) : (Number.isFinite(merged.stock) ? merged.stock : 0);
       await client.query(
         `INSERT INTO products (
           slug, name, brand, price_cents, categories_json, images_json, sizes_json,
-          description_de, description_en, specs_json, highlight, hero, stock, updated_at
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,NOW())
+          description_de, description_en, specs_json, highlight, hero, stock, stock_by_size, updated_at
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW())
         ON CONFLICT (slug) DO UPDATE SET
           name=$2, brand=$3, price_cents=$4, categories_json=$5,
           images_json=$6, sizes_json=$7, description_de=$8, description_en=$9,
-          specs_json=$10, highlight=$11, hero=$12, stock=$13, updated_at=NOW()`,
+          specs_json=$10, highlight=$11, hero=$12, stock=$13, stock_by_size=$14, updated_at=NOW()`,
         [
           merged.slug, merged.name, merged.brand, merged.priceCents,
           JSON.stringify(merged.categories ?? []),
@@ -167,7 +188,8 @@ export const updateProduct = async (req, res, next) => {
           merged.description?.de ?? '', merged.description?.en ?? '',
           JSON.stringify(merged.specs ?? []),
           merged.highlight ? 1 : 0, merged.hero ? 1 : 0,
-          Number.isFinite(merged.stock) ? merged.stock : 0,
+          stockVal,
+          sbs ? JSON.stringify(sbs) : null,
         ],
       );
 

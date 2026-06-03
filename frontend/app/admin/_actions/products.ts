@@ -89,6 +89,21 @@ function parseList(raw: string): string[] {
     .filter(Boolean);
 }
 
+// Newline-separated `Größe | Anzahl` → { size: units }. Empty ⇒ undefined
+// (the product then uses the single aggregate stock field).
+function parseStockBySize(raw: string): Record<string, number> | undefined {
+  const trimmed = raw.trim();
+  if (!trimmed) return undefined;
+  const out: Record<string, number> = {};
+  for (const line of trimmed.split("\n")) {
+    const [size, qty] = line.split("|").map((s) => s.trim());
+    if (!size) continue;
+    const n = Math.max(0, Math.floor(Number(qty)));
+    if (Number.isFinite(n)) out[size] = n;
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
 function buildProduct(form: FormData, existingSlug?: string): Product {
   const rawName = String(form.get("name") ?? "").trim();
   if (!rawName) throw new Error("name_required");
@@ -131,6 +146,13 @@ function buildProduct(form: FormData, existingSlug?: string): Product {
   const stockRaw = String(form.get("stock") ?? "0");
   const stock = Number.isFinite(Number(stockRaw)) ? Number(stockRaw) : 0;
 
+  const stockBySize = parseStockBySize(String(form.get("stock_by_size") ?? ""));
+  // When per-size stock is given it's the source of truth; keep the aggregate
+  // in sync so the rest of the UI (low-stock, sold-out) stays correct.
+  const aggregateStock = stockBySize
+    ? Object.values(stockBySize).reduce((s, v) => s + v, 0)
+    : stock;
+
   return {
     slug,
     name: rawName,
@@ -143,7 +165,8 @@ function buildProduct(form: FormData, existingSlug?: string): Product {
     specs,
     highlight: form.get("highlight") === "on",
     hero: form.get("hero") === "on",
-    stock,
+    stock: aggregateStock,
+    ...(stockBySize ? { stockBySize } : {}),
   };
 }
 

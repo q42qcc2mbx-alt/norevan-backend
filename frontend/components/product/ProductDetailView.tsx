@@ -198,21 +198,31 @@ export function ProductDetailView({
               </button>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2">
-              {product.sizes!.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setSize(s)}
-                  className={cn(
-                    "py-3 font-mono text-[10px] uppercase tracking-[0.2em] transition-colors",
-                    s === size
-                      ? "border border-foreground bg-foreground text-background"
-                      : "border border-border text-foreground hover:border-foreground",
-                  )}
-                >
-                  {s}
-                </button>
-              ))}
+              {product.sizes!.map((s) => {
+                // Per-size stock (when tracked): 0 ⇒ that size is sold out.
+                const sizeOut =
+                  !!product.stockBySize &&
+                  Object.prototype.hasOwnProperty.call(product.stockBySize, s) &&
+                  product.stockBySize[s] <= 0;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    disabled={sizeOut}
+                    onClick={() => !sizeOut && setSize(s)}
+                    className={cn(
+                      "py-3 font-mono text-[10px] uppercase tracking-[0.2em] transition-colors",
+                      sizeOut
+                        ? "cursor-not-allowed border border-border-subtle text-muted line-through opacity-50"
+                        : s === size
+                          ? "border border-foreground bg-foreground text-background"
+                          : "border border-border text-foreground hover:border-foreground",
+                    )}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}

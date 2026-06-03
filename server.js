@@ -79,7 +79,14 @@ async function ensureSchema() {
   try {
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS supabase_user_id TEXT');
     await pool.query('CREATE INDEX IF NOT EXISTS idx_orders_supabase_user ON orders(supabase_user_id)');
-    console.log('[db] schema ensured (orders.supabase_user_id)');
+    // Fulfilment details (migration 007) — kept here so prod stays in sync even
+    // before the SQL file is applied by hand. Idempotent.
+    await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_number TEXT');
+    await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS carrier TEXT');
+    await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS notes TEXT');
+    // Per-size stock (migration 009).
+    await pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS stock_by_size JSONB');
+    console.log('[db] schema ensured (orders fulfilment + products.stock_by_size)');
   } catch (e) {
     console.error('[db] ensureSchema failed (will retry next boot):', e.message);
   }

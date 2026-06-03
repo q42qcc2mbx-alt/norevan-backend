@@ -19,6 +19,9 @@ function orderRowToJson(row) {
     discountCents: row.discount_cents ?? 0,
     discountCode: row.discount_code ?? null,
     status: row.status,
+    trackingNumber: row.tracking_number ?? null,
+    carrier: row.carrier ?? null,
+    notes: row.notes ?? null,
     createdAt: row.created_at,
   };
 }
@@ -36,26 +39,48 @@ function itemRowToJson(row) {
   };
 }
 
-// Reduce stock for purchased items. stock is clamped at 0 (never negative).
-// Products with stock 0 are treated as sold out and rejected before this runs.
-async function decrementStock(client, items) {
+// Adjust inventory for purchased items. `sign` is -1 to reduce stock (a sale)
+// or +1 to return it (a cancellation). Locks the product row FOR UPDATE so
+// concurrent orders can't oversell.
+//
+// Per-size products (stock_by_size present + item carries a known size) have
+// that size adjusted and the aggregate `stock` recomputed as the sum of sizes.
+// Otherwise the single `stock` field is adjusted (legacy behaviour). Stock is
+// clamped at 0 — never negative.
+async function adjustStock(client, items, sign) {
   for (const it of items) {
-    await client.query(
-      'UPDATE products SET stock = GREATEST(stock - $1, 0), updated_at = NOW() WHERE slug = $2',
-      [it.qty, it.slug],
+    const { rows } = await client.query(
+      'SELECT stock, stock_by_size FROM products WHERE slug = $1 FOR UPDATE',
+      [it.slug],
     );
+    if (rows.length === 0) continue;
+    const sbs = rows[0].stock_by_size; // pg parses jsonb → object | null
+
+    if (sbs && it.size && Object.prototype.hasOwnProperty.call(sbs, it.size)) {
+      const cur = Number(sbs[it.size] ?? 0);
+      const next = sign < 0 ? Math.max(cur - it.qty, 0) : cur + it.qty;
+      const map = { ...sbs, [it.size]: next };
+      const total = Object.values(map).reduce((s, v) => s + Number(v || 0), 0);
+      await client.query(
+        'UPDATE products SET stock_by_size = $1::jsonb, stock = $2, updated_at = NOW() WHERE slug = $3',
+        [JSON.stringify(map), total, it.slug],
+      );
+    } else if (sign < 0) {
+      await client.query(
+        'UPDATE products SET stock = GREATEST(stock - $1, 0), updated_at = NOW() WHERE slug = $2',
+        [it.qty, it.slug],
+      );
+    } else {
+      await client.query(
+        'UPDATE products SET stock = stock + $1, updated_at = NOW() WHERE slug = $2',
+        [it.qty, it.slug],
+      );
+    }
   }
 }
 
-// Return stock to inventory (e.g. when a paid/shipped order is cancelled).
-async function incrementStock(client, items) {
-  for (const it of items) {
-    await client.query(
-      'UPDATE products SET stock = stock + $1, updated_at = NOW() WHERE slug = $2',
-      [it.qty, it.slug],
-    );
-  }
-}
+const decrementStock = (client, items) => adjustStock(client, items, -1);
+const incrementStock = (client, items) => adjustStock(client, items, +1);
 
 // Statuses for which stock has already been deducted.
 const STOCK_REDUCED = new Set(['paid', 'shipped', 'delivered']);
@@ -102,16 +127,22 @@ export const createOrder = async (req, res, next) => {
       await client.query('BEGIN');
 
       // Lock product rows and verify availability before taking the order.
+      // Per-size products check the requested size; others the aggregate stock.
       for (const it of req.body.items) {
         const { rows } = await client.query(
-          'SELECT name, stock FROM products WHERE slug = $1 FOR UPDATE',
+          'SELECT name, stock, stock_by_size FROM products WHERE slug = $1 FOR UPDATE',
           [it.slug],
         );
-        const avail = rows[0]?.stock;
+        const row = rows[0];
+        const sbs = row?.stock_by_size;
+        const avail =
+          sbs && it.size && Object.prototype.hasOwnProperty.call(sbs, it.size)
+            ? Number(sbs[it.size] ?? 0)
+            : row?.stock;
         if (avail != null && avail < it.qty) {
-          const err = new Error(`Insufficient stock for ${rows[0]?.name ?? it.slug}`);
+          const err = new Error(`Insufficient stock for ${row?.name ?? it.slug}`);
           err.code = 'OUT_OF_STOCK';
-          err.item = rows[0]?.name ?? it.name;
+          err.item = row?.name ?? it.name;
           throw err;
         }
       }
@@ -214,7 +245,7 @@ export async function markOrderPaidAndNotify(orderId) {
     await client.query('BEGIN');
     await client.query("UPDATE orders SET status = 'paid' WHERE id = $1", [orderId]);
     ({ rows: items } = await client.query('SELECT * FROM order_items WHERE order_id = $1', [orderId]));
-    await decrementStock(client, items.map((i) => ({ slug: i.slug, qty: i.qty })));
+    await decrementStock(client, items.map((i) => ({ slug: i.slug, qty: i.qty, size: i.size })));
     await client.query('COMMIT');
   } catch (e) {
     await client.query('ROLLBACK');
@@ -303,7 +334,24 @@ export const updateOrderStatus = async (req, res, next) => {
     if (rows.length === 0) return res.status(404).json({ status: 'error', message: 'Order not found' });
     const order = rows[0];
 
-    await pool.query('UPDATE orders SET status = $1 WHERE id = $2', [status, req.params.id]);
+    // Optional fulfilment fields. A field is only touched when the key is
+    // present in the body (a string), so partial saves don't wipe data; an
+    // empty string clears it.
+    const trim = (v, n) => {
+      const s = String(v).trim();
+      return s ? s.slice(0, n) : null;
+    };
+    const trackingNumber = typeof req.body?.trackingNumber === 'string'
+      ? trim(req.body.trackingNumber, 128) : (order.tracking_number ?? null);
+    const carrier = typeof req.body?.carrier === 'string'
+      ? trim(req.body.carrier, 64) : (order.carrier ?? null);
+    const notes = typeof req.body?.notes === 'string'
+      ? trim(req.body.notes, 2000) : (order.notes ?? null);
+
+    await pool.query(
+      'UPDATE orders SET status = $1, tracking_number = $2, carrier = $3, notes = $4 WHERE id = $5',
+      [status, trackingNumber, carrier, notes, req.params.id],
+    );
 
     // Cancelling an order whose stock was already deducted → return it.
     if (status === 'cancelled' && STOCK_REDUCED.has(order.status)) {
@@ -311,7 +359,7 @@ export const updateOrderStatus = async (req, res, next) => {
       try {
         await client.query('BEGIN');
         const { rows: items } = await client.query(
-          'SELECT slug, qty FROM order_items WHERE order_id = $1',
+          'SELECT slug, qty, size FROM order_items WHERE order_id = $1',
           [order.id],
         );
         await incrementStock(client, items);
@@ -324,7 +372,7 @@ export const updateOrderStatus = async (req, res, next) => {
       }
     }
 
-    res.json({ status: 'success', data: { id: req.params.id, status } });
+    res.json({ status: 'success', data: { id: req.params.id, status, trackingNumber, carrier, notes } });
 
     if (status === 'shipped' && order.status !== 'shipped') {
       const { rows: items } = await pool.query('SELECT * FROM order_items WHERE order_id = $1', [order.id]);
@@ -338,6 +386,8 @@ export const updateOrderStatus = async (req, res, next) => {
         city: order.city,
         zip: order.zip,
         country: order.country,
+        trackingNumber,
+        carrier,
         items: items.map((i) => ({ name: i.name, size: i.size, qty: i.qty, priceCents: i.price_cents, image: i.image })),
         createdAt: order.created_at,
       }).catch((e) => console.error('[orders] shipping mail failed:', e.message));

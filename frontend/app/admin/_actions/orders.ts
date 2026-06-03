@@ -24,7 +24,16 @@ export async function updateOrderStatusAction(form: FormData): Promise<void> {
   if (!id || !isStatus(status)) {
     throw new Error("invalid_input");
   }
-  await updateOrderStatus(id, status);
+
+  // Fulfilment fields are only forwarded when present on the form, so the
+  // dashboard's quick "mark shipped" button doesn't clear an existing note.
+  const fulfilment: { trackingNumber?: string; carrier?: string; notes?: string } = {};
+  if (form.has("trackingNumber")) fulfilment.trackingNumber = String(form.get("trackingNumber") ?? "");
+  if (form.has("carrier")) fulfilment.carrier = String(form.get("carrier") ?? "");
+  if (form.has("notes")) fulfilment.notes = String(form.get("notes") ?? "");
+
+  await updateOrderStatus(id, status, fulfilment);
   revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${id}`);
   revalidatePath("/admin");
 }

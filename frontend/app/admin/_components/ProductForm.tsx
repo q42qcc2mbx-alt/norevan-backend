@@ -20,6 +20,11 @@ export function ProductForm({
         )
         .join("\n")
     : "";
+  const stockBySizeText = product?.stockBySize
+    ? Object.entries(product.stockBySize)
+        .map(([size, qty]) => `${size} | ${qty}`)
+        .join("\n")
+    : "";
 
   return (
     <form action={action} className="space-y-6">
@@ -121,6 +126,14 @@ export function ProductForm({
         name="sizes"
         defaultValue={product?.sizes?.join(", ")}
         placeholder="XS, S, M, L, XL"
+      />
+
+      <Textarea
+        label="Bestand je Größe (optional) — eine pro Zeile: Größe | Anzahl. Überschreibt „Stock“."
+        name="stock_by_size"
+        rows={4}
+        defaultValue={stockBySizeText}
+        placeholder={"M | 5\nL | 3\nXL | 0"}
       />
 
       <div className="flex flex-wrap gap-4">

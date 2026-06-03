@@ -215,6 +215,19 @@ export function renderShippingEmail(order) {
     .map((l) => `<div style="font-size:13px;color:${BRAND.text};line-height:1.6;">${l}</div>`)
     .join('');
 
+  // Optional tracking block — only rendered when a tracking number is present.
+  const carrierName = order.carrier ? String(order.carrier) : '';
+  const tracking = order.trackingNumber ? String(order.trackingNumber) : '';
+  const trackHtml = tracking
+    ? `<tr><td style="padding:26px 32px 0;">
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:${BRAND.muted};margin-bottom:8px;">Sendungsverfolgung</div>
+        <div style="font-size:13px;color:${BRAND.text};line-height:1.7;">${carrierName ? `${carrierName} · ` : ''}<strong style="font-family:'Courier New',monospace;">${tracking}</strong></div>
+      </td></tr>`
+    : '';
+  const trackText = tracking
+    ? `\nSendungsverfolgung: ${carrierName ? `${carrierName} · ` : ''}${tracking}\n`
+    : '';
+
   const html = `<!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting"></head>
@@ -249,6 +262,9 @@ export function renderShippingEmail(order) {
         ${addrHtml}
       </td></tr>
 
+      <!-- Tracking -->
+      ${trackHtml}
+
       <!-- CTA -->
       <tr><td style="padding:28px 32px 4px;text-align:center;">
         <a href="${BRAND.site}/de/account" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:14px 30px;border-radius:999px;">Bestellung ansehen</a>
@@ -279,7 +295,7 @@ ${itemsText}
 
 Lieferadresse:
 ${addrLines.join('\n')}
-
+${trackText}
 Norevan UG · Berlin · seit 2026 · hello@norevan.shop`;
 
   return { subject: `Deine Norevan-Bestellung #${orderNo} ist unterwegs`, html, text };
