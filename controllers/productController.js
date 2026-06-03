@@ -90,9 +90,14 @@ function validateProduct(p) {
   return errors;
 }
 
+// Catalogue reads are public and change rarely — let the browser/CDN cache them
+// briefly and serve stale while revalidating. Admin edits show up within a minute.
+const CATALOG_CACHE = 'public, max-age=60, stale-while-revalidate=300';
+
 export const listProducts = async (req, res, next) => {
   try {
     const { rows } = await pool.query('SELECT * FROM products ORDER BY created_at DESC');
+    res.set('Cache-Control', CATALOG_CACHE);
     res.json({ status: 'success', data: rows.map(rowToProduct) });
   } catch (err) {
     next(err);
@@ -103,6 +108,7 @@ export const getProductBySlug = async (req, res, next) => {
   try {
     const { rows } = await pool.query('SELECT * FROM products WHERE slug = $1', [req.params.slug]);
     if (rows.length === 0) return res.status(404).json({ status: 'error', message: 'Product not found' });
+    res.set('Cache-Control', CATALOG_CACHE);
     res.json({ status: 'success', data: rowToProduct(rows[0]) });
   } catch (err) {
     next(err);

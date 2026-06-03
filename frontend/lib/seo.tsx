@@ -11,8 +11,6 @@ export const SITE_TAGLINE: Record<Locale, string> = {
   en: "Premium streetwear, sneakers & accessories — curated in Berlin.",
 };
 
-const DEFAULT_OG = "/products/nike-tech-fleece-grey-1.png";
-
 type BuildOptions = {
   lang: Locale;
   title: string;
@@ -28,12 +26,19 @@ export function buildMetadata({
   title,
   description,
   path,
-  image = DEFAULT_OG,
+  image,
   type = "website",
   noIndex,
 }: BuildOptions): Metadata {
   const url = `${SITE_URL}/${lang}${path}`;
-  const imageUrl = image.startsWith("http") ? image : `${SITE_URL}${image}`;
+  // With an explicit image (e.g. a product photo) use it. Otherwise omit images
+  // here so the branded 1200×630 opengraph-image.tsx provides the default —
+  // avoids a cropped portrait card and duplicate og:image tags.
+  const imageUrl = image
+    ? image.startsWith("http")
+      ? image
+      : `${SITE_URL}${image}`
+    : undefined;
 
   return {
     metadataBase: new URL(SITE_URL),
@@ -53,13 +58,15 @@ export function buildMetadata({
       locale: lang === "de" ? "de_DE" : "en_US",
       title,
       description,
-      images: [{ url: imageUrl, width: 1200, height: 1500, alt: title }],
+      ...(imageUrl
+        ? { images: [{ url: imageUrl, width: 1200, height: 1500, alt: title }] }
+        : {}),
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [imageUrl],
+      ...(imageUrl ? { images: [imageUrl] } : {}),
     },
     robots: noIndex
       ? { index: false, follow: false }
