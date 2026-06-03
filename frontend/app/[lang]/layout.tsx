@@ -12,6 +12,7 @@ import { ScrollProgress } from "@/components/motion/ScrollProgress";
 import { GrainOverlay } from "@/components/layout/GrainOverlay";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { CookieConsent } from "@/components/layout/CookieConsent";
+import { WelcomeGate } from "@/components/layout/WelcomeGate";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { getAllProducts } from "@/lib/products";
@@ -96,6 +97,7 @@ export default async function LangLayout({
             <GrainOverlay />
             <PageViewTracker />
             <CookieConsent locale={locale} />
+            <WelcomeGate locale={locale} />
           </LenisProvider>
         </ThemeProvider>
       </body>
