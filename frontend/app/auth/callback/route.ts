@@ -35,6 +35,8 @@ export async function GET(request: NextRequest) {
       if (token && !data.session?.user?.is_anonymous) {
         try {
           await api.post("/account/login-notify", undefined, { token });
+          // Welcome email — backend sends it at most once per customer.
+          await api.post("/account/welcome", undefined, { token });
         } catch {
           // best-effort
         }

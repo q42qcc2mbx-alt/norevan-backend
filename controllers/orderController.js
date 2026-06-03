@@ -196,8 +196,9 @@ export const createOrder = async (req, res, next) => {
       });
     }
 
+    const invoiceNumber = await assignInvoiceNumber(pool, orderId);
     sendOrderConfirmation({
-      orderId, email: req.body.email, firstName: req.body.firstName,
+      orderId, invoiceNumber, email: req.body.email, firstName: req.body.firstName,
       lastName: req.body.lastName,
       address: req.body.address, city: req.body.city,
       zip: req.body.zip, country: req.body.country,
@@ -238,12 +239,14 @@ export async function markOrderPaidAndNotify(orderId) {
   const order = rows[0];
   if (order.status === 'paid') return; // already processed
 
-  // Mark paid and reserve stock atomically.
+  // Mark paid, assign the invoice number and reserve stock atomically.
   const client = await pool.connect();
   let items;
+  let invoiceNumber;
   try {
     await client.query('BEGIN');
     await client.query("UPDATE orders SET status = 'paid' WHERE id = $1", [orderId]);
+    invoiceNumber = await assignInvoiceNumber(client, orderId);
     ({ rows: items } = await client.query('SELECT * FROM order_items WHERE order_id = $1', [orderId]));
     await decrementStock(client, items.map((i) => ({ slug: i.slug, qty: i.qty, size: i.size })));
     await client.query('COMMIT');
@@ -256,6 +259,7 @@ export async function markOrderPaidAndNotify(orderId) {
 
   await sendOrderConfirmation({
     orderId,
+    invoiceNumber,
     email: order.email,
     firstName: order.first_name,
     lastName: order.last_name,
@@ -268,6 +272,28 @@ export async function markOrderPaidAndNotify(orderId) {
     items: items.map((i) => ({ name: i.name, size: i.size, qty: i.qty, priceCents: i.price_cents, image: i.image })),
     createdAt: order.created_at,
   });
+}
+
+/**
+ * Assigns a sequential invoice number to an order if it doesn't have one yet.
+ * Returns the (existing or new) number. Must run inside a transaction.
+ */
+async function assignInvoiceNumber(client, orderId) {
+  const { rows } = await client.query(
+    `UPDATE orders
+       SET invoice_number = 'NOR-' || to_char(now() AT TIME ZONE 'UTC', 'YYYY')
+                            || '-' || lpad(nextval('invoice_seq')::text, 5, '0')
+     WHERE id = $1 AND invoice_number IS NULL
+     RETURNING invoice_number`,
+    [orderId],
+  );
+  if (rows[0]?.invoice_number) return rows[0].invoice_number;
+  // Already had one (idempotent re-run) — read it back.
+  const { rows: existing } = await client.query(
+    'SELECT invoice_number FROM orders WHERE id = $1',
+    [orderId],
+  );
+  return existing[0]?.invoice_number ?? null;
 }
 
 export const getOrderById = async (req, res, next) => {

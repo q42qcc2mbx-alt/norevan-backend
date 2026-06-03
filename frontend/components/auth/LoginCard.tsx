@@ -122,6 +122,21 @@ function fireLoginNotify(accessToken?: string) {
   }
 }
 
+// Fire-and-forget welcome email. The backend only sends it once per customer,
+// so calling on every login is safe.
+function fireWelcome(accessToken?: string) {
+  try {
+    void fetch("/api/welcome", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ access_token: accessToken ?? null }),
+      keepalive: true,
+    });
+  } catch {
+    // ignore
+  }
+}
+
   // ── Handlers ────────────────────────────────────────────────────────────────
 
   async function handleSocialLogin(provider: "google") {
@@ -190,6 +205,7 @@ function fireLoginNotify(accessToken?: string) {
         setTimeout(() => otpRefs.current[0]?.focus(), 60);
       } else {
         fireLoginNotify(data.session?.access_token);
+        fireWelcome(data.session?.access_token);
         redirect();
       }
     } catch {
