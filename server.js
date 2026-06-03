@@ -92,7 +92,9 @@ async function ensureSchema() {
     await pool.query('CREATE SEQUENCE IF NOT EXISTS invoice_seq START 1000');
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS invoice_number TEXT');
     await pool.query('ALTER TABLE profiles ADD COLUMN IF NOT EXISTS welcomed_at TIMESTAMPTZ');
-    console.log('[db] schema ensured (orders fulfilment + reminder + invoices + products.stock_by_size)');
+    // Stripe customer link for saved cards (migration 012).
+    await pool.query('ALTER TABLE profiles ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT');
+    console.log('[db] schema ensured (orders fulfilment + reminder + invoices + stripe customer + products.stock_by_size)');
   } catch (e) {
     console.error('[db] ensureSchema failed (will retry next boot):', e.message);
   }

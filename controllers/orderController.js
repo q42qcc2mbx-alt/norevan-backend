@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import pool from '../config/database.js';
 import { sendOrderConfirmation, sendShippingNotification, sendAbandonedCart } from '../services/emailService.js';
-import { isStripeEnabled, createCheckoutSession } from '../services/stripeService.js';
+import { isStripeEnabled, createCheckoutSession, getOrCreateCustomer } from '../services/stripeService.js';
 import { applyDiscountInTx } from './discountController.js';
 
 function orderRowToJson(row) {
@@ -187,8 +187,17 @@ export const createOrder = async (req, res, next) => {
     // Without Stripe (dev / no-payment mode) we confirm the order immediately.
     if (stripe) {
       const locale = req.headers['x-norevan-locale'] === 'en' ? 'en' : 'de';
+      // Reuse (or create) the shopper's Stripe customer so their card can be
+      // saved and offered on the next purchase. Best-effort: a failure here
+      // just means a guest-style session (still works, no saved card).
+      let customer = null;
+      try {
+        customer = await getOrCreateCustomer(pool, { userId: supabaseUserId, email: req.body.email });
+      } catch (e) {
+        console.warn('[orders] stripe customer lookup failed:', e.message);
+      }
       const session = await createCheckoutSession({
-        orderId, email: req.body.email, items: req.body.items, locale, discountCents,
+        orderId, email: req.body.email, items: req.body.items, locale, discountCents, customer,
       });
       return res.status(201).json({
         status: 'success',

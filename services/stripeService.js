@@ -25,7 +25,7 @@ export function isStripeEnabled() {
  * @param {{ orderId, email, items, locale }} order
  * @returns {Promise<import('stripe').Stripe.Checkout.Session>}
  */
-export async function createCheckoutSession({ orderId, email, items, locale = 'de', discountCents = 0 }) {
+export async function createCheckoutSession({ orderId, email, items, locale = 'de', discountCents = 0, customer = null }) {
   const stripe = getStripe();
   if (!stripe) throw new Error('Stripe is not configured');
 
@@ -59,17 +59,50 @@ export async function createCheckoutSession({ orderId, email, items, locale = 'd
     discounts = [{ coupon: coupon.id }];
   }
 
+  // With a known customer, attach the session to them and save the card for
+  // next time (off_session) → returning buyers see their saved card on the
+  // hosted page. Guests fall back to just pre-filling the email.
+  const customerFields = customer
+    ? { customer, payment_intent_data: { metadata: { orderId }, setup_future_usage: 'off_session' } }
+    : { customer_email: email, payment_intent_data: { metadata: { orderId } } };
+
   return stripe.checkout.sessions.create({
     mode: 'payment',
-    customer_email: email,
     line_items: lineItems,
+    ...customerFields,
     ...(discounts ? { discounts } : {}),
     locale: locale === 'en' ? 'en' : 'de',
     metadata: { orderId },
-    payment_intent_data: { metadata: { orderId } },
     success_url: `${frontendUrl}/${locale}/checkout/success?orderId=${orderId}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${frontendUrl}/${locale}/checkout?canceled=1`,
   });
+}
+
+/**
+ * Get-or-create the Stripe Customer for a logged-in shopper and persist its id
+ * on their profile. Returns the customer id, or null if Stripe/userId missing.
+ * @param {import('pg').Pool} pool
+ */
+export async function getOrCreateCustomer(pool, { userId, email }) {
+  const stripe = getStripe();
+  if (!stripe || !userId) return null;
+
+  const { rows } = await pool.query(
+    'SELECT stripe_customer_id FROM profiles WHERE id = $1',
+    [userId],
+  );
+  const existing = rows[0]?.stripe_customer_id;
+  if (existing) return existing;
+
+  const created = await stripe.customers.create({
+    ...(email ? { email } : {}),
+    metadata: { supabaseUserId: userId },
+  });
+  await pool.query(
+    'UPDATE profiles SET stripe_customer_id = $1 WHERE id = $2',
+    [created.id, userId],
+  );
+  return created.id;
 }
 
 /**
