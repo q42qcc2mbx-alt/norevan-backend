@@ -98,8 +98,11 @@ export async function getOrCreateCustomer(pool, { userId, email }) {
     ...(email ? { email } : {}),
     metadata: { supabaseUserId: userId },
   });
+  // Upsert so the link is persisted even if the profile row doesn't exist yet
+  // (otherwise every checkout would create a new orphaned Stripe customer).
   await pool.query(
-    'UPDATE profiles SET stripe_customer_id = $1 WHERE id = $2',
+    `INSERT INTO profiles (id, stripe_customer_id) VALUES ($2, $1)
+     ON CONFLICT (id) DO UPDATE SET stripe_customer_id = EXCLUDED.stripe_customer_id`,
     [created.id, userId],
   );
   return created.id;

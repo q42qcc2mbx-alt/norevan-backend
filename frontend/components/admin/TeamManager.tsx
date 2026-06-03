@@ -177,8 +177,9 @@ function Credentials({ email, password }: { email: string; password: string }) {
         {copied ? "Kopiert ✓" : "Kopieren"}
       </button>
       <p className="mt-3 font-mono text-[10px] leading-relaxed text-muted">
-        Eine Einladungs-Mail mit Login-Link und diesem Passwort wurde an{" "}
-        {email} gesendet.
+        Falls E-Mail konfiguriert ist, ging eine Einladung mit Login-Link und
+        diesem Passwort an {email}. Andernfalls dieses Passwort manuell
+        weitergeben.
       </p>
     </div>
   );

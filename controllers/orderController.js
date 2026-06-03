@@ -170,9 +170,14 @@ export const createOrder = async (req, res, next) => {
         );
       }
 
-      // Without Stripe the order is confirmed immediately, so reserve stock now.
-      // With Stripe we decrement once payment succeeds (markOrderPaidAndNotify).
-      if (!stripe) await decrementStock(client, req.body.items);
+      // Without Stripe the order is confirmed immediately: mark it paid and
+      // reserve stock now. With Stripe both happen once payment succeeds
+      // (markOrderPaidAndNotify). Leaving dev orders 'pending' would wrongly
+      // trigger abandoned-cart reminders and an invoice on an unpaid order.
+      if (!stripe) {
+        await client.query("UPDATE orders SET status = 'paid' WHERE id = $1", [orderId]);
+        await decrementStock(client, req.body.items);
+      }
 
       await client.query('COMMIT');
     } catch (e) {
