@@ -15,7 +15,7 @@ export default async function NewsletterPage() {
   const active = subscribers.filter((s) => !s.unsubscribed);
 
   // Subscribers in the last 30 days.
-  const since = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const since = new Date().getTime() - 30 * 24 * 60 * 60 * 1000;
   const recent = active.filter(
     (s) => new Date(s.subscribedAt).getTime() >= since,
   ).length;
@@ -40,6 +40,7 @@ export default async function NewsletterPage() {
           {active.length > 0 && (
             <a
               href="/api/admin/newsletter/export"
+              download
               className="rounded-full border border-border px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted transition-colors hover:text-foreground"
             >
               CSV exportieren
