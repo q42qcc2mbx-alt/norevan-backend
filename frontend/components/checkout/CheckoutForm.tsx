@@ -179,8 +179,10 @@ export function CheckoutForm({
         return;
       }
       const data = await res.json();
-      // Save the address for next time (fire-and-forget, won't delay payment).
-      if (res.ok) void persistProfile();
+      // Save the address for next time. Must complete BEFORE we navigate to
+      // Stripe (window.location) — otherwise the redirect aborts the in-flight
+      // request and nothing is saved.
+      if (res.ok) await persistProfile();
       if (res.ok && data?.checkoutUrl) {
         // Stripe enabled — hand off to the hosted payment page. The cart is
         // kept so a cancelled payment returns the customer to a full basket;
