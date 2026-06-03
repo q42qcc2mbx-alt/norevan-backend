@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import pool from '../config/database.js';
-import { sendOrderConfirmation, sendShippingNotification } from '../services/emailService.js';
+import { sendOrderConfirmation, sendShippingNotification, sendAbandonedCart } from '../services/emailService.js';
 import { isStripeEnabled, createCheckoutSession } from '../services/stripeService.js';
 import { applyDiscountInTx } from './discountController.js';
 
@@ -316,6 +316,52 @@ export const listAllOrders = async (req, res, next) => {
       }),
     );
     res.json({ status: 'success', data: enriched });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * POST /api/v1/tasks/abandoned-cart — send a one-time reminder for checkouts
+ * that were created but never paid. Triggered by a scheduled job (guarded by a
+ * shared secret in the route). Reminds orders still 'pending' between minHours
+ * and maxDays old that haven't been reminded yet.
+ */
+export const runAbandonedCartReminders = async (req, res, next) => {
+  try {
+    const minHours = Math.min(168, Math.max(1, parseInt(req.query.minHours, 10) || 4));
+    const maxDays = Math.min(30, Math.max(1, parseInt(req.query.maxDays, 10) || 7));
+
+    const { rows: orders } = await pool.query(
+      `SELECT * FROM orders
+       WHERE status = 'pending'
+         AND reminder_sent_at IS NULL
+         AND created_at <= now() - make_interval(hours => $1)
+         AND created_at >= now() - make_interval(days  => $2)
+       ORDER BY created_at
+       LIMIT 100`,
+      [minHours, maxDays],
+    );
+
+    let sent = 0;
+    for (const o of orders) {
+      const { rows: items } = await pool.query(
+        'SELECT * FROM order_items WHERE order_id = $1',
+        [o.id],
+      );
+      // Mark first so a mid-loop failure can't cause a re-send next run.
+      await pool.query('UPDATE orders SET reminder_sent_at = now() WHERE id = $1', [o.id]);
+      await sendAbandonedCart({
+        orderId: o.id,
+        email: o.email,
+        firstName: o.first_name,
+        subtotalCents: o.subtotal_cents,
+        items: items.map((i) => ({ name: i.name, size: i.size, qty: i.qty, priceCents: i.price_cents, image: i.image })),
+      });
+      sent += 1;
+    }
+
+    res.json({ status: 'success', data: { candidates: orders.length, sent } });
   } catch (err) {
     next(err);
   }

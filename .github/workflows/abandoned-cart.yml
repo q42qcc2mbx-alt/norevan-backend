@@ -1,0 +1,25 @@
+name: Abandoned-cart reminders
+
+# Emails a one-time reminder for checkouts created but never paid. The backend
+# does the work (it already has DB + SMTP access); this job just triggers it on
+# a schedule. The endpoint is guarded by a shared secret.
+#
+# Required repo secret:
+#   CRON_SECRET — must match the backend's CRON_SECRET env var.
+
+on:
+  schedule:
+    - cron: "37 */6 * * *" # every 6 hours
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger abandoned-cart reminders
+        run: |
+          curl -sS -m 120 --retry 4 --retry-delay 15 --retry-all-errors \
+            -X POST \
+            -H "X-Cron-Secret: ${{ secrets.CRON_SECRET }}" \
+            -w "\nHTTP %{http_code} in %{time_total}s\n" \
+            "https://norevan-backend.onrender.com/api/v1/tasks/abandoned-cart"

@@ -84,9 +84,11 @@ async function ensureSchema() {
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_number TEXT');
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS carrier TEXT');
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS notes TEXT');
+    // Abandoned-checkout reminder marker (migration 010).
+    await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS reminder_sent_at TIMESTAMPTZ');
     // Per-size stock (migration 009).
     await pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS stock_by_size JSONB');
-    console.log('[db] schema ensured (orders fulfilment + products.stock_by_size)');
+    console.log('[db] schema ensured (orders fulfilment + reminder + products.stock_by_size)');
   } catch (e) {
     console.error('[db] ensureSchema failed (will retry next boot):', e.message);
   }
