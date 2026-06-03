@@ -90,7 +90,37 @@ Frontend-DSN. Danach in Vercel als Env-Variable hinterlegen.
 
 ---
 
-## 4. Uptime / Keep-Alive
+## 4. Sicherheit (wichtig!)
+
+Der Code & die DB wurden gehärtet (Security-Header, Stripe-Customer ohne
+Kartendaten, konstantzeit-Cron-Secret, Supabase-Advisor-Fixes). **Zwei** Dinge
+musst du noch im Dashboard erledigen:
+
+1. **`SUPABASE_SERVICE_ROLE_KEY` in Vercel setzen (Pflicht).**
+   Die Tabelle `newsletter_subscribers` ist jetzt komplett gegen die öffentliche
+   API gesperrt (vorher konnte **jeder** mit dem Anon-Key alle E-Mail-Adressen
+   auslesen — das ist behoben). Newsletter-An-/Abmeldung und die Admin-Liste
+   laufen jetzt nur noch über den **Service-Role-Key**. Ohne ihn ist der
+   Newsletter deaktiviert (gibt 503 zurück).
+   → Supabase Dashboard → **Settings → API → `service_role` secret** kopieren,
+   in Vercel als `SUPABASE_SERVICE_ROLE_KEY` hinterlegen. **Niemals** im
+   Frontend-Client verwenden (nur Server/Route-Handler).
+
+2. **Leaked-Password-Schutz aktivieren.**
+   Supabase Dashboard → **Authentication → Policies/Settings** → „Leaked password
+   protection" einschalten (prüft Passwörter gegen HaveIBeenPwned).
+
+### Stripe-Webhook
+Der Endpoint im Backend ist **`https://<backend>/api/v1/stripe/webhook`**
+(Event `checkout.session.completed`). Signing-Secret als
+`STRIPE_WEBHOOK_SECRET` setzen.
+
+> Hinweis: Die verbleibenden „Anonymous Access"-Hinweise im Supabase-Advisor
+> sind **gewollt** — der Shop nutzt anonyme Gast-Sessions (Browsen ohne Login)
+> und der Produktkatalog ist öffentlich lesbar. Alle Kundendaten (orders,
+> profiles) sind per `auth.uid()` auf die eigene Zeile beschränkt.
+
+## 5. Uptime / Keep-Alive
 
 Bereits erledigt ✅ — `.github/workflows/keep-alive.yml` pingt täglich die API,
 damit das Supabase-Projekt nicht pausiert. Ergänzend kannst du einen externen

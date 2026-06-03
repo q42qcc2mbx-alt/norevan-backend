@@ -8,10 +8,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid email" }, { status: 400 });
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  // The subscribers table is locked to the public API (RLS, no policy), so this
+  // privileged write needs the service-role key. Never fall back to the anon key.
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) {
+    console.error("[newsletter] SUPABASE_SERVICE_ROLE_KEY missing — signup disabled");
+    return NextResponse.json({ error: "Newsletter temporarily unavailable" }, { status: 503 });
+  }
+
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey);
 
   const { error } = await supabase
     .from("newsletter_subscribers")
