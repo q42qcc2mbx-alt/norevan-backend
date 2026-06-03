@@ -37,6 +37,9 @@ export type Product = {
   highlight?: boolean;
   hero?: boolean;
   stock?: number;
+  /** Per-size inventory map, e.g. { S: 3, M: 0, L: 5 }. When set it is the
+   *  source of truth and `stock` is its sum; absent ⇒ aggregate stock only. */
+  stockBySize?: Record<string, number>;
 };
 
 export const APPAREL_SIZES = ["XS", "S", "M", "L", "XL"];

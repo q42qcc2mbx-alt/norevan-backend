@@ -19,6 +19,9 @@ export function ReviewsSection({
 }) {
   const router = useRouter();
   const isDe = locale === "de";
+  // Defensive: a malformed review payload must never crash the whole product
+  // page. The data layer normally guarantees an array, this is belt-and-braces.
+  const items = initial.items ?? [];
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [body, setBody] = useState("");
@@ -146,13 +149,13 @@ export function ReviewsSection({
       </div>
 
       {/* Existing reviews */}
-      {initial.items.length === 0 ? (
+      {items.length === 0 ? (
         <p className="mt-8 text-sm text-muted">
           {isDe ? "Noch keine Bewertungen — sei die/der Erste." : "No reviews yet — be the first."}
         </p>
       ) : (
         <ul className="mt-8 space-y-6">
-          {initial.items.map((r) => (
+          {items.map((r) => (
             <li key={r.id} className="border-b border-border-subtle pb-6 last:border-0">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">

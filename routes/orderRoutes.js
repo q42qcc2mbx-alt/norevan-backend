@@ -5,6 +5,7 @@ import {
   listMyOrders,
   listAllOrders,
   updateOrderStatus,
+  runAbandonedCartReminders,
 } from '../controllers/orderController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import {
@@ -12,6 +13,7 @@ import {
   requireRealUser,
 } from '../middleware/supabaseAuthMiddleware.js';
 import { requireRole } from '../middleware/requireRole.js';
+import { requireCronSecret } from '../middleware/requireCronSecret.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 
 const router = Router();
@@ -33,5 +35,9 @@ router.get('/orders/:id', getOrderById);
 // Back office — staff and up may view & fulfil orders.
 router.get('/admin/orders',          protect, requireRole('staff'), listAllOrders);
 router.patch('/admin/orders/:id',    protect, requireRole('staff'), updateOrderStatus);
+
+// Scheduled task — abandoned-checkout reminders. Guarded by a shared secret
+// (X-Cron-Secret), called by the GitHub Actions cron.
+router.post('/tasks/abandoned-cart', requireCronSecret, runAbandonedCartReminders);
 
 export default router;

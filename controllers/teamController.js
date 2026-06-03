@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import pool from '../config/database.js';
+import { sendTeamInvite } from '../services/emailService.js';
 
 const BACKOFFICE_ROLES = ['viewer', 'staff', 'admin', 'owner'];
 const isAdminRole = (role) => role === 'admin' || role === 'owner';
@@ -92,6 +93,12 @@ export const createMember = async (req, res, next) => {
 
     await audit(req.user?.userId, 'team.create', email, { role });
     res.status(201).json({ status: 'success', data: { id: rows[0].id, email, role, tempPassword } });
+
+    // Email the invite (login URL + temp password). Fire-and-forget — the temp
+    // password is also returned above, so member creation never fails on mail.
+    sendTeamInvite({ email, username, role, tempPassword }).catch((e) =>
+      console.error('[team] invite mail failed:', e.message),
+    );
   } catch (err) {
     next(err);
   }

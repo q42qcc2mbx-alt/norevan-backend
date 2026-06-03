@@ -67,6 +67,30 @@ export default async function AdminDashboard() {
   const revenueSeries = dailyRevenueSeries(orders, 30);
   const last30Cents = revenueSeries.reduce((s, p) => s + p.valueCents, 0);
 
+  // Realized orders (paid/shipped/delivered) → average order value & top sellers.
+  const realizedOrders = orders.filter((o) => REALIZED.has(o.status));
+  const aovCents =
+    realizedOrders.length > 0
+      ? Math.round(
+          realizedOrders.reduce((s, o) => s + o.subtotalCents, 0) /
+            realizedOrders.length,
+        )
+      : 0;
+
+  const sellerMap = new Map<string, { name: string; qty: number; revenueCents: number }>();
+  for (const o of realizedOrders) {
+    for (const it of o.items) {
+      const cur = sellerMap.get(it.slug) ?? { name: it.name, qty: 0, revenueCents: 0 };
+      cur.qty += it.qty;
+      cur.revenueCents += it.priceCents * it.qty;
+      sellerMap.set(it.slug, cur);
+    }
+  }
+  const topSellers = Array.from(sellerMap.entries())
+    .map(([slug, v]) => ({ slug, ...v }))
+    .sort((a, b) => b.revenueCents - a.revenueCents)
+    .slice(0, 6);
+
   // Paid orders awaiting shipment — the core fulfilment queue.
   const toShip = orders.filter((o) => o.status === "paid").slice(0, 8);
 
@@ -214,6 +238,57 @@ export default async function AdminDashboard() {
             </div>
           </div>
           <RevenueChart data={revenueSeries} />
+        </div>
+      )}
+
+      {/* Top sellers + AOV (admins & owners only) */}
+      {showRevenue && (
+        <div className="mt-10 grid gap-4 md:grid-cols-[1.5fr_1fr]">
+          <div className="rounded-md border border-border bg-card p-6">
+            <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+              Top-Seller · realisiert
+            </div>
+            {topSellers.length === 0 ? (
+              <p className="text-sm text-muted">Noch keine Verkäufe.</p>
+            ) : (
+              <ul className="space-y-3 text-sm">
+                {topSellers.map((p) => (
+                  <li key={p.slug} className="flex items-center justify-between gap-3">
+                    <Link
+                      href={`/admin/products/${p.slug}`}
+                      className="min-w-0 flex-1 truncate underline-offset-4 hover:underline"
+                    >
+                      {p.name}
+                    </Link>
+                    <span className="whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.2em] text-muted tabular-nums">
+                      {p.qty}×
+                    </span>
+                    <span className="w-24 whitespace-nowrap text-right tabular-nums">
+                      {formatPrice(p.revenueCents, "de")}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="rounded-md border border-border bg-card p-6">
+            <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+              Ø Bestellwert
+            </div>
+            <div
+              className="font-serif tabular-nums"
+              style={{
+                fontFamily: "var(--font-cormorant), Georgia, serif",
+                fontSize: "clamp(2rem, 4vw, 3rem)",
+                lineHeight: 1,
+              }}
+            >
+              {aovCents === 0 ? "—" : formatPrice(aovCents, "de")}
+            </div>
+            <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+              {realizedOrders.length} realisierte Bestellungen
+            </div>
+          </div>
         </div>
       )}
 

@@ -8,6 +8,7 @@ import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { Stars } from "./Stars";
 import { ReviewsSection } from "./ReviewsSection";
 import { BackInStockForm } from "./BackInStockForm";
+import { SizeGuideModal } from "./SizeGuideModal";
 import type { Product } from "@/lib/products";
 import type { ReviewSummary } from "@/lib/reviews";
 import type { Locale } from "@/lib/i18n/config";
@@ -40,8 +41,14 @@ export function ProductDetailView({
     "details",
   );
   const [wishlisted, setWishlisted] = useState(false);
+  const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
 
   const needsSize = !!product.sizes && product.sizes.length > 0;
+  const sizeVariant: "apparel" | "sneaker" = product.categories.includes(
+    "sneaker",
+  )
+    ? "sneaker"
+    : "apparel";
 
   // stock: 0 = sold out, 1..5 = low (urgency), undefined/>5 = plenty/untracked.
   const stock = product.stock;
@@ -192,27 +199,38 @@ export function ProductDetailView({
               <span className="eyebrow">{dict.pdp.sizeLabel}</span>
               <button
                 type="button"
+                onClick={() => setSizeGuideOpen(true)}
                 className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted underline-offset-4 hover:text-foreground hover:underline"
               >
                 {locale === "de" ? "Größentabelle" : "Size guide"}
               </button>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2">
-              {product.sizes!.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setSize(s)}
-                  className={cn(
-                    "py-3 font-mono text-[10px] uppercase tracking-[0.2em] transition-colors",
-                    s === size
-                      ? "border border-foreground bg-foreground text-background"
-                      : "border border-border text-foreground hover:border-foreground",
-                  )}
-                >
-                  {s}
-                </button>
-              ))}
+              {product.sizes!.map((s) => {
+                // Per-size stock (when tracked): 0 ⇒ that size is sold out.
+                const sizeOut =
+                  !!product.stockBySize &&
+                  Object.prototype.hasOwnProperty.call(product.stockBySize, s) &&
+                  product.stockBySize[s] <= 0;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    disabled={sizeOut}
+                    onClick={() => !sizeOut && setSize(s)}
+                    className={cn(
+                      "py-3 font-mono text-[10px] uppercase tracking-[0.2em] transition-colors",
+                      sizeOut
+                        ? "cursor-not-allowed border border-border-subtle text-muted line-through opacity-50"
+                        : s === size
+                          ? "border border-foreground bg-foreground text-background"
+                          : "border border-border text-foreground hover:border-foreground",
+                    )}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -322,6 +340,46 @@ export function ProductDetailView({
     {reviews && (
       <ReviewsSection slug={product.slug} locale={locale} initial={reviews} />
     )}
+
+    {needsSize && (
+      <SizeGuideModal
+        open={sizeGuideOpen}
+        onClose={() => setSizeGuideOpen(false)}
+        locale={locale}
+        variant={sizeVariant}
+      />
+    )}
+
+    {/* Sticky buy bar — mobile only. Reuses the shared size state. */}
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/90 px-4 py-3 backdrop-blur-md lg:hidden">
+      <div className="mx-auto flex max-w-md items-center gap-3">
+        <div className="shrink-0">
+          <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-muted">
+            {product.name}
+          </div>
+          <div className="text-sm font-medium tabular-nums">
+            {formatPrice(product.priceCents, locale)}
+          </div>
+        </div>
+        <AddToCartButton
+          item={{
+            slug: product.slug,
+            name: product.name,
+            priceCents: product.priceCents,
+            image: product.images[0].src,
+          }}
+          needsSize={needsSize}
+          size={size}
+          label={dict.pdp.addToCart}
+          sizeRequiredLabel={dict.pdp.sizeRequired}
+          soldOut={soldOut}
+          soldOutLabel={locale === "de" ? "Ausverkauft" : "Sold out"}
+          className="h-11 flex-1"
+        />
+      </div>
+    </div>
+    {/* Spacer so the fixed bar never covers the last content on mobile. */}
+    <div className="h-20 lg:hidden" aria-hidden />
     </>
   );
 }

@@ -12,6 +12,18 @@ import reviewsRoutes from './routes/reviewsRoutes.js';
 import discountRoutes from './routes/discountRoutes.js';
 import { handleStripeWebhook } from './controllers/paymentController.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { initMonitoring, captureError } from './config/monitoring.js';
+
+// Error monitoring (no-op unless SENTRY_DSN is set).
+initMonitoring();
+process.on('unhandledRejection', (reason) => {
+  console.error('[unhandledRejection]', reason);
+  captureError(reason instanceof Error ? reason : new Error(String(reason)));
+});
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err);
+  captureError(err);
+});
 
 const app = express();
 const PORT = process.env.PORT ?? 4000;
@@ -79,7 +91,22 @@ async function ensureSchema() {
   try {
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS supabase_user_id TEXT');
     await pool.query('CREATE INDEX IF NOT EXISTS idx_orders_supabase_user ON orders(supabase_user_id)');
-    console.log('[db] schema ensured (orders.supabase_user_id)');
+    // Fulfilment details (migration 007) — kept here so prod stays in sync even
+    // before the SQL file is applied by hand. Idempotent.
+    await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_number TEXT');
+    await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS carrier TEXT');
+    await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS notes TEXT');
+    // Abandoned-checkout reminder marker (migration 010).
+    await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS reminder_sent_at TIMESTAMPTZ');
+    // Per-size stock (migration 009).
+    await pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS stock_by_size JSONB');
+    // Invoices + welcome-email marker (migration 011).
+    await pool.query('CREATE SEQUENCE IF NOT EXISTS invoice_seq START 1000');
+    await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS invoice_number TEXT');
+    await pool.query('ALTER TABLE profiles ADD COLUMN IF NOT EXISTS welcomed_at TIMESTAMPTZ');
+    // Stripe customer link for saved cards (migration 012).
+    await pool.query('ALTER TABLE profiles ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT');
+    console.log('[db] schema ensured (orders fulfilment + reminder + invoices + stripe customer + products.stock_by_size)');
   } catch (e) {
     console.error('[db] ensureSchema failed (will retry next boot):', e.message);
   }

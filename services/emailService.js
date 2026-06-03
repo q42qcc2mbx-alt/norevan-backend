@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { generateInvoicePdf } from './invoiceService.js';
 
 let _transporter = null;
 
@@ -16,6 +17,13 @@ function getTransporter() {
     },
   });
   return _transporter;
+}
+
+// Branded sender. Set MAIL_FROM (e.g. "Norevan <hello@norevan.shop>") for a
+// professional, domain-aligned From — important for deliverability (SPF/DKIM
+// must cover that domain). Falls back to the authenticating Gmail account.
+function mailFrom() {
+  return process.env.MAIL_FROM || `"Norevan" <${process.env.GMAIL_USER}>`;
 }
 
 const BRAND = {
@@ -215,6 +223,19 @@ export function renderShippingEmail(order) {
     .map((l) => `<div style="font-size:13px;color:${BRAND.text};line-height:1.6;">${l}</div>`)
     .join('');
 
+  // Optional tracking block — only rendered when a tracking number is present.
+  const carrierName = order.carrier ? String(order.carrier) : '';
+  const tracking = order.trackingNumber ? String(order.trackingNumber) : '';
+  const trackHtml = tracking
+    ? `<tr><td style="padding:26px 32px 0;">
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:${BRAND.muted};margin-bottom:8px;">Sendungsverfolgung</div>
+        <div style="font-size:13px;color:${BRAND.text};line-height:1.7;">${carrierName ? `${carrierName} · ` : ''}<strong style="font-family:'Courier New',monospace;">${tracking}</strong></div>
+      </td></tr>`
+    : '';
+  const trackText = tracking
+    ? `\nSendungsverfolgung: ${carrierName ? `${carrierName} · ` : ''}${tracking}\n`
+    : '';
+
   const html = `<!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="x-apple-disable-message-reformatting"></head>
@@ -249,6 +270,9 @@ export function renderShippingEmail(order) {
         ${addrHtml}
       </td></tr>
 
+      <!-- Tracking -->
+      ${trackHtml}
+
       <!-- CTA -->
       <tr><td style="padding:28px 32px 4px;text-align:center;">
         <a href="${BRAND.site}/de/account" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:14px 30px;border-radius:999px;">Bestellung ansehen</a>
@@ -279,7 +303,7 @@ ${itemsText}
 
 Lieferadresse:
 ${addrLines.join('\n')}
-
+${trackText}
 Norevan UG · Berlin · seit 2026 · hello@norevan.shop`;
 
   return { subject: `Deine Norevan-Bestellung #${orderNo} ist unterwegs`, html, text };
@@ -293,7 +317,7 @@ export async function sendShippingNotification(order) {
   const { subject, html, text } = renderShippingEmail(order);
   try {
     await getTransporter().sendMail({
-      from: `"Norevan" <${process.env.GMAIL_USER}>`,
+      from: mailFrom(),
       to: order.email,
       subject,
       text,
@@ -339,7 +363,7 @@ export async function sendBackInStock(email, product) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD || !email) return;
   const { subject, html, text } = renderBackInStockEmail(product);
   try {
-    await getTransporter().sendMail({ from: `"Norevan" <${process.env.GMAIL_USER}>`, to: email, subject, text, html });
+    await getTransporter().sendMail({ from: mailFrom(), to: email, subject, text, html });
     console.log(`[emailService] Back-in-stock an ${email}`);
   } catch (err) {
     console.error('[emailService] Back-in-stock fehlgeschlagen:', err.message);
@@ -354,15 +378,31 @@ export async function sendOrderConfirmation(order) {
 
   const { subject, html, text } = renderOrderEmail(order);
 
+  // Attach a PDF invoice once the order has a (paid) invoice number.
+  let attachments;
+  if (order.invoiceNumber) {
+    try {
+      const pdf = await generateInvoicePdf(order);
+      attachments = [{
+        filename: `Rechnung-${order.invoiceNumber}.pdf`,
+        content: pdf,
+        contentType: 'application/pdf',
+      }];
+    } catch (err) {
+      console.error('[emailService] PDF-Rechnung fehlgeschlagen:', err.message);
+    }
+  }
+
   try {
     const notify = process.env.ORDER_NOTIFY_EMAIL || process.env.GMAIL_USER;
     await getTransporter().sendMail({
-      from: `"Norevan" <${process.env.GMAIL_USER}>`,
+      from: mailFrom(),
       to: order.email,
       ...(notify ? { bcc: notify } : {}),
       subject,
       text,
       html,
+      ...(attachments ? { attachments } : {}),
     });
     console.log(`[emailService] Bestätigung gesendet an ${order.email}`);
   } catch (err) {
@@ -436,7 +476,7 @@ export async function sendLoginNotification(email) {
   const { subject, html, text } = renderLoginEmail(email);
   try {
     await getTransporter().sendMail({
-      from: `"Norevan" <${process.env.GMAIL_USER}>`,
+      from: mailFrom(),
       to: email,
       subject,
       text,
@@ -445,5 +485,264 @@ export async function sendLoginNotification(email) {
     console.log(`[emailService] Login-Mail gesendet an ${email}`);
   } catch (err) {
     console.error('[emailService] Login-Mail fehlgeschlagen:', err.message);
+  }
+}
+
+/** Welcome email — sent once, the first time a customer signs up / logs in. */
+export function renderWelcomeEmail({ email, firstName } = {}) {
+  const logo = `${BRAND.site}/logo/norevan-shield.png`;
+  const hi = firstName ? ` ${firstName}` : '';
+
+  const html = `<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting"></head>
+<body style="margin:0;padding:0;background:${BRAND.paper};">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Willkommen bei Norevan.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND.paper};padding:28px 12px;">
+  <tr><td align="center">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <tr><td style="background:${BRAND.ink};padding:32px 32px 28px;text-align:center;">
+        <img src="${logo}" width="52" height="52" alt="Norevan" style="display:inline-block;width:52px;height:52px;margin-bottom:12px;" />
+        <div>${wordmark(22)}</div>
+        <div style="height:2px;width:44px;background:${BRAND.gold};margin:16px auto 0;border-radius:2px;"></div>
+      </td></tr>
+      <tr><td style="padding:34px 32px 8px;">
+        <h1 style="margin:0 0 10px;font-family:Georgia,serif;font-weight:400;font-size:24px;color:${BRAND.text};">Willkommen${hi}.</h1>
+        <p style="margin:0;font-size:15px;line-height:1.6;color:${BRAND.muted};">Schön, dass du da bist. Dein Konto ist startklar — Wunschliste, schnellere Bestellungen und früher Zugang zu Drops. Wir kuratieren in Berlin, du bekommst nur Original-Ware.</p>
+      </td></tr>
+      <tr><td style="padding:24px 32px 4px;text-align:center;">
+        <a href="${BRAND.site}/de/shop" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:14px 30px;border-radius:999px;">Kollektion entdecken</a>
+      </td></tr>
+      <tr><td style="padding:30px 32px;text-align:center;">
+        <div style="border-top:1px solid ${BRAND.line};padding-top:22px;">
+          <div style="margin-bottom:8px;">${wordmark(16).replace(/#ffffff/g, BRAND.text)}</div>
+          <div style="font-size:11px;color:${BRAND.muted};line-height:1.7;">Norevan UG · Berlin · seit 2026<br><a href="mailto:hello@norevan.shop" style="color:${BRAND.muted};">hello@norevan.shop</a></div>
+        </div>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Willkommen${hi}.
+
+Schön, dass du da bist. Dein Konto ist startklar — Wunschliste, schnellere Bestellungen und früher Zugang zu Drops.
+
+Kollektion entdecken: ${BRAND.site}/de/shop
+
+Norevan UG · Berlin · seit 2026 · hello@norevan.shop`;
+
+  return { subject: 'Willkommen bei Norevan', html, text };
+}
+
+export async function sendWelcome({ email, firstName } = {}) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.warn('[emailService] GMAIL_USER oder GMAIL_APP_PASSWORD fehlt — Willkommens-Mail wird nicht gesendet');
+    return;
+  }
+  if (!email) return;
+  const { subject, html, text } = renderWelcomeEmail({ email, firstName });
+  try {
+    await getTransporter().sendMail({
+      from: mailFrom(),
+      to: email,
+      subject,
+      text,
+      html,
+    });
+    console.log(`[emailService] Willkommens-Mail gesendet an ${email}`);
+  } catch (err) {
+    console.error('[emailService] Willkommens-Mail fehlgeschlagen:', err.message);
+  }
+}
+
+const ROLE_LABEL = {
+  owner: 'Owner',
+  admin: 'Admin',
+  staff: 'Mitarbeiter',
+  viewer: 'Betrachter (nur Lesen)',
+};
+
+/**
+ * Team invitation — sent when a back-office member is created. Carries the
+ * login URL, username, assigned role and a one-time temporary password the
+ * member should change after first sign-in.
+ * @param {{ email, username, role, tempPassword }} invite
+ */
+export function renderTeamInviteEmail(invite) {
+  const logo = `${BRAND.site}/logo/norevan-shield.png`;
+  const loginUrl = `${BRAND.site}/admin/login`;
+  const roleLabel = ROLE_LABEL[invite.role] ?? invite.role;
+
+  const credRow = (label, value, mono = false) =>
+    `<tr>
+      <td style="padding:10px 0;border-bottom:1px solid ${BRAND.line};font-size:12px;color:${BRAND.muted};text-transform:uppercase;letter-spacing:1px;white-space:nowrap;">${label}</td>
+      <td style="padding:10px 0 10px 16px;border-bottom:1px solid ${BRAND.line};font-size:14px;color:${BRAND.text};text-align:right;${mono ? "font-family:'Courier New',monospace;font-weight:600;" : ''}">${value}</td>
+    </tr>`;
+
+  const html = `<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting"></head>
+<body style="margin:0;padding:0;background:${BRAND.paper};">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Dein Zugang zum Norevan Back-Office.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND.paper};padding:28px 12px;">
+  <tr><td align="center">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <tr><td style="background:${BRAND.ink};padding:32px 32px 28px;text-align:center;">
+        <img src="${logo}" width="52" height="52" alt="Norevan" style="display:inline-block;width:52px;height:52px;margin-bottom:12px;" />
+        <div>${wordmark(22)}</div>
+        <div style="height:2px;width:44px;background:${BRAND.gold};margin:16px auto 0;border-radius:2px;"></div>
+      </td></tr>
+      <tr><td style="padding:34px 32px 8px;">
+        <h1 style="margin:0 0 10px;font-family:Georgia,serif;font-weight:400;font-size:24px;color:${BRAND.text};">Willkommen im Team.</h1>
+        <p style="margin:0;font-size:15px;line-height:1.6;color:${BRAND.muted};">Du wurdest zum Norevan Back-Office eingeladen — als <strong style="color:${BRAND.text};">${roleLabel}</strong>. Melde dich mit den folgenden Zugangsdaten an und ändere dein Passwort danach.</p>
+      </td></tr>
+      <tr><td style="padding:20px 32px 0;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          ${credRow('Benutzername', invite.username)}
+          ${credRow('Temporäres Passwort', invite.tempPassword, true)}
+          ${credRow('Rolle', roleLabel)}
+        </table>
+      </td></tr>
+      <tr><td style="padding:26px 32px 4px;text-align:center;">
+        <a href="${loginUrl}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:14px 30px;border-radius:999px;">Zum Login</a>
+      </td></tr>
+      <tr><td style="padding:22px 32px 0;">
+        <p style="margin:0;font-size:12px;line-height:1.6;color:${BRAND.muted};">Du erwartest diese Einladung nicht? Dann ignoriere diese E-Mail oder melde dich bei <a href="mailto:hello@norevan.shop" style="color:${BRAND.muted};">hello@norevan.shop</a>.</p>
+      </td></tr>
+      <tr><td style="padding:30px 32px;text-align:center;">
+        <div style="border-top:1px solid ${BRAND.line};padding-top:22px;">
+          <div style="margin-bottom:8px;">${wordmark(16).replace(/#ffffff/g, BRAND.text)}</div>
+          <div style="font-size:11px;color:${BRAND.muted};line-height:1.7;">
+            Norevan UG · Berlin · seit 2026<br>
+            <a href="mailto:hello@norevan.shop" style="color:${BRAND.muted};">hello@norevan.shop</a>
+          </div>
+        </div>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Willkommen im Team.
+
+Du wurdest zum Norevan Back-Office eingeladen — als ${roleLabel}.
+
+Benutzername: ${invite.username}
+Temporäres Passwort: ${invite.tempPassword}
+Rolle: ${roleLabel}
+
+Zum Login: ${loginUrl}
+Bitte ändere dein Passwort nach der ersten Anmeldung.
+
+Du erwartest diese Einladung nicht? Melde dich bei hello@norevan.shop.
+
+Norevan UG · Berlin · seit 2026`;
+
+  return { subject: 'Dein Zugang zum Norevan Back-Office', html, text };
+}
+
+/**
+ * Abandoned-checkout reminder — sent once for an order left unpaid.
+ * @param {{ orderId, email, firstName, items, subtotalCents }} order
+ */
+export function renderAbandonedCartEmail(order) {
+  const orderNo = order.orderId.slice(0, 8).toUpperCase();
+  const logo = `${BRAND.site}/logo/norevan-shield.png`;
+  const resumeUrl = `${BRAND.site}/de/cart`;
+
+  const itemsHtml = (order.items ?? []).map(itemRowHtml).join('');
+  const itemsText = (order.items ?? [])
+    .map((i) => `  • ${i.name}${i.size ? ` (Gr. ${i.size})` : ''} × ${i.qty}`)
+    .join('\n');
+
+  const html = `<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting"></head>
+<body style="margin:0;padding:0;background:${BRAND.paper};">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Deine Auswahl wartet noch auf dich.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND.paper};padding:28px 12px;">
+  <tr><td align="center">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <tr><td style="background:${BRAND.ink};padding:32px 32px 28px;text-align:center;">
+        <img src="${logo}" width="52" height="52" alt="Norevan" style="display:inline-block;width:52px;height:52px;margin-bottom:12px;" />
+        <div>${wordmark(22)}</div>
+        <div style="height:2px;width:44px;background:${BRAND.gold};margin:16px auto 0;border-radius:2px;"></div>
+      </td></tr>
+      <tr><td style="padding:34px 32px 8px;">
+        <h1 style="margin:0 0 10px;font-family:Georgia,serif;font-weight:400;font-size:24px;color:${BRAND.text};">Noch da, ${order.firstName ?? ''}?</h1>
+        <p style="margin:0;font-size:15px;line-height:1.6;color:${BRAND.muted};">Deine Auswahl liegt bereit. Limitierte Stücke sind schnell vergriffen — sichere sie dir, bevor sie weg sind.</p>
+      </td></tr>
+      <tr><td style="padding:18px 32px 0;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${itemsHtml}</table>
+      </td></tr>
+      <tr><td style="padding:26px 32px 4px;text-align:center;">
+        <a href="${resumeUrl}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:14px 30px;border-radius:999px;">Kauf abschließen</a>
+      </td></tr>
+      <tr><td style="padding:30px 32px;text-align:center;">
+        <div style="border-top:1px solid ${BRAND.line};padding-top:22px;">
+          <div style="margin-bottom:8px;">${wordmark(16).replace(/#ffffff/g, BRAND.text)}</div>
+          <div style="font-size:11px;color:${BRAND.muted};line-height:1.7;">
+            Norevan UG · Berlin · seit 2026<br>
+            <a href="mailto:hello@norevan.shop" style="color:${BRAND.muted};">hello@norevan.shop</a>
+          </div>
+        </div>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`;
+
+  const text = `Noch da, ${order.firstName ?? ''}?
+
+Deine Auswahl liegt bereit:
+${itemsText}
+
+Kauf abschließen: ${resumeUrl}
+
+Norevan UG · Berlin · seit 2026 · hello@norevan.shop`;
+
+  return { subject: `Deine Auswahl wartet — Norevan #${orderNo}`, html, text };
+}
+
+export async function sendAbandonedCart(order) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.warn('[emailService] GMAIL_USER oder GMAIL_APP_PASSWORD fehlt — Warenkorb-Mail wird nicht gesendet');
+    return;
+  }
+  if (!order?.email) return;
+  const { subject, html, text } = renderAbandonedCartEmail(order);
+  try {
+    await getTransporter().sendMail({
+      from: mailFrom(),
+      to: order.email,
+      subject,
+      text,
+      html,
+    });
+    console.log(`[emailService] Warenkorb-Erinnerung gesendet an ${order.email}`);
+  } catch (err) {
+    console.error('[emailService] Warenkorb-Mail fehlgeschlagen:', err.message);
+  }
+}
+
+export async function sendTeamInvite(invite) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.warn('[emailService] GMAIL_USER oder GMAIL_APP_PASSWORD fehlt — Einladungs-Mail wird nicht gesendet');
+    return;
+  }
+  if (!invite?.email) return;
+  const { subject, html, text } = renderTeamInviteEmail(invite);
+  try {
+    await getTransporter().sendMail({
+      from: mailFrom(),
+      to: invite.email,
+      subject,
+      text,
+      html,
+    });
+    console.log(`[emailService] Einladungs-Mail gesendet an ${invite.email}`);
+  } catch (err) {
+    console.error('[emailService] Einladungs-Mail fehlgeschlagen:', err.message);
   }
 }

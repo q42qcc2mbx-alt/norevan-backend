@@ -23,6 +23,8 @@ export async function GET() {
     "Land",
     "Artikel",
     "Summe (EUR)",
+    "Versanddienst",
+    "Tracking-Nr.",
   ];
 
   const rows = orders.map((o) =>
@@ -39,6 +41,8 @@ export async function GET() {
       o.country,
       o.items.reduce((s, i) => s + i.qty, 0),
       (o.subtotalCents / 100).toFixed(2),
+      o.carrier ?? "",
+      o.trackingNumber ?? "",
     ]
       .map(esc)
       .join(","),

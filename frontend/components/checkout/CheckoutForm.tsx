@@ -124,6 +124,30 @@ export function CheckoutForm({
     setForm((s) => ({ ...s, [key]: value }));
   }
 
+  // Persist the entered shipping address back to the customer's profile so the
+  // next checkout is pre-filled (one-click). Best-effort; never blocks the order.
+  async function persistProfile() {
+    try {
+      const supabase = getSupabaseClient();
+      const { data } = await supabase.auth.getUser();
+      const u = data.user;
+      if (!u || u.is_anonymous) return;
+      await supabase
+        .from("profiles")
+        .update({
+          first_name: form.firstName || null,
+          last_name: form.lastName || null,
+          address: form.address || null,
+          city: form.city || null,
+          zip: form.zip || null,
+          country: form.country || null,
+        })
+        .eq("id", u.id);
+    } catch {
+      // best-effort — a failed save just means no prefill next time
+    }
+  }
+
   // Fill the whole address from a picked suggestion without wiping fields the
   // suggestion doesn't cover (e.g. a city-only pick keeps the typed street).
   function fillAddress(a: AddressPick) {
@@ -155,6 +179,10 @@ export function CheckoutForm({
         return;
       }
       const data = await res.json();
+      // Save the address for next time. Must complete BEFORE we navigate to
+      // Stripe (window.location) — otherwise the redirect aborts the in-flight
+      // request and nothing is saved.
+      if (res.ok) await persistProfile();
       if (res.ok && data?.checkoutUrl) {
         // Stripe enabled — hand off to the hosted payment page. The cart is
         // kept so a cancelled payment returns the customer to a full basket;

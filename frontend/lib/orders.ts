@@ -14,6 +14,11 @@ export type Order = {
   country: string;
   subtotalCents: number;
   status: string;
+  /** Fulfilment — set in the back office, shown to the customer on shipping. */
+  trackingNumber: string | null;
+  carrier: string | null;
+  /** Internal note — back office only, never shown to the customer. */
+  notes: string | null;
   /** ISO date string from the backend */
   createdAt: string;
 };
@@ -72,10 +77,18 @@ export async function getMyOrders(): Promise<OrderWithItems[]> {
   }
 }
 
-/** Admin-only — update status. */
+/** Admin-only — update status and optional fulfilment fields. */
 export async function updateOrderStatus(
   id: string,
   status: string,
+  fulfilment?: {
+    trackingNumber?: string;
+    carrier?: string;
+    notes?: string;
+  },
 ): Promise<void> {
-  await api.patch(`/admin/orders/${encodeURIComponent(id)}`, { status });
+  await api.patch(`/admin/orders/${encodeURIComponent(id)}`, {
+    status,
+    ...fulfilment,
+  });
 }
