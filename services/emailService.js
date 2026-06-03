@@ -19,6 +19,13 @@ function getTransporter() {
   return _transporter;
 }
 
+// Branded sender. Set MAIL_FROM (e.g. "Norevan <hello@norevan.shop>") for a
+// professional, domain-aligned From — important for deliverability (SPF/DKIM
+// must cover that domain). Falls back to the authenticating Gmail account.
+function mailFrom() {
+  return process.env.MAIL_FROM || `"Norevan" <${process.env.GMAIL_USER}>`;
+}
+
 const BRAND = {
   name: 'Norevan',
   gold: '#c8a96a',
@@ -310,7 +317,7 @@ export async function sendShippingNotification(order) {
   const { subject, html, text } = renderShippingEmail(order);
   try {
     await getTransporter().sendMail({
-      from: `"Norevan" <${process.env.GMAIL_USER}>`,
+      from: mailFrom(),
       to: order.email,
       subject,
       text,
@@ -356,7 +363,7 @@ export async function sendBackInStock(email, product) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD || !email) return;
   const { subject, html, text } = renderBackInStockEmail(product);
   try {
-    await getTransporter().sendMail({ from: `"Norevan" <${process.env.GMAIL_USER}>`, to: email, subject, text, html });
+    await getTransporter().sendMail({ from: mailFrom(), to: email, subject, text, html });
     console.log(`[emailService] Back-in-stock an ${email}`);
   } catch (err) {
     console.error('[emailService] Back-in-stock fehlgeschlagen:', err.message);
@@ -389,7 +396,7 @@ export async function sendOrderConfirmation(order) {
   try {
     const notify = process.env.ORDER_NOTIFY_EMAIL || process.env.GMAIL_USER;
     await getTransporter().sendMail({
-      from: `"Norevan" <${process.env.GMAIL_USER}>`,
+      from: mailFrom(),
       to: order.email,
       ...(notify ? { bcc: notify } : {}),
       subject,
@@ -469,7 +476,7 @@ export async function sendLoginNotification(email) {
   const { subject, html, text } = renderLoginEmail(email);
   try {
     await getTransporter().sendMail({
-      from: `"Norevan" <${process.env.GMAIL_USER}>`,
+      from: mailFrom(),
       to: email,
       subject,
       text,
@@ -537,7 +544,7 @@ export async function sendWelcome({ email, firstName } = {}) {
   const { subject, html, text } = renderWelcomeEmail({ email, firstName });
   try {
     await getTransporter().sendMail({
-      from: `"Norevan" <${process.env.GMAIL_USER}>`,
+      from: mailFrom(),
       to: email,
       subject,
       text,
@@ -707,7 +714,7 @@ export async function sendAbandonedCart(order) {
   const { subject, html, text } = renderAbandonedCartEmail(order);
   try {
     await getTransporter().sendMail({
-      from: `"Norevan" <${process.env.GMAIL_USER}>`,
+      from: mailFrom(),
       to: order.email,
       subject,
       text,
@@ -728,7 +735,7 @@ export async function sendTeamInvite(invite) {
   const { subject, html, text } = renderTeamInviteEmail(invite);
   try {
     await getTransporter().sendMail({
-      from: `"Norevan" <${process.env.GMAIL_USER}>`,
+      from: mailFrom(),
       to: invite.email,
       subject,
       text,

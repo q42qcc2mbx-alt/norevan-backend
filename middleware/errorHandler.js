@@ -1,8 +1,14 @@
+import { captureError } from '../config/monitoring.js';
+
 export const errorHandler = (err, req, res, next) => {
   const statusCode = err.statusCode ?? 500;
 
   console.error(`[${new Date().toISOString()}] ${statusCode} — ${err.message}`);
-  if (statusCode === 500) console.error(err.stack);
+  if (statusCode === 500) {
+    console.error(err.stack);
+    // Report genuine server errors (not 4xx client errors) to monitoring.
+    captureError(err, { path: req.originalUrl, method: req.method });
+  }
 
   const body = {
     status: 'error',

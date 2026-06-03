@@ -12,6 +12,18 @@ import reviewsRoutes from './routes/reviewsRoutes.js';
 import discountRoutes from './routes/discountRoutes.js';
 import { handleStripeWebhook } from './controllers/paymentController.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { initMonitoring, captureError } from './config/monitoring.js';
+
+// Error monitoring (no-op unless SENTRY_DSN is set).
+initMonitoring();
+process.on('unhandledRejection', (reason) => {
+  console.error('[unhandledRejection]', reason);
+  captureError(reason instanceof Error ? reason : new Error(String(reason)));
+});
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err);
+  captureError(err);
+});
 
 const app = express();
 const PORT = process.env.PORT ?? 4000;
