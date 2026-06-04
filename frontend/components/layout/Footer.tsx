@@ -4,6 +4,28 @@ import type { Dictionary } from "@/lib/i18n/dictionaries/de";
 
 const YEAR = 2026;
 
+// Official brand profiles. Also mirrored in lib/seo.tsx (organizationLd sameAs).
+const SOCIALS = [
+  {
+    name: "Instagram",
+    href: "https://www.instagram.com/noreavanshop",
+    icon: (
+      <>
+        <rect x="2" y="2" width="20" height="20" rx="5" />
+        <circle cx="12" cy="12" r="4" />
+        <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+      </>
+    ),
+  },
+  {
+    name: "TikTok",
+    href: "https://www.tiktok.com/@norevanshop",
+    icon: (
+      <path d="M16 3c.3 2.3 1.8 4 4 4.2v2.7c-1.4 0-2.8-.4-4-1.1v5.7a5.3 5.3 0 1 1-5.3-5.3c.3 0 .6 0 .9.1v2.8a2.6 2.6 0 1 0 1.8 2.5V3H16z" />
+    ),
+  },
+];
+
 export function Footer({
   dict,
   locale,
@@ -98,6 +120,34 @@ export function Footer({
             </div>
           ))}
         </nav>
+
+        {/* Social links */}
+        <div className="mb-8 flex items-center justify-center gap-4 border-t border-border-subtle pt-8 md:justify-start">
+          {SOCIALS.map((s) => (
+            <a
+              key={s.name}
+              href={s.href}
+              target="_blank"
+              rel="me noopener noreferrer"
+              aria-label={s.name}
+              className="text-foreground/60 transition-colors hover:text-foreground"
+            >
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                {s.icon}
+              </svg>
+            </a>
+          ))}
+        </div>
 
         {/* Bottom bar */}
         <div className="flex flex-col items-center justify-between gap-3 border-t border-border-subtle pt-8 font-mono text-[10px] uppercase tracking-[0.25em] text-muted md:flex-row">
