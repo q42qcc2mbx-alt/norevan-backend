@@ -88,7 +88,10 @@ export function organizationLd() {
     description: "Norevan — Premium Streetwear, Sneaker und Accessoires, kuratiert in Berlin. Handverlesene Mode weltweit verschickt.",
     foundingDate: "2024",
     foundingLocation: { "@type": "Place", address: { "@type": "PostalAddress", addressLocality: "Berlin", addressCountry: "DE" } },
-    sameAs: [],
+    sameAs: [
+      "https://www.instagram.com/noreavanshop",
+      "https://www.tiktok.com/@norevanshop",
+    ],
     contactPoint: [
       {
         "@type": "ContactPoint",
