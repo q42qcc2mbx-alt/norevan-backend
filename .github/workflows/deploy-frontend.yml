@@ -1,0 +1,62 @@
+name: Deploy Frontend (Vercel Production)
+
+# Manually-triggered production deploy for the Next.js frontend.
+#
+# Why this exists: the Vercel project is deployed via the Vercel CLI, which
+# needs an access token. CI runners (and remote agent sessions) don't have one,
+# so deploys are gated behind a single repo secret.
+#
+# Required repo secret:
+#   VERCEL_TOKEN — a Vercel access token with deploy rights to the project.
+#     Create at https://vercel.com/account/settings/tokens
+#     Add at  Repo → Settings → Secrets and variables → Actions → New secret
+#
+# Org/Project IDs are not secret, so they live inline below. `vercel pull`
+# fetches the project's configured Root Directory (frontend/) and the real
+# production environment variables, so the build matches a normal Vercel deploy.
+
+on:
+  workflow_dispatch: {} # run on demand from the Actions tab (or via API)
+
+concurrency:
+  group: deploy-vercel-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build & deploy to production
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: team_qQfnOiJIWNqY0vwTx1dKYgJz
+      VERCEL_PROJECT_ID: prj_wV0oFY2xM4TTr9UrdFc3yiMwDyvc
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Fail early if token is missing
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::VERCEL_TOKEN secret is not set. Add it under" \
+                 "Settings → Secrets and variables → Actions, then re-run."
+            exit 1
+          fi
+
+      - name: Pull production project settings & env
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Build (production)
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Deploy prebuilt output to production
+        run: |
+          url=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          echo "Deployed: $url"
+          echo "### ✅ Production deploy" >> "$GITHUB_STEP_SUMMARY"
+          echo "$url" >> "$GITHUB_STEP_SUMMARY"
