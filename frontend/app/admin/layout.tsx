@@ -24,9 +24,9 @@ export default function AdminRootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} h-full`}
+      className={`dark ${geistSans.variable} ${geistMono.variable} ${cormorant.variable} h-full`}
     >
-      <body className="min-h-full bg-background-soft text-foreground antialiased">
+      <body className="min-h-full bg-background text-foreground antialiased">
         {children}
       </body>
     </html>
