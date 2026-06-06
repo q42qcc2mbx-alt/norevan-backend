@@ -4,6 +4,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { cn } from "@/lib/cn";
 
+// Persist the manual choice so the geo-based proxy respects it next time.
+// Module-scoped so the side effect lives outside the component body.
+function rememberLocale(next: Locale) {
+  document.cookie = `NEXT_LOCALE=${next};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
+}
+
 export function LangSwitcher({
   current,
   label,
@@ -16,6 +22,7 @@ export function LangSwitcher({
 
   function switchTo(next: Locale) {
     if (next === current) return;
+    rememberLocale(next);
     const segments = pathname.split("/");
     if (segments.length > 1 && (locales as readonly string[]).includes(segments[1])) {
       segments[1] = next;
