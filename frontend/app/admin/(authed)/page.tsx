@@ -36,6 +36,21 @@ function dailyRevenueSeries(
   });
 }
 
+/** Sum of realized revenue for orders created within [sinceMs, untilMs). */
+function realizedRevenueBetween(
+  orders: { status: string; subtotalCents: number; createdAt: string }[],
+  sinceMs: number,
+  untilMs = Infinity,
+): number {
+  let sum = 0;
+  for (const o of orders) {
+    if (!REALIZED.has(o.status)) continue;
+    const t = new Date(o.createdAt).getTime();
+    if (t >= sinceMs && t < untilMs) sum += o.subtotalCents;
+  }
+  return sum;
+}
+
 export const metadata = {
   title: "Dashboard — Norevan Admin",
   robots: { index: false, follow: false },
@@ -66,6 +81,35 @@ export default async function AdminDashboard() {
 
   const revenueSeries = dailyRevenueSeries(orders, 30);
   const last30Cents = revenueSeries.reduce((s, p) => s + p.valueCents, 0);
+
+  // Realized-revenue breakdown across periods (paid/shipped/delivered).
+  const now = new Date().getTime();
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+  const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const startOfLastMonth = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth() - 1,
+    1,
+  );
+
+  const revToday = realizedRevenueBetween(orders, startOfToday.getTime());
+  const rev7d = realizedRevenueBetween(orders, now - 7 * 86_400_000);
+  const rev30d = realizedRevenueBetween(orders, now - 30 * 86_400_000);
+  const revYear = realizedRevenueBetween(orders, startOfYear.getTime());
+
+  // This month vs. last month → growth indicator.
+  const revThisMonth = realizedRevenueBetween(orders, startOfMonth.getTime());
+  const revLastMonth = realizedRevenueBetween(
+    orders,
+    startOfLastMonth.getTime(),
+    startOfMonth.getTime(),
+  );
+  const momDelta =
+    revLastMonth > 0
+      ? Math.round(((revThisMonth - revLastMonth) / revLastMonth) * 100)
+      : null;
 
   // Realized orders (paid/shipped/delivered) → average order value & top sellers.
   const realizedOrders = orders.filter((o) => REALIZED.has(o.status));
@@ -219,6 +263,34 @@ export default async function AdminDashboard() {
         </div>
       )}
 
+      {/* Revenue breakdown by period (admins & owners only) */}
+      {showRevenue && (
+        <div className="mt-10">
+          <div className="mb-3 flex items-baseline justify-between gap-4">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+              Umsatz · Übersicht
+            </div>
+            {momDelta !== null && (
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] tabular-nums">
+                <span className="text-muted">Monat vs. Vormonat&nbsp;</span>
+                <span className={momDelta >= 0 ? "text-emerald-500" : "text-red-400"}>
+                  {momDelta >= 0 ? "▲" : "▼"} {Math.abs(momDelta)}%
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <RevenueStat label="Heute" value={formatPrice(revToday, "de")} />
+            <RevenueStat label="7 Tage" value={formatPrice(rev7d, "de")} />
+            <RevenueStat label="30 Tage" value={formatPrice(rev30d, "de")} />
+            <RevenueStat
+              label={`Jahr ${new Date().getFullYear()}`}
+              value={formatPrice(revYear, "de")}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Revenue over time — coordinate system (admins & owners only) */}
       {showRevenue && (
         <div className="mt-10 rounded-md border border-border bg-card p-6">
@@ -337,6 +409,26 @@ export default async function AdminDashboard() {
             )}
           </ul>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function RevenueStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border border-border bg-card p-5">
+      <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+        {label}
+      </div>
+      <div
+        className="mt-3 font-serif tabular-nums"
+        style={{
+          fontFamily: "var(--font-cormorant), Georgia, serif",
+          fontSize: "1.75rem",
+          lineHeight: 1,
+        }}
+      >
+        {value}
       </div>
     </div>
   );
