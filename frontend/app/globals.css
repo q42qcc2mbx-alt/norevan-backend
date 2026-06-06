@@ -96,6 +96,9 @@ html, body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   font-feature-settings: "ss01", "ss03";
+  /* Don't let mobile Safari rescale text on orientation change. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 * { border-color: var(--border); }
@@ -195,6 +198,13 @@ html, body {
    the footer never hide behind it, and clear the iOS home indicator. */
 html[data-app-mode="on"] body {
   padding-bottom: calc(56px + env(safe-area-inset-bottom));
+  /* Stop the rubber-band / pull-to-refresh bounce so it feels like an app. */
+  overscroll-behavior-y: none;
+}
+
+/* Remove the 300ms tap delay & double-tap-to-zoom on interactive elements. */
+a, button, [role="button"], input, select, textarea, label {
+  touch-action: manipulation;
 }
 
 /* === Lenis === */

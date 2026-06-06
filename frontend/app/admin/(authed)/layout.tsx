@@ -9,6 +9,9 @@ import {
   effectiveRole,
 } from "@/lib/auth/admin";
 import { AdminNavBar } from "./_components/AdminNavBar";
+import { AdminAppNavBar } from "./_components/AdminAppNavBar";
+import { DeviceProvider } from "@/components/device/DeviceProvider";
+import { AppModeButton } from "@/components/device/AppModeButton";
 
 async function AdminGuard({ children }: { children: React.ReactNode }) {
   await connection();
@@ -54,13 +57,16 @@ export default function AdminAuthedLayout({
               admin
             </span>
           </Link>
-          <Suspense
-            fallback={
-              <AdminNavBar role="staff" showAnalytics={false} showTeam={false} />
-            }
-          >
-            <AdminNav />
-          </Suspense>
+          <div className="flex items-center gap-3">
+            <AppModeButton />
+            <Suspense
+              fallback={
+                <AdminNavBar role="staff" showAnalytics={false} showTeam={false} />
+              }
+            >
+              <AdminNav />
+            </Suspense>
+          </div>
         </div>
       </header>
       <main>
@@ -68,6 +74,8 @@ export default function AdminAuthedLayout({
           <AdminGuard>{children}</AdminGuard>
         </Suspense>
       </main>
+      <DeviceProvider />
+      <AdminAppNavBar />
     </div>
   );
 }

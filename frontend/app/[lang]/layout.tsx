@@ -63,6 +63,10 @@ export const metadata: Metadata = {
 // indicator) so the bottom tab bar sits flush like a native app.
 export const viewport: Viewport = {
   viewportFit: "cover",
+  // Stop iOS Safari from auto-zooming on input focus / pinch — keeps the
+  // storefront steady and app-like.
+  maximumScale: 1,
+  userScalable: false,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f7f3ea" },
     { media: "(prefers-color-scheme: dark)", color: "#15110d" },
