@@ -190,6 +190,13 @@ html, body {
   }
 }
 
+/* === App Mode — native-app-like chrome on phone/tablet ===
+   Reserve room for the fixed bottom tab bar (AppNavBar) so page content and
+   the footer never hide behind it, and clear the iOS home indicator. */
+html[data-app-mode="on"] body {
+  padding-bottom: calc(56px + env(safe-area-inset-bottom));
+}
+
 /* === Lenis === */
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
