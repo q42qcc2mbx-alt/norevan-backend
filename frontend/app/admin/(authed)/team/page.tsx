@@ -14,6 +14,16 @@ export default async function TeamPage() {
 
   const members = await getTeam();
 
+  const roleSummary = [
+    { role: "owner", label: "Inhaber" },
+    { role: "admin", label: "Admin" },
+    { role: "staff", label: "Mitarbeiter" },
+    { role: "viewer", label: "Leser" },
+  ].map((r) => ({
+    ...r,
+    count: members.filter((m) => (m.role ?? "staff") === r.role).length,
+  }));
+
   return (
     <div className="mx-auto max-w-5xl px-6 py-12 md:px-10 md:py-16">
       <header className="mb-10 border-b border-border pb-6">
@@ -30,7 +40,31 @@ export default async function TeamPage() {
         >
           Team
         </h1>
+        <p className="mt-3 text-sm text-muted">
+          Mitglieder anlegen, Rollen vergeben und Zugriff verwalten.
+        </p>
       </header>
+
+      {/* Role distribution */}
+      <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {roleSummary.map((r) => (
+          <div key={r.role} className="rounded-md border border-border bg-card p-5">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+              {r.label}
+            </div>
+            <div
+              className="mt-3 font-serif tabular-nums"
+              style={{
+                fontFamily: "var(--font-cormorant), Georgia, serif",
+                fontSize: "2rem",
+                lineHeight: 1,
+              }}
+            >
+              {r.count}
+            </div>
+          </div>
+        ))}
+      </div>
 
       <TeamManager initialMembers={members} currentUserId={user.id} />
     </div>

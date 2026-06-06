@@ -13,6 +13,13 @@ const ACTION_LABEL: Record<string, string> = {
   "team.revoke": "Zugriff entzogen",
 };
 
+// Colour accent per action — green = added, gold = changed, red = removed.
+const ACTION_COLOR: Record<string, string> = {
+  "team.create": "#34d399",
+  "team.role": "var(--gold)",
+  "team.revoke": "#f87171",
+};
+
 function describeMeta(action: string, meta: AuditEntry["meta"]): string {
   if (!meta) return "";
   if (action === "team.role") return `${meta.from ?? "?"} → ${meta.to ?? "?"}`;
@@ -47,6 +54,11 @@ export default async function AuditPage() {
         </h1>
         <p className="mt-3 text-sm text-muted">
           Änderungen im Back-Office — wer was wann gemacht hat.
+          {entries.length > 0 && (
+            <span className="ml-1 font-mono text-[10px] uppercase tracking-[0.2em]">
+              · {entries.length} Einträge
+            </span>
+          )}
         </p>
       </header>
 
@@ -66,7 +78,11 @@ export default async function AuditPage() {
               const detail = describeMeta(e.action, e.meta);
               return (
                 <li key={e.id} className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-6 py-4">
-                  <span className="w-40 shrink-0 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
+                  <span className="flex w-40 shrink-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
+                    <span
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{ background: ACTION_COLOR[e.action] ?? "var(--muted)" }}
+                    />
                     {when}
                   </span>
                   <span className="flex-1 text-sm text-foreground">

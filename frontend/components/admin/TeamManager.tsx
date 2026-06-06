@@ -19,6 +19,27 @@ const ROLE_LABEL: Record<string, string> = {
   customer: "Kunde",
 };
 
+// Colour accent per role so the hierarchy reads at a glance.
+const ROLE_BADGE: Record<string, string> = {
+  owner: "border-[var(--gold)] text-[var(--gold)]",
+  admin: "border-emerald-500/50 text-emerald-500",
+  staff: "border-border text-foreground",
+  viewer: "border-border text-muted",
+  customer: "border-border text-muted",
+};
+
+function RoleBadge({ role }: { role: string }) {
+  return (
+    <span
+      className={`whitespace-nowrap rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.2em] ${
+        ROLE_BADGE[role] ?? "border-border text-muted"
+      }`}
+    >
+      {ROLE_LABEL[role] ?? role}
+    </span>
+  );
+}
+
 export function TeamManager({
   initialMembers,
   currentUserId,
@@ -85,11 +106,26 @@ export function TeamManager({
             return (
               <li key={m.id} className="flex flex-wrap items-center gap-3 px-6 py-4">
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm text-foreground">
-                    {m.username}{" "}
-                    {isSelf && <span className="text-muted">(du)</span>}
+                  <div className="flex items-center gap-2">
+                    <span className="truncate text-sm text-foreground">
+                      {m.username}{" "}
+                      {isSelf && <span className="text-muted">(du)</span>}
+                    </span>
+                    <RoleBadge role={m.role} />
                   </div>
-                  <div className="truncate font-mono text-[10px] text-muted">{m.email}</div>
+                  <div className="truncate font-mono text-[10px] text-muted">
+                    {m.email}
+                    {m.created_at && (
+                      <span>
+                        {" · seit "}
+                        {new Date(m.created_at).toLocaleDateString("de-DE", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <form action={updateRoleAction} className="flex items-center">
