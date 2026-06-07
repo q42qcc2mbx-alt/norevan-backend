@@ -4,7 +4,12 @@ import { getAdminUser, canSeeRevenue, effectiveRole } from "@/lib/auth/admin";
 import { getAnalytics } from "@/lib/analytics";
 import { getAllOrders } from "@/lib/orders";
 import { RevenueChart, type ChartPoint } from "@/components/admin/RevenueChart";
+import { formatPrice } from "@/lib/format";
 import { cn } from "@/lib/cn";
+
+const REALIZED = new Set(["paid", "shipped", "delivered"]);
+const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+const HEAT_BUCKETS = 12; // 2-hour columns
 
 export const metadata = {
   title: "Analytics — Norevan Admin",
@@ -61,6 +66,29 @@ export default async function AnalyticsPage({
     return { label: `${Number(d)}.${Number(m)}`, valueCents: s.visitors };
   });
   const maxDevice = Math.max(1, ...(data?.devices ?? []).map((d) => d.views));
+
+  // Realized revenue by country (real orders) → ranked bars.
+  const revByCountry = new Map<string, number>();
+  for (const o of orders) {
+    if (!REALIZED.has(o.status)) continue;
+    const cc = (o.country || "??").toUpperCase();
+    revByCountry.set(cc, (revByCountry.get(cc) ?? 0) + o.subtotalCents);
+  }
+  const topRevCountries = Array.from(revByCountry.entries())
+    .map(([cc, cents]) => ({ cc, cents }))
+    .sort((a, b) => b.cents - a.cents)
+    .slice(0, 6);
+  const maxRev = Math.max(1, ...topRevCountries.map((c) => c.cents));
+
+  // Sales heatmap: weekday (Mon-first) × 2-hour bucket, counted from orders.
+  const heat = Array.from({ length: 7 }, () => Array(HEAT_BUCKETS).fill(0));
+  for (const o of orders) {
+    const dt = new Date(o.createdAt);
+    const wd = (dt.getDay() + 6) % 7; // 0 = Monday
+    const bucket = Math.min(HEAT_BUCKETS - 1, Math.floor(dt.getHours() / 2));
+    heat[wd][bucket] += 1;
+  }
+  const maxHeat = Math.max(1, ...heat.flat());
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12 md:px-10 md:py-16">
@@ -184,6 +212,71 @@ export default async function AnalyticsPage({
                 ))}
               </ul>
             )}
+          </div>
+
+          {/* Umsatz nach Land — realized revenue (real orders) */}
+          <div className="mt-10 rounded-md border border-border bg-card p-6">
+            <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+              Umsatz nach Land · realisiert
+            </div>
+            {topRevCountries.length === 0 ? (
+              <p className="text-sm text-muted">Noch keine Verkäufe.</p>
+            ) : (
+              <ul className="space-y-3">
+                {topRevCountries.map((c) => (
+                  <li key={c.cc}>
+                    <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
+                      <span>{flag(c.cc)}&nbsp;&nbsp;{countryName(c.cc)}</span>
+                      <span className="font-mono text-[11px] tabular-nums text-muted">
+                        {formatPrice(c.cents, "de")}
+                      </span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted-bg">
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${(c.cents / maxRev) * 100}%`, background: "var(--gold)" }}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Verkaufs-Heatmap — orders by weekday × time of day */}
+          <div className="mt-10 rounded-md border border-border bg-card p-6">
+            <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+              Verkaufs-Heatmap · Wochenverlauf (Bestellungen)
+            </div>
+            <div className="space-y-1.5">
+              {heat.map((row, r) => (
+                <div key={r} className="flex items-center gap-1.5">
+                  <span className="w-6 shrink-0 font-mono text-[9px] uppercase tracking-[0.15em] text-muted">
+                    {WEEKDAYS[r]}
+                  </span>
+                  <div className="flex flex-1 gap-1.5">
+                    {row.map((v, c) => (
+                      <div
+                        key={c}
+                        className="h-5 flex-1 rounded-sm"
+                        style={{
+                          background:
+                            v === 0
+                              ? "var(--muted-bg)"
+                              : `color-mix(in oklab, var(--gold) ${15 + (v / maxHeat) * 85}%, transparent)`,
+                        }}
+                        title={`${WEEKDAYS[r]} ${String(c * 2).padStart(2, "0")}–${String(c * 2 + 2).padStart(2, "0")} Uhr · ${v} Bestellung(en)`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.15em] text-muted">
+              <span className="pl-7">00 Uhr</span>
+              <span>12 Uhr</span>
+              <span>24 Uhr</span>
+            </div>
           </div>
         </>
       )}
