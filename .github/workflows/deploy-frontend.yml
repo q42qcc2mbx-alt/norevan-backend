@@ -11,9 +11,12 @@ name: Deploy Frontend (Vercel Production)
 #     Create at https://vercel.com/account/settings/tokens
 #     Add at  Repo → Settings → Secrets and variables → Actions → New secret
 #
-# Org/Project IDs are not secret, so they live inline below. `vercel pull`
-# fetches the project's configured Root Directory (frontend/) and the real
-# production environment variables, so the build matches a normal Vercel deploy.
+# We deploy from source (let Vercel build) rather than uploading a prebuilt
+# output. Vercel then injects the project's real env — including variables
+# marked "Sensitive", which `vercel pull` cannot download — and applies the
+# project's Root Directory (frontend/). A local `vercel build` lacks both, which
+# breaks NEXT_PUBLIC_* inlining (e.g. the Supabase client at build time).
+# Org/Project IDs are not secret, so they live inline below.
 
 on:
   workflow_dispatch: {} # run on demand from the Actions tab (or via API)
@@ -26,12 +29,6 @@ jobs:
   deploy:
     name: Build & deploy to production
     runs-on: ubuntu-latest
-    # The Next.js app lives in frontend/. Vercel's Root Directory isn't applied
-    # by a local `vercel build`, so run every step from frontend/ to build the
-    # app (not the Express backend at the repo root).
-    defaults:
-      run:
-        working-directory: frontend
     env:
       VERCEL_ORG_ID: team_qQfnOiJIWNqY0vwTx1dKYgJz
       VERCEL_PROJECT_ID: prj_wV0oFY2xM4TTr9UrdFc3yiMwDyvc
@@ -54,15 +51,9 @@ jobs:
             exit 1
           fi
 
-      - name: Pull production project settings & env
-        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-
-      - name: Build (production)
-        run: vercel build --prod --token="$VERCEL_TOKEN"
-
-      - name: Deploy prebuilt output to production
+      - name: Deploy to production (Vercel builds, injecting project env)
         run: |
-          url=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          url=$(vercel deploy --prod --yes --token="$VERCEL_TOKEN")
           echo "Deployed: $url"
           echo "### ✅ Production deploy" >> "$GITHUB_STEP_SUMMARY"
           echo "$url" >> "$GITHUB_STEP_SUMMARY"

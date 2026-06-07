@@ -100,7 +100,29 @@ export async function proxy(request: NextRequest) {
   );
 
   // IMPORTANT: do not run code between createServerClient and getUser().
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Login wall: every storefront page requires a signed-in visitor. Only the
+  // login page and legally-required pages stay public; the OAuth callback and
+  // back office (/auth, /admin, /rbac) are handled in the no-locale branch
+  // above. Unauthenticated visitors are sent to the login page with a redirect
+  // back to where they were headed.
+  const locale = pathname.split("/")[1] as Locale;
+  const rest = pathname.slice(locale.length + 1); // path after "/de" → "", "/shop", …
+  const PUBLIC_STOREFRONT = ["/login", "/legal"];
+  const isPublic = PUBLIC_STOREFRONT.some(
+    (p) => rest === p || rest.startsWith(`${p}/`),
+  );
+
+  if (!user && !isPublic) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${locale}/login`;
+    url.search = "";
+    url.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(url);
+  }
 
   return response;
 }
