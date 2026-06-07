@@ -1,53 +1,30 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext } from "react";
 
 // ── Roles ──────────────────────────────────────────────────────────────────
 export type Role = "customer" | "admin" | "owner";
 
-export const ROLE_META: Record<
-  Role,
-  { label: string; person: string; email: string; tagline: string }
-> = {
-  customer: {
-    label: "Kundin",
-    person: "Lena Vogt",
-    email: "lena@example.com",
-    tagline: "Shoppen & Bestellungen",
-  },
-  admin: {
-    label: "Admin",
-    person: "Nina S.",
-    email: "nina@norevan.shop",
-    tagline: "Tagesgeschäft & Support",
-  },
-  owner: {
-    label: "Owner",
-    person: "Ahmad A.",
-    email: "owner@norevan.shop",
-    tagline: "Zahlen & Strategie",
-  },
+export const ROLE_META: Record<Role, { label: string; tagline: string }> = {
+  customer: { label: "Kundin", tagline: "Shoppen & Bestellungen" },
+  admin: { label: "Admin", tagline: "Tagesgeschäft & Support" },
+  owner: { label: "Owner", tagline: "Zahlen & Strategie" },
 };
 
-type AuthState = {
-  role: Role;
-  setRole: (r: Role) => void;
-  person: string;
-  email: string;
-};
+export type Auth = { role: Role; person: string; email: string };
 
-const AuthContext = createContext<AuthState | null>(null);
+const AuthContext = createContext<Auth | null>(null);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [role, setRole] = useState<Role>("customer");
-  const meta = ROLE_META[role];
-  return (
-    <AuthContext.Provider
-      value={{ role, setRole, person: meta.person, email: meta.email }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+// The role now comes from the real session (resolved on the server and passed
+// in) — there is no client-side role switching.
+export function AuthProvider({
+  value,
+  children,
+}: {
+  value: Auth;
+  children: React.ReactNode;
+}) {
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

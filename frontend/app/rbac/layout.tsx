@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Cormorant_Garamond } from "next/font/google";
 import "../globals.css";
-import { AuthProvider } from "./_lib/auth-context";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -13,7 +12,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "Norevan · RBAC Demo",
+  title: "Norevan · RBAC",
   robots: { index: false, follow: false },
 };
 
@@ -25,9 +24,7 @@ export const viewport: Viewport = {
 export default function RbacLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="de" className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} h-full antialiased`}>
-      <body className="min-h-full bg-background text-foreground">
-        <AuthProvider>{children}</AuthProvider>
-      </body>
+      <body className="min-h-full bg-background text-foreground">{children}</body>
     </html>
   );
 }

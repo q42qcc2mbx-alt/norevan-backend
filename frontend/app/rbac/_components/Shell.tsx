@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useAuth, ROLE_META } from "../_lib/auth-context";
 import { NAV, ALLOWED_KEYS } from "../_lib/nav";
-import { RoleSwitcher } from "./RoleSwitcher";
 import { CustomerView } from "./CustomerView";
 import { AdminView } from "./AdminView";
 import { OwnerView } from "./OwnerView";
@@ -14,8 +13,8 @@ import { OwnerView } from "./OwnerView";
 // first page — a role can never render another role's screen.
 
 export function Shell() {
-  const { role, person } = useAuth();
-  const [active, setActive] = useState("home");
+  const { role, person, email } = useAuth();
+  const [active, setActive] = useState(NAV[role][0].key);
 
   const items = NAV[role];
   const effectiveActive = ALLOWED_KEYS[role].has(active) ? active : items[0].key;
@@ -35,10 +34,13 @@ export function Shell() {
             <span className="hidden text-right sm:block">
               <span className="block text-xs">{person}</span>
               <span className="block font-mono text-[9px] uppercase tracking-[0.2em] text-muted">
-                {ROLE_META[role].tagline}
+                {email}
               </span>
             </span>
-            <RoleSwitcher />
+            {/* Real role from the session — read-only, no mock switching. */}
+            <span className="rounded-full border border-foreground bg-foreground px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.2em] text-background">
+              {ROLE_META[role].label}
+            </span>
           </div>
         </div>
       </header>
