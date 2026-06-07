@@ -26,6 +26,12 @@ jobs:
   deploy:
     name: Build & deploy to production
     runs-on: ubuntu-latest
+    # The Next.js app lives in frontend/. Vercel's Root Directory isn't applied
+    # by a local `vercel build`, so run every step from frontend/ to build the
+    # app (not the Express backend at the repo root).
+    defaults:
+      run:
+        working-directory: frontend
     env:
       VERCEL_ORG_ID: team_qQfnOiJIWNqY0vwTx1dKYgJz
       VERCEL_PROJECT_ID: prj_wV0oFY2xM4TTr9UrdFc3yiMwDyvc
