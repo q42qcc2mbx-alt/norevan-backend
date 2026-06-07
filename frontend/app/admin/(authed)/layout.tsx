@@ -59,11 +59,7 @@ export default function AdminAuthedLayout({
           </Link>
           <div className="flex items-center gap-3">
             <AppModeButton />
-            <Suspense
-              fallback={
-                <AdminNavBar role="staff" showAnalytics={false} showTeam={false} />
-              }
-            >
+            <Suspense fallback={<div className="h-9" aria-hidden />}>
               <AdminNav />
             </Suspense>
           </div>
@@ -75,7 +71,9 @@ export default function AdminAuthedLayout({
         </Suspense>
       </main>
       <DeviceProvider />
-      <AdminAppNavBar />
+      <Suspense fallback={null}>
+        <AdminAppNavBar />
+      </Suspense>
     </div>
   );
 }
