@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Cormorant_Garamond } from "next/font/google";
 import { notFound } from "next/navigation";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -13,6 +13,9 @@ import { GrainOverlay } from "@/components/layout/GrainOverlay";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { CookieConsent } from "@/components/layout/CookieConsent";
 import { WelcomeGate } from "@/components/layout/WelcomeGate";
+import { DeviceProvider } from "@/components/device/DeviceProvider";
+import { DeviceChooser } from "@/components/device/DeviceChooser";
+import { AppNavBar } from "@/components/device/AppNavBar";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { getAllProducts } from "@/lib/products";
@@ -54,6 +57,20 @@ export const metadata: Metadata = {
   creator: "Norevan",
   publisher: "Norevan",
   formatDetection: { email: false, address: false, telephone: false },
+};
+
+// viewport-fit=cover lets App Mode use the iOS safe-area insets (notch / home
+// indicator) so the bottom tab bar sits flush like a native app.
+export const viewport: Viewport = {
+  viewportFit: "cover",
+  // Stop iOS Safari from auto-zooming on input focus / pinch — keeps the
+  // storefront steady and app-like.
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f7f3ea" },
+    { media: "(prefers-color-scheme: dark)", color: "#15110d" },
+  ],
 };
 
 export default async function LangLayout({
@@ -98,6 +115,9 @@ export default async function LangLayout({
             <PageViewTracker />
             <CookieConsent locale={locale} />
             <WelcomeGate locale={locale} />
+            <DeviceProvider />
+            <DeviceChooser locale={locale} />
+            <AppNavBar locale={locale} />
           </LenisProvider>
         </ThemeProvider>
       </body>

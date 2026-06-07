@@ -8,6 +8,10 @@ import {
   canSeeRevenue,
   effectiveRole,
 } from "@/lib/auth/admin";
+import { AdminNavBar } from "./_components/AdminNavBar";
+import { AdminAppNavBar } from "./_components/AdminAppNavBar";
+import { DeviceProvider } from "@/components/device/DeviceProvider";
+import { AppModeButton } from "@/components/device/AppModeButton";
 
 async function AdminGuard({ children }: { children: React.ReactNode }) {
   await connection();
@@ -16,57 +20,17 @@ async function AdminGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-const navLink = "hover:underline underline-offset-4";
-
-function NavLinks({
-  showAnalytics,
-  showTeam,
-}: {
-  showAnalytics: boolean;
-  showTeam: boolean;
-}) {
-  return (
-    <>
-      <Link href="/admin" className={navLink}>Dashboard</Link>
-      <Link href="/admin/products" className={navLink}>Produkte</Link>
-      <Link href="/admin/orders" className={navLink}>Bestellungen</Link>
-      {showAnalytics && (
-        <>
-          <Link href="/admin/analytics" className={navLink}>Analytics</Link>
-          <Link href="/admin/discounts" className={navLink}>Rabatte</Link>
-          <Link href="/admin/reviews" className={navLink}>Bewertungen</Link>
-          <Link href="/admin/customers" className={navLink}>Kunden</Link>
-          <Link href="/admin/newsletter" className={navLink}>Newsletter</Link>
-        </>
-      )}
-      {showTeam && (
-        <>
-          <Link href="/admin/team" className={navLink}>Team</Link>
-          <Link href="/admin/audit" className={navLink}>Protokoll</Link>
-        </>
-      )}
-      <Link href="/admin/account" className={navLink}>Konto</Link>
-    </>
-  );
-}
-
 /** Role-aware nav: Analytics only for admins/owners; shows a role chip. */
 async function AdminNav() {
   await connection();
   const user = await getAdminUser();
   const role = user ? effectiveRole(user) : "staff";
   return (
-    <nav className="flex items-center gap-6 font-mono text-[10px] uppercase tracking-[0.25em]">
-      <NavLinks showAnalytics={canSeeRevenue(role)} showTeam={role === "owner"} />
-      <span className="rounded-full border border-border-subtle px-2 py-0.5 text-[9px] tracking-[0.2em] text-muted">
-        {role}
-      </span>
-      <form action="/api/admin/logout" method="POST">
-        <button type="submit" className="text-muted hover:text-foreground">
-          Logout
-        </button>
-      </form>
-    </nav>
+    <AdminNavBar
+      role={role}
+      showAnalytics={canSeeRevenue(role)}
+      showTeam={role === "owner"}
+    />
   );
 }
 
@@ -77,7 +41,7 @@ export default function AdminAuthedLayout({
 }) {
   return (
     <div className="min-h-screen">
-      <header className="border-b border-border bg-background">
+      <header className="relative border-b border-border bg-background">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-10">
           <Link href="/admin" className="flex items-baseline gap-3">
             <span className="font-mono text-[10px] uppercase tracking-[0.35em] text-muted">
@@ -93,15 +57,12 @@ export default function AdminAuthedLayout({
               admin
             </span>
           </Link>
-          <Suspense
-            fallback={
-              <nav className="flex items-center gap-6 font-mono text-[10px] uppercase tracking-[0.25em]">
-                <NavLinks showAnalytics={false} showTeam={false} />
-              </nav>
-            }
-          >
-            <AdminNav />
-          </Suspense>
+          <div className="flex items-center gap-3">
+            <AppModeButton />
+            <Suspense fallback={<div className="h-9" aria-hidden />}>
+              <AdminNav />
+            </Suspense>
+          </div>
         </div>
       </header>
       <main>
@@ -109,6 +70,10 @@ export default function AdminAuthedLayout({
           <AdminGuard>{children}</AdminGuard>
         </Suspense>
       </main>
+      <DeviceProvider />
+      <Suspense fallback={null}>
+        <AdminAppNavBar />
+      </Suspense>
     </div>
   );
 }

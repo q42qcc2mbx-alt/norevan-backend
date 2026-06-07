@@ -8,6 +8,8 @@ import { CartIcon } from "@/components/cart/CartIcon";
 import { ThemeToggle } from "./ThemeToggle";
 import { LangSwitcher } from "./LangSwitcher";
 import { SearchOverlay } from "./SearchOverlay";
+import { AppModeToggle } from "@/components/device/AppModeToggle";
+import { AppModeButton } from "@/components/device/AppModeButton";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries/de";
 import type { Product } from "@/lib/products";
@@ -199,6 +201,9 @@ export function Header({
               )}
             </Link>
             <ThemeToggle label={dict.theme.toggle} />
+            <span className="inline-flex md:hidden">
+              <AppModeButton />
+            </span>
             <CartIcon ariaLabel={dict.nav.cart} />
 
             {/* Hamburger — mobile only */}
@@ -323,6 +328,7 @@ export function Header({
                     />
                   )}
                 </Link>
+                <AppModeToggle locale={locale} />
               </div>
 
               {/* Bottom bar */}

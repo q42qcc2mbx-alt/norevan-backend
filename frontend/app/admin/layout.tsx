@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Cormorant_Garamond } from "next/font/google";
 import "../globals.css";
 
@@ -14,6 +14,15 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   title: "Norevan · Admin",
   robots: { index: false, follow: false },
+};
+
+// App-like behaviour: cover the safe area and stop iOS Safari from auto-zooming
+// on input focus / pinch (keeps the back office steady like a native app).
+export const viewport: Viewport = {
+  viewportFit: "cover",
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#15110d",
 };
 
 export default function AdminRootLayout({
