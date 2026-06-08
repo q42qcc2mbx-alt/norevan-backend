@@ -12,6 +12,7 @@ import { AdminNavBar } from "./_components/AdminNavBar";
 import { AdminAppNavBar } from "./_components/AdminAppNavBar";
 import { DeviceProvider } from "@/components/device/DeviceProvider";
 import { AppModeButton } from "@/components/device/AppModeButton";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 async function AdminGuard({ children }: { children: React.ReactNode }) {
   await connection();
@@ -58,6 +59,7 @@ export default function AdminAuthedLayout({
             </span>
           </Link>
           <div className="flex items-center gap-3">
+            <ThemeToggle label="Hell-/Dunkelmodus" />
             <AppModeButton />
             <Suspense fallback={<div className="h-9" aria-hidden />}>
               <AdminNav />

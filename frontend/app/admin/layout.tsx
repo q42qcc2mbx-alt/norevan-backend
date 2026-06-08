@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Cormorant_Garamond } from "next/font/google";
 import "../globals.css";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -22,7 +23,10 @@ export const viewport: Viewport = {
   viewportFit: "cover",
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#15110d",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f7f3ea" },
+    { media: "(prefers-color-scheme: dark)", color: "#15110d" },
+  ],
 };
 
 export default function AdminRootLayout({
@@ -33,10 +37,15 @@ export default function AdminRootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${geistSans.variable} ${geistMono.variable} ${cormorant.variable} h-full`}
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} h-full`}
     >
       <body className="min-h-full bg-background text-foreground antialiased">
-        {children}
+        {/* Back office defaults to dark (its original look) but can switch to a
+            light "hell" mode; the choice persists across the whole site. */}
+        <ThemeProvider defaultTheme="dark" enableSystem={false}>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
