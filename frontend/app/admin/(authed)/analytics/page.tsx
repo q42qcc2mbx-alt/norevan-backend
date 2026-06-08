@@ -4,7 +4,6 @@ import { getAdminUser, canSeeRevenue, effectiveRole } from "@/lib/auth/admin";
 import { getAnalytics } from "@/lib/analytics";
 import { getAllOrders } from "@/lib/orders";
 import { RevenueChart, type ChartPoint } from "@/components/admin/RevenueChart";
-import { SalesMap } from "@/components/admin/SalesMap";
 import { formatPrice } from "@/lib/format";
 import { toISOCountry } from "@/lib/country";
 import { cn } from "@/lib/cn";
@@ -81,7 +80,6 @@ export default async function AnalyticsPage({
     .sort((a, b) => b.cents - a.cents)
     .slice(0, 6);
   const maxRev = Math.max(1, ...topRevCountries.map((c) => c.cents));
-  const revByCountryRecord: Record<string, number> = Object.fromEntries(revByCountry);
 
   // Sales heatmap: weekday (Mon-first) × 2-hour bucket, counted from orders.
   const heat = Array.from({ length: 7 }, () => Array(HEAT_BUCKETS).fill(0));
@@ -217,35 +215,33 @@ export default async function AnalyticsPage({
             )}
           </div>
 
-          {/* Umsatz nach Land — geographic map + ranked list (real orders) */}
+          {/* Umsatz nach Land — ranked (real orders). The geographic map with
+              green city markers lives on /admin/live. */}
           <div className="mt-10 rounded-md border border-border bg-card p-6">
-            <div className="mb-5 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
-              Umsatz nach Land · Karte
+            <div className="mb-4 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+              Umsatz nach Land · realisiert
             </div>
             {topRevCountries.length === 0 ? (
               <p className="text-sm text-muted">Noch keine Verkäufe.</p>
             ) : (
-              <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr]">
-                <SalesMap revenueByCountry={revByCountryRecord} />
-                <ul className="space-y-3 lg:border-l lg:border-border-subtle lg:pl-8">
-                  {topRevCountries.map((c) => (
-                    <li key={c.cc}>
-                      <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
-                        <span>{flag(c.cc)}&nbsp;&nbsp;{countryName(c.cc)}</span>
-                        <span className="font-mono text-[11px] tabular-nums text-muted">
-                          {formatPrice(c.cents, "de")}
-                        </span>
-                      </div>
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-muted-bg">
-                        <div
-                          className="h-full rounded-full"
-                          style={{ width: `${(c.cents / maxRev) * 100}%`, background: "var(--gold)" }}
-                        />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <ul className="space-y-3">
+                {topRevCountries.map((c) => (
+                  <li key={c.cc}>
+                    <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
+                      <span>{flag(c.cc)}&nbsp;&nbsp;{countryName(c.cc)}</span>
+                      <span className="font-mono text-[11px] tabular-nums text-muted">
+                        {formatPrice(c.cents, "de")}
+                      </span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted-bg">
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${(c.cents / maxRev) * 100}%`, background: "var(--gold)" }}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
 

@@ -24,6 +24,7 @@ function buildLinks({ showAnalytics, showTeam }: AdminNavProps): NavItem[] {
   ];
   if (showAnalytics) {
     links.push(
+      { href: "/admin/live", label: "Live" },
       { href: "/admin/analytics", label: "Analytics" },
       { href: "/admin/discounts", label: "Rabatte" },
       { href: "/admin/reviews", label: "Bewertungen" },
