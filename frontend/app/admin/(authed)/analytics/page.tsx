@@ -6,6 +6,7 @@ import { getAllOrders } from "@/lib/orders";
 import { RevenueChart, type ChartPoint } from "@/components/admin/RevenueChart";
 import { SalesMap } from "@/components/admin/SalesMap";
 import { formatPrice } from "@/lib/format";
+import { toISOCountry } from "@/lib/country";
 import { cn } from "@/lib/cn";
 
 const REALIZED = new Set(["paid", "shipped", "delivered"]);
@@ -72,7 +73,7 @@ export default async function AnalyticsPage({
   const revByCountry = new Map<string, number>();
   for (const o of orders) {
     if (!REALIZED.has(o.status)) continue;
-    const cc = (o.country || "??").toUpperCase();
+    const cc = toISOCountry(o.country);
     revByCountry.set(cc, (revByCountry.get(cc) ?? 0) + o.subtotalCents);
   }
   const topRevCountries = Array.from(revByCountry.entries())
