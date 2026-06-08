@@ -23,49 +23,59 @@ function deName(cc: string): string {
 
 export default async function LivePage() {
   const user = await getAdminUser();
-  if (!user || !canSeeRevenue(effectiveRole(user))) redirect("/admin");
+  if (!user) redirect("/admin/login");
+  const role = effectiveRole(user);
+  // Live order feed is for owner + admin; the sales map is owner-only.
+  if (!canSeeRevenue(role)) redirect("/admin");
+  const isOwner = role === "owner";
 
-  const orders = await getAllOrders(1000);
+  // Build the map only for the owner (skips the geocoding work otherwise).
+  let points: SalesPoint[] = [];
+  let totalCents = 0;
+  let totalOrders = 0;
+  if (isOwner) {
+    const orders = await getAllOrders(1000);
 
-  // Aggregate non-cancelled orders by city (+ country) → one map marker each.
-  const cityMap = new Map<
-    string,
-    { city: string; zip: string; country: string; cents: number; count: number }
-  >();
-  for (const o of orders) {
-    if (o.status === "cancelled") continue;
-    const city = (o.city ?? "").trim();
-    if (!city) continue;
-    const cc = toISOCountry(o.country);
-    const key = `${city.toLowerCase()}|${cc}`;
-    const prev =
-      cityMap.get(key) ?? { city, zip: o.zip ?? "", country: cc, cents: 0, count: 0 };
-    prev.cents += o.subtotalCents;
-    prev.count += 1;
-    cityMap.set(key, prev);
+    // Aggregate non-cancelled orders by city (+ country) → one map marker each.
+    const cityMap = new Map<
+      string,
+      { city: string; zip: string; country: string; cents: number; count: number }
+    >();
+    for (const o of orders) {
+      if (o.status === "cancelled") continue;
+      const city = (o.city ?? "").trim();
+      if (!city) continue;
+      const cc = toISOCountry(o.country);
+      const key = `${city.toLowerCase()}|${cc}`;
+      const prev =
+        cityMap.get(key) ?? { city, zip: o.zip ?? "", country: cc, cents: 0, count: 0 };
+      prev.cents += o.subtotalCents;
+      prev.count += 1;
+      cityMap.set(key, prev);
+    }
+
+    const aggs = Array.from(cityMap.values()).slice(0, 60);
+    points = (
+      await Promise.all(
+        aggs.map(async (a): Promise<SalesPoint | null> => {
+          const g = await geocode(`${a.city} ${a.zip} ${deName(a.country)}`.trim());
+          return g
+            ? {
+                city: a.city,
+                country: a.country,
+                lat: g.lat,
+                lon: g.lon,
+                cents: a.cents,
+                count: a.count,
+              }
+            : null;
+        }),
+      )
+    ).filter((p): p is SalesPoint => p !== null);
+
+    totalCents = aggs.reduce((s, a) => s + a.cents, 0);
+    totalOrders = aggs.reduce((s, a) => s + a.count, 0);
   }
-
-  const aggs = Array.from(cityMap.values()).slice(0, 60);
-  const points = (
-    await Promise.all(
-      aggs.map(async (a): Promise<SalesPoint | null> => {
-        const g = await geocode(`${a.city} ${a.zip} ${deName(a.country)}`.trim());
-        return g
-          ? {
-              city: a.city,
-              country: a.country,
-              lat: g.lat,
-              lon: g.lon,
-              cents: a.cents,
-              count: a.count,
-            }
-          : null;
-      }),
-    )
-  ).filter((p): p is SalesPoint => p !== null);
-
-  const totalCents = aggs.reduce((s, a) => s + a.cents, 0);
-  const totalOrders = aggs.reduce((s, a) => s + a.count, 0);
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12 md:px-10 md:py-16">
@@ -81,29 +91,33 @@ export default async function LivePage() {
             lineHeight: 1,
           }}
         >
-          Standorte &amp; Live-Bestellungen
+          {isOwner ? "Standorte & Live-Bestellungen" : "Live-Bestellungen"}
         </h1>
         <p className="mt-3 text-sm text-muted">
-          Jede Stadt, in der verkauft wurde — und der laufende Bestelleingang.
+          {isOwner
+            ? "Jede Stadt, in der verkauft wurde — und der laufende Bestelleingang."
+            : "Der laufende Bestelleingang in Echtzeit."}
         </p>
       </header>
 
-      <div className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <Stat label="Städte" value={String(points.length)} />
-        <Stat label="Bestellungen" value={String(totalOrders)} />
-        <Stat label="Umsatz (Karte)" value={formatPrice(totalCents, "de")} />
-      </div>
+      {isOwner && (
+        <>
+          <div className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <Stat label="Städte" value={String(points.length)} />
+            <Stat label="Bestellungen" value={String(totalOrders)} />
+            <Stat label="Umsatz (Karte)" value={formatPrice(totalCents, "de")} />
+          </div>
 
-      <SalesGeoMap points={points} />
+          <SalesGeoMap points={points} />
 
-      <div className="mt-3 flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.15em] text-muted">
-        <span className="inline-block h-3 w-3 rounded-full border-2 border-[#15803d] bg-[#22c55e]/60" />
-        Grün = Verkaufsstandort · Größe nach Umsatz
-      </div>
+          <div className="mt-3 mb-10 flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.15em] text-muted">
+            <span className="inline-block h-3 w-3 rounded-full border-2 border-[#15803d] bg-[#22c55e]/60" />
+            Grün = Verkaufsstandort · Größe nach Umsatz
+          </div>
+        </>
+      )}
 
-      <div className="mt-10">
-        <LiveOrders />
-      </div>
+      <LiveOrders />
     </div>
   );
 }
