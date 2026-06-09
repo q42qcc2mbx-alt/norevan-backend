@@ -394,11 +394,9 @@ export async function sendOrderConfirmation(order) {
   }
 
   try {
-    const notify = process.env.ORDER_NOTIFY_EMAIL || process.env.GMAIL_USER;
     await getTransporter().sendMail({
       from: mailFrom(),
       to: order.email,
-      ...(notify ? { bcc: notify } : {}),
       subject,
       text,
       html,
@@ -408,6 +406,55 @@ export async function sendOrderConfirmation(order) {
   } catch (err) {
     console.error('[emailService] E-Mail fehlgeschlagen:', err.message);
   }
+
+  // Dedicated heads-up to the shop owner (best-effort, never blocks the order).
+  sendNewOrderAlert(order).catch((err) =>
+    console.error('[emailService] Bestell-Alert fehlgeschlagen:', err.message),
+  );
+}
+
+/**
+ * Short, clearly-subjected alert to the shop owner whenever a new order is
+ * confirmed. Goes to ORDER_NOTIFY_EMAIL (falls back to the Gmail account).
+ */
+export async function sendNewOrderAlert(order) {
+  const to = process.env.ORDER_NOTIFY_EMAIL || process.env.GMAIL_USER;
+  if (!to || !process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) return;
+
+  const name =
+    `${order.firstName ?? ''} ${order.lastName ?? ''}`.trim() || order.email;
+  const items = order.items ?? [];
+  const count = items.reduce((s, i) => s + i.qty, 0);
+  const itemsText = items
+    .map((i) => `• ${i.qty}× ${i.name}${i.size ? ` (Gr. ${i.size})` : ''} — ${eur(i.priceCents * i.qty)}`)
+    .join('\n');
+  const itemsHtml = items
+    .map(
+      (i) =>
+        `<tr><td style="padding:4px 0">${i.qty}× ${i.name}${i.size ? ` <span style="color:${BRAND.muted}">(Gr. ${i.size})</span>` : ''}</td><td style="padding:4px 0;text-align:right;white-space:nowrap">${eur(i.priceCents * i.qty)}</td></tr>`,
+    )
+    .join('');
+  const orderUrl = `${BRAND.site}/admin/orders/${order.orderId}`;
+  const subject = `🛍️ Neue Bestellung — ${eur(order.subtotalCents)} — ${name}`;
+
+  const text =
+    `Neue Bestellung bei Norevan\n\n` +
+    `Kunde: ${name}\nE-Mail: ${order.email}\n` +
+    `Ort: ${order.zip ?? ''} ${order.city ?? ''} ${order.country ?? ''}\n\n` +
+    `Artikel (${count}):\n${itemsText}\n\n` +
+    `Gesamt: ${eur(order.subtotalCents)}\n\nÖffnen: ${orderUrl}`;
+
+  const html = `<div style="font-family:system-ui,-apple-system,sans-serif;max-width:480px;margin:0 auto;color:${BRAND.text}">
+      <h2 style="font-size:18px;margin:0 0 4px">🛍️ Neue Bestellung</h2>
+      <p style="color:${BRAND.muted};margin:0 0 16px;font-size:13px">${name} · ${order.zip ?? ''} ${order.city ?? ''} ${order.country ?? ''}</p>
+      <table style="width:100%;border-collapse:collapse;font-size:14px">${itemsHtml}
+        <tr><td style="padding:10px 0 0;border-top:1px solid ${BRAND.line};font-weight:600">Gesamt</td><td style="padding:10px 0 0;border-top:1px solid ${BRAND.line};text-align:right;font-weight:600">${eur(order.subtotalCents)}</td></tr>
+      </table>
+      <p style="margin:22px 0 0"><a href="${orderUrl}" style="background:${BRAND.ink};color:#fff;text-decoration:none;padding:11px 20px;border-radius:999px;font-size:13px;display:inline-block">Bestellung öffnen</a></p>
+    </div>`;
+
+  await getTransporter().sendMail({ from: mailFrom(), to, subject, text, html });
+  console.log(`[emailService] Bestell-Alert gesendet an ${to}`);
 }
 
 /** Sign-in notification — sent on each login of a real account. */

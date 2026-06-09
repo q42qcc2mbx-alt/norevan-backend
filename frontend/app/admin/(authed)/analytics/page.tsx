@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getAdminUser, canSeeRevenue, effectiveRole } from "@/lib/auth/admin";
 import { getAnalytics } from "@/lib/analytics";
 import { getAllOrders } from "@/lib/orders";
+import { getAllProducts } from "@/lib/products";
 import { RevenueChart, type ChartPoint } from "@/components/admin/RevenueChart";
 import { formatPrice } from "@/lib/format";
 import { toISOCountry } from "@/lib/country";
@@ -46,13 +47,36 @@ export default async function AnalyticsPage({
 }) {
   const user = await getAdminUser();
   if (!user || !canSeeRevenue(effectiveRole(user))) redirect("/admin");
+  const isOwner = effectiveRole(user) === "owner";
 
   const sp = await searchParams;
   const days = RANGES.includes(Number(sp?.days) as (typeof RANGES)[number])
     ? Number(sp.days)
     : 30;
 
-  const [data, orders] = await Promise.all([getAnalytics(days), getAllOrders(1000)]);
+  const [data, orders, products] = await Promise.all([
+    getAnalytics(days),
+    getAllOrders(1000),
+    isOwner ? getAllProducts() : Promise.resolve([]),
+  ]);
+
+  // Profit & margin (owner only) — realized orders, cost from product catalogue.
+  const costBySlug = new Map<string, number>(
+    products.map((p) => [p.slug, p.costCents ?? 0]),
+  );
+  let realizedRevenueCents = 0;
+  let cogsCents = 0;
+  for (const o of orders) {
+    if (!REALIZED.has(o.status)) continue;
+    for (const it of o.items) {
+      realizedRevenueCents += it.priceCents * it.qty;
+      cogsCents += (costBySlug.get(it.slug) ?? 0) * it.qty;
+    }
+  }
+  const profitCents = realizedRevenueCents - cogsCents;
+  const marginPct =
+    realizedRevenueCents > 0 ? (profitCents / realizedRevenueCents) * 100 : 0;
+  const hasCost = cogsCents > 0;
 
   // Orders placed within the window → conversion against unique visitors.
   const since = new Date().getTime() - days * 24 * 60 * 60 * 1000;
@@ -132,6 +156,26 @@ export default async function AnalyticsPage({
           </div>
         </div>
       </header>
+
+      {/* Profit & margin — owner only, realized orders vs. purchase prices */}
+      {isOwner && (
+        <div className="mb-10">
+          <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+            Gewinn · realisiert (Gesamt)
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Stat label="Umsatz" value={formatPrice(realizedRevenueCents, "de")} />
+            <Stat label="Wareneinsatz" value={formatPrice(cogsCents, "de")} />
+            <Stat label="Gewinn" value={formatPrice(profitCents, "de")} />
+            <Stat label="Marge" value={`${marginPct.toFixed(1)} %`} />
+          </div>
+          {!hasCost && (
+            <p className="mt-3 font-mono text-[10px] text-muted">
+              Hinterlege bei den Produkten den <strong>Einkaufspreis</strong>, damit Gewinn &amp; Marge echt berechnet werden.
+            </p>
+          )}
+        </div>
+      )}
 
       {!data ? (
         <p className="text-muted">Analytics konnten nicht geladen werden.</p>

@@ -29,6 +29,8 @@ export type Product = {
   name: string;
   brand: Brand;
   priceCents: number;
+  /** Purchase/cost price (net, cents) — back office only, for profit & margin. */
+  costCents?: number;
   categories: Category[];
   images: { src: string; alt: string }[];
   sizes?: string[];
