@@ -113,7 +113,7 @@ export function LiveOrders() {
             <li key={o.id}>
               <Link
                 href={`/admin/orders/${o.id}`}
-                className="flex flex-wrap items-center gap-x-4 gap-y-1 px-6 py-4 transition-colors hover:bg-muted-bg"
+                className="group flex flex-wrap items-center gap-x-4 gap-y-1 px-6 py-4 transition-colors hover:bg-muted-bg"
                 title="Rechnung & Details öffnen"
               >
                 <div className="min-w-0 flex-1">
