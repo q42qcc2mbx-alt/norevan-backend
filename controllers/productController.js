@@ -48,6 +48,8 @@ function rowToProduct(row) {
     name: row.name,
     brand: row.brand,
     priceCents: row.price_cents,
+    // Purchase price (net) — back office only, used for profit/margin.
+    costCents: row.cost_cents ?? 0,
     categories: JSON.parse(row.categories_json),
     images: JSON.parse(row.images_json),
     sizes: row.sizes_json ? JSON.parse(row.sizes_json) : undefined,
@@ -126,11 +128,12 @@ export const createProduct = async (req, res, next) => {
     const p = req.body;
     const sbs = normalizeStockBySize(p.stockBySize);
     const stockVal = sbs ? sumStock(sbs) : (Number.isFinite(p.stock) ? p.stock : 0);
+    const costVal = Number.isFinite(p.costCents) ? Math.max(0, Math.floor(p.costCents)) : 0;
     await pool.query(
       `INSERT INTO products (
         slug, name, brand, price_cents, categories_json, images_json, sizes_json,
-        description_de, description_en, specs_json, highlight, hero, stock, stock_by_size
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+        description_de, description_en, specs_json, highlight, hero, stock, stock_by_size, cost_cents
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
       [
         p.slug, p.name, p.brand, p.priceCents,
         JSON.stringify(p.categories ?? []),
@@ -141,6 +144,7 @@ export const createProduct = async (req, res, next) => {
         p.highlight ? 1 : 0, p.hero ? 1 : 0,
         stockVal,
         sbs ? JSON.stringify(sbs) : null,
+        costVal,
       ],
     );
 
@@ -177,15 +181,16 @@ export const updateProduct = async (req, res, next) => {
 
       const sbs = normalizeStockBySize(merged.stockBySize);
       const stockVal = sbs ? sumStock(sbs) : (Number.isFinite(merged.stock) ? merged.stock : 0);
+      const costVal = Number.isFinite(merged.costCents) ? Math.max(0, Math.floor(merged.costCents)) : 0;
       await client.query(
         `INSERT INTO products (
           slug, name, brand, price_cents, categories_json, images_json, sizes_json,
-          description_de, description_en, specs_json, highlight, hero, stock, stock_by_size, updated_at
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW())
+          description_de, description_en, specs_json, highlight, hero, stock, stock_by_size, cost_cents, updated_at
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,NOW())
         ON CONFLICT (slug) DO UPDATE SET
           name=$2, brand=$3, price_cents=$4, categories_json=$5,
           images_json=$6, sizes_json=$7, description_de=$8, description_en=$9,
-          specs_json=$10, highlight=$11, hero=$12, stock=$13, stock_by_size=$14, updated_at=NOW()`,
+          specs_json=$10, highlight=$11, hero=$12, stock=$13, stock_by_size=$14, cost_cents=$15, updated_at=NOW()`,
         [
           merged.slug, merged.name, merged.brand, merged.priceCents,
           JSON.stringify(merged.categories ?? []),
@@ -196,6 +201,7 @@ export const updateProduct = async (req, res, next) => {
           merged.highlight ? 1 : 0, merged.hero ? 1 : 0,
           stockVal,
           sbs ? JSON.stringify(sbs) : null,
+          costVal,
         ],
       );
 

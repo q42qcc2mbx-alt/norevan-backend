@@ -58,6 +58,15 @@ export function ProductForm({
           }
         />
         <Field
+          label="Einkaufspreis (€)"
+          name="cost"
+          type="number"
+          step="0.01"
+          defaultValue={
+            product?.costCents ? (product.costCents / 100).toFixed(2) : undefined
+          }
+        />
+        <Field
           label="Stock"
           name="stock"
           type="number"

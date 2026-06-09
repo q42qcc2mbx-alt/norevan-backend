@@ -125,6 +125,10 @@ function buildProduct(form: FormData, existingSlug?: string): Product {
   }
   const priceCents = Math.round(priceEuro * 100);
 
+  const costEuro = Number(String(form.get("cost") ?? "0").replace(",", "."));
+  const costCents =
+    Number.isFinite(costEuro) && costEuro > 0 ? Math.round(costEuro * 100) : 0;
+
   const categoriesRaw = form.getAll("categories").map(String);
   const categories: Category[] = categoriesRaw.filter((c): c is Category =>
     (CATEGORIES as readonly string[]).includes(c),
@@ -158,6 +162,7 @@ function buildProduct(form: FormData, existingSlug?: string): Product {
     name: rawName,
     brand,
     priceCents,
+    costCents,
     categories,
     images,
     sizes,
