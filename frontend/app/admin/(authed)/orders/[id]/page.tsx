@@ -26,12 +26,20 @@ export default async function AdminOrderDetail({
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12 md:px-10 md:py-16">
-      <Link
-        href="/admin/orders"
-        className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted hover:text-foreground"
-      >
-        ← Bestellungen
-      </Link>
+      <div className="flex items-center justify-between gap-4">
+        <Link
+          href="/admin/orders"
+          className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted hover:text-foreground"
+        >
+          ← Bestellungen
+        </Link>
+        <Link
+          href={`/admin/orders/${order.id}/invoice`}
+          className="rounded-full border border-border px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted transition-colors hover:text-foreground"
+        >
+          Rechnung / PDF
+        </Link>
+      </div>
 
       <header className="mt-4 mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6">
         <div>
