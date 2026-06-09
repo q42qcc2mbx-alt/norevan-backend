@@ -42,7 +42,7 @@ export default function AdminAuthedLayout({
 }) {
   return (
     <div className="min-h-screen">
-      <header className="relative border-b border-border bg-background">
+      <header className="relative border-b border-border bg-background print:hidden">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 md:px-10">
           <Link href="/admin" className="flex items-baseline gap-3">
             <span className="font-mono text-[10px] uppercase tracking-[0.35em] text-muted">
@@ -73,9 +73,11 @@ export default function AdminAuthedLayout({
         </Suspense>
       </main>
       <DeviceProvider />
-      <Suspense fallback={null}>
-        <AdminAppNavBar />
-      </Suspense>
+      <div className="print:hidden">
+        <Suspense fallback={null}>
+          <AdminAppNavBar />
+        </Suspense>
+      </div>
     </div>
   );
 }
