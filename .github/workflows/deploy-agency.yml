@@ -1,0 +1,56 @@
+name: Deploy Agency (Vercel)
+
+# Deploys the agency website (agency/) to its own Vercel project,
+# separate from the shop frontend. Uses the same VERCEL_TOKEN repo secret
+# as deploy-frontend.yml.
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - claude/agency-website-build-kkafua
+    paths:
+      - "agency/**"
+      - ".github/workflows/deploy-agency.yml"
+
+concurrency:
+  group: deploy-vercel-agency
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build & deploy agency site
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agency
+    env:
+      VERCEL_ORG_ID: team_qQfnOiJIWNqY0vwTx1dKYgJz
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Fail early if token is missing
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::VERCEL_TOKEN secret is not set. Add it under" \
+                 "Settings → Secrets and variables → Actions, then re-run."
+            exit 1
+          fi
+
+      - name: Link to the norevan-agency Vercel project (created if missing)
+        run: vercel link --yes --project norevan-agency --token="$VERCEL_TOKEN"
+
+      - name: Deploy to production (Vercel builds from source)
+        run: |
+          url=$(vercel deploy --prod --yes --token="$VERCEL_TOKEN")
+          echo "Deployed: $url"
+          echo "### ✅ Agency deploy" >> "$GITHUB_STEP_SUMMARY"
+          echo "$url" >> "$GITHUB_STEP_SUMMARY"
