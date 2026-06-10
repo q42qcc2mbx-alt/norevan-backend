@@ -26,6 +26,7 @@ jobs:
         working-directory: agency
     env:
       VERCEL_ORG_ID: team_qQfnOiJIWNqY0vwTx1dKYgJz
+      VERCEL_PROJECT_ID: prj_JBjVt1yAgHVLzMZtVK94lSMvqLgS
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -44,9 +45,6 @@ jobs:
                  "Settings → Secrets and variables → Actions, then re-run."
             exit 1
           fi
-
-      - name: Link to the norevan-agency Vercel project (created if missing)
-        run: vercel link --yes --project norevan-agency --token="$VERCEL_TOKEN"
 
       - name: Deploy to production (Vercel builds from source)
         run: |
