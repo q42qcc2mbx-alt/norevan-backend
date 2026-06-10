@@ -212,3 +212,36 @@ html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 .lenis.lenis-stopped { overflow: hidden; }
+
+/* === JARVIS OMEGA — futuristic owner console === */
+.jarvis-bg {
+  background:
+    radial-gradient(1100px 560px at 72% -8%, rgba(34, 211, 238, 0.09), transparent 60%),
+    radial-gradient(820px 520px at 8% 112%, rgba(200, 169, 106, 0.07), transparent 60%);
+}
+.jarvis-panel {
+  background: color-mix(in oklab, var(--card) 94%, #22d3ee 3%);
+  border: 1px solid rgba(34, 211, 238, 0.22);
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.07), inset 0 0 24px rgba(34, 211, 238, 0.04);
+}
+.jarvis-core {
+  background: radial-gradient(circle, #e0fdff 0%, #22d3ee 45%, rgba(34, 211, 238, 0.15) 75%);
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.9), 0 0 50px rgba(34, 211, 238, 0.4);
+  animation: jarvis-pulse 2.4s ease-in-out infinite;
+}
+.jarvis-reactor-ring {
+  border: 2px solid rgba(34, 211, 238, 0.5);
+  border-top-color: transparent;
+  animation: jarvis-spin 6s linear infinite;
+}
+.jarvis-reactor-ring2 {
+  border: 1px dashed rgba(200, 169, 106, 0.55);
+  animation: jarvis-spin 11s linear infinite reverse;
+}
+.jarvis-title { text-shadow: 0 0 18px rgba(34, 211, 238, 0.45); }
+.jarvis-glow {
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.6);
+  animation: jarvis-pulse 1.6s ease-in-out infinite;
+}
+@keyframes jarvis-pulse { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
+@keyframes jarvis-spin { to { transform: rotate(360deg); } }

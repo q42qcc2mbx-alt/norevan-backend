@@ -34,6 +34,7 @@ function buildLinks({ showAnalytics, showTeam }: AdminNavProps): NavItem[] {
   }
   if (showTeam) {
     links.push(
+      { href: "/admin/jarvis", label: "Jarvis" },
       { href: "/admin/team", label: "Team" },
       { href: "/admin/audit", label: "Protokoll" },
     );
