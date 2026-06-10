@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getProduct, relatedProducts } from "@/lib/products";
+import { getProduct, relatedProducts, alsoBought } from "@/lib/products";
 import { getReviews } from "@/lib/reviews";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
@@ -51,6 +51,7 @@ export default async function ProductPage({
   if (!product) notFound();
 
   const related = await relatedProducts(slug, 4);
+  const coBought = await alsoBought(slug);
   const reviews = await getReviews(slug);
 
   return (
@@ -66,6 +67,38 @@ export default async function ProductPage({
         ]}
       />
       <ProductDetailView product={product} locale={lang} dict={dict} reviews={reviews} />
+
+      {coBought.length > 0 && (
+        <section className="mt-24 border-t border-border-subtle pt-16 md:mt-32 md:pt-20">
+          <Reveal>
+            <span className="eyebrow">{lang === "de" ? "Beliebt zusammen" : "Often together"}</span>
+            <h2
+              className="mt-4 mb-10 font-serif"
+              style={{
+                fontFamily: "var(--font-cormorant), Georgia, serif",
+                fontSize: "clamp(1.75rem, 3.5vw, 2.75rem)",
+                lineHeight: 1.05,
+              }}
+            >
+              {lang === "de" ? (
+                <>
+                  Kunden kauften <em>auch.</em>
+                </>
+              ) : (
+                <>
+                  Customers also <em>bought.</em>
+                </>
+              )}
+            </h2>
+          </Reveal>
+          <ProductGrid
+            products={coBought}
+            locale={lang}
+            ctaLabel={dict.shop.addToCart}
+            emptyLabel={dict.shop.empty}
+          />
+        </section>
+      )}
 
       {related.length > 0 && (
         <section className="mt-24 border-t border-border-subtle pt-16 md:mt-32 md:pt-20">

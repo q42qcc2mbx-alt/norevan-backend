@@ -83,6 +83,19 @@ export async function relatedProducts(
     .map((x) => x.product);
 }
 
+/** "Kunden kauften auch" — products co-purchased in the same orders. */
+export async function alsoBought(slug: string): Promise<Product[]> {
+  try {
+    return await api.get<Product[]>(
+      `/products/${encodeURIComponent(slug)}/also-bought`,
+      { noAuth: true, next: { revalidate: 300, tags: ["products"] } },
+    );
+  } catch (err) {
+    console.warn("[products] alsoBought failed:", (err as Error).message);
+    return [];
+  }
+}
+
 // ─── Write API (admin actions call these via the backend) ────────────────
 export async function upsertProduct(p: Product): Promise<Product> {
   // PUT is idempotent — backend will INSERT-OR-UPDATE by slug.

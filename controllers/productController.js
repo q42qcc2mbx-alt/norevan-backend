@@ -132,6 +132,33 @@ export const getProductBySlug = async (req, res, next) => {
   }
 };
 
+// GET /products/:slug/also-bought — products most often bought in the same
+// orders as this one ("Kunden kauften auch"), ranked by co-purchase count.
+export const getAlsoBought = async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT p.*, r.rating_avg, r.rating_count
+       FROM (
+         SELECT oi2.slug, COUNT(*)::int AS cnt
+         FROM order_items oi1
+         JOIN order_items oi2 ON oi2.order_id = oi1.order_id AND oi2.slug <> oi1.slug
+         WHERE oi1.slug = $1
+         GROUP BY oi2.slug
+         ORDER BY cnt DESC
+         LIMIT 4
+       ) x
+       JOIN products p ON p.slug = x.slug
+       ${RATING_JOIN}
+       ORDER BY x.cnt DESC`,
+      [req.params.slug],
+    );
+    res.set('Cache-Control', CATALOG_CACHE);
+    res.json({ status: 'success', data: rows.map(rowToProduct) });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const createProduct = async (req, res, next) => {
   try {
     const errors = validateProduct(req.body);
