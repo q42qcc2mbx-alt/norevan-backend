@@ -60,6 +60,9 @@ function rowToProduct(row) {
     stock: row.stock,
     // Per-size inventory (pg parses jsonb → object). undefined when not used.
     stockBySize: row.stock_by_size ?? undefined,
+    // Review aggregate (present on catalogue reads; 0 on create/update rows).
+    rating: row.rating_avg != null ? Number(row.rating_avg) : 0,
+    ratingCount: row.rating_count != null ? Number(row.rating_count) : 0,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -96,9 +99,18 @@ function validateProduct(p) {
 // briefly and serve stale while revalidating. Admin edits show up within a minute.
 const CATALOG_CACHE = 'public, max-age=60, stale-while-revalidate=300';
 
+// Catalogue SELECT enriched with each product's review average + count, so the
+// storefront can show rating stars on cards without an extra request per item.
+const RATING_JOIN = `LEFT JOIN (
+    SELECT product_slug, ROUND(AVG(rating)::numeric, 2) AS rating_avg, COUNT(*)::int AS rating_count
+    FROM reviews GROUP BY product_slug
+  ) r ON r.product_slug = p.slug`;
+
 export const listProducts = async (req, res, next) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM products ORDER BY created_at DESC');
+    const { rows } = await pool.query(
+      `SELECT p.*, r.rating_avg, r.rating_count FROM products p ${RATING_JOIN} ORDER BY p.created_at DESC`,
+    );
     res.set('Cache-Control', CATALOG_CACHE);
     res.json({ status: 'success', data: rows.map(rowToProduct) });
   } catch (err) {
@@ -108,7 +120,10 @@ export const listProducts = async (req, res, next) => {
 
 export const getProductBySlug = async (req, res, next) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM products WHERE slug = $1', [req.params.slug]);
+    const { rows } = await pool.query(
+      `SELECT p.*, r.rating_avg, r.rating_count FROM products p ${RATING_JOIN} WHERE p.slug = $1`,
+      [req.params.slug],
+    );
     if (rows.length === 0) return res.status(404).json({ status: 'error', message: 'Product not found' });
     res.set('Cache-Control', CATALOG_CACHE);
     res.json({ status: 'success', data: rowToProduct(rows[0]) });
