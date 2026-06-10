@@ -42,6 +42,9 @@ export type Product = {
   /** Per-size inventory map, e.g. { S: 3, M: 0, L: 5 }. When set it is the
    *  source of truth and `stock` is its sum; absent ⇒ aggregate stock only. */
   stockBySize?: Record<string, number>;
+  /** Review aggregate from the catalogue API (0 when no reviews yet). */
+  rating?: number;
+  ratingCount?: number;
 };
 
 export const APPAREL_SIZES = ["XS", "S", "M", "L", "XL"];

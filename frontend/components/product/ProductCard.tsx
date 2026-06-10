@@ -9,6 +9,9 @@ import type { Locale } from "@/lib/i18n/config";
 import { formatPrice } from "@/lib/format";
 import { cn } from "@/lib/cn";
 import { useWishlist } from "@/lib/wishlist-store";
+import { Stars } from "./Stars";
+
+const LOW_STOCK = 5;
 
 export function ProductCard({
   product,
@@ -68,10 +71,20 @@ export function ProductCard({
           />
         </motion.div>
       </Link>
-      {product.stock === 0 && (
+      {product.stock === 0 ? (
         <span className="absolute left-2 top-2 rounded-full bg-background/85 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.2em] text-foreground backdrop-blur-sm">
           {locale === "de" ? "Ausverkauft" : "Sold out"}
         </span>
+      ) : (
+        typeof product.stock === "number" &&
+        product.stock <= LOW_STOCK && (
+          <span
+            className="absolute left-2 top-2 rounded-full px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.2em] text-[#0c0a14] backdrop-blur-sm"
+            style={{ background: "var(--gold)" }}
+          >
+            {locale === "de" ? `Nur noch ${product.stock}` : `Only ${product.stock} left`}
+          </span>
+        )
       )}
       <motion.button
         type="button"
@@ -111,6 +124,12 @@ export function ProductCard({
           >
             {product.name}
           </Link>
+          {typeof product.ratingCount === "number" && product.ratingCount > 0 && (
+            <span className="mt-1 flex items-center gap-1.5">
+              <Stars value={product.rating ?? 0} size={11} />
+              <span className="font-mono text-[10px] text-muted">({product.ratingCount})</span>
+            </span>
+          )}
         </div>
         <span className="whitespace-nowrap pt-3 text-xs tabular-nums text-foreground md:pt-4 md:text-sm">
           {formatPrice(product.priceCents, locale)}
