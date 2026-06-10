@@ -16,6 +16,8 @@ import { WelcomeGate } from "@/components/layout/WelcomeGate";
 import { DeviceProvider } from "@/components/device/DeviceProvider";
 import { DeviceChooser } from "@/components/device/DeviceChooser";
 import { AppNavBar } from "@/components/device/AppNavBar";
+import { PWA } from "@/components/pwa/PWA";
+import { NewsletterPopup } from "@/components/marketing/NewsletterPopup";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { getAllProducts } from "@/lib/products";
@@ -53,6 +55,7 @@ export const metadata: Metadata = {
   },
   description: "Hand-picked sneakers, streetwear and accessories. Curated in Berlin.",
   applicationName: "Norevan",
+  appleWebApp: { capable: true, title: "Norevan", statusBarStyle: "default" },
   authors: [{ name: "Norevan UG" }],
   creator: "Norevan",
   publisher: "Norevan",
@@ -118,6 +121,8 @@ export default async function LangLayout({
             <DeviceProvider />
             <DeviceChooser locale={locale} />
             <AppNavBar locale={locale} />
+            <PWA locale={locale} />
+            <NewsletterPopup locale={locale} />
           </LenisProvider>
         </ThemeProvider>
       </body>
