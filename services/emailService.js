@@ -723,7 +723,13 @@ export function renderAbandonedCartEmail(order) {
       <tr><td style="padding:18px 32px 0;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${itemsHtml}</table>
       </td></tr>
-      <tr><td style="padding:26px 32px 4px;text-align:center;">
+      <tr><td style="padding:22px 32px 4px;text-align:center;">
+        <div style="border:1px dashed ${BRAND.gold};border-radius:12px;padding:14px;">
+          <div style="font-size:12px;color:${BRAND.muted};">Nur für dich — <strong style="color:${BRAND.text};">10% Rabatt</strong> mit Code</div>
+          <div style="font-family:monospace;font-size:20px;letter-spacing:3px;color:${BRAND.text};margin-top:6px;">COMEBACK10</div>
+        </div>
+      </td></tr>
+      <tr><td style="padding:18px 32px 4px;text-align:center;">
         <a href="${resumeUrl}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:14px 30px;border-radius:999px;">Kauf abschließen</a>
       </td></tr>
       <tr><td style="padding:30px 32px;text-align:center;">
@@ -744,6 +750,8 @@ export function renderAbandonedCartEmail(order) {
 
 Deine Auswahl liegt bereit:
 ${itemsText}
+
+10% Rabatt mit Code: COMEBACK10
 
 Kauf abschließen: ${resumeUrl}
 
@@ -791,5 +799,46 @@ export async function sendTeamInvite(invite) {
     console.log(`[emailService] Einladungs-Mail gesendet an ${invite.email}`);
   } catch (err) {
     console.error('[emailService] Einladungs-Mail fehlgeschlagen:', err.message);
+  }
+}
+
+/**
+ * Daily owner report: today's realized revenue + order count, 7-day revenue and
+ * a low-stock list. Sent by the scheduled /tasks/daily-summary job.
+ */
+export async function sendDailySummary({ revenueCents, orderCount, weekRevenueCents, lowStock = [] }) {
+  const to = process.env.ORDER_NOTIFY_EMAIL || process.env.GMAIL_USER;
+  if (!to || !process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) return;
+
+  const today = new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+  const lowRows = lowStock.length
+    ? lowStock
+        .map((p) => `<tr><td style="padding:4px 0">${p.name}</td><td style="padding:4px 0;text-align:right;color:${p.stock === 0 ? '#b91c1c' : BRAND.text}">${p.stock === 0 ? 'AUSVERKAUFT' : p.stock + ' Stk'}</td></tr>`)
+        .join('')
+    : `<tr><td style="padding:4px 0;color:${BRAND.muted}">Alles gut bestückt 👍</td></tr>`;
+
+  const subject = `📊 Norevan Tagesreport — ${eur(revenueCents)} · ${orderCount} Bestellungen`;
+  const html = `<div style="font-family:system-ui,-apple-system,sans-serif;max-width:520px;margin:0 auto;color:${BRAND.text}">
+      <h2 style="margin:0 0 2px">📊 Tagesreport</h2>
+      <p style="color:${BRAND.muted};margin:0 0 18px;font-size:13px">${today}</p>
+      <table style="width:100%;border-collapse:collapse;font-size:15px">
+        <tr><td style="padding:8px 0">Umsatz heute</td><td style="padding:8px 0;text-align:right;font-weight:600">${eur(revenueCents)}</td></tr>
+        <tr><td style="padding:8px 0">Bestellungen heute</td><td style="padding:8px 0;text-align:right;font-weight:600">${orderCount}</td></tr>
+        <tr><td style="padding:8px 0;color:${BRAND.muted}">Umsatz (7 Tage)</td><td style="padding:8px 0;text-align:right;color:${BRAND.muted}">${eur(weekRevenueCents)}</td></tr>
+      </table>
+      <h3 style="margin:22px 0 6px;font-size:14px">⚠️ Niedriger Lagerbestand</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;color:${BRAND.muted}">${lowRows}</table>
+      <p style="margin:22px 0 0"><a href="${BRAND.site}/admin" style="background:${BRAND.ink};color:#fff;text-decoration:none;padding:11px 20px;border-radius:999px;font-size:13px;display:inline-block">Dashboard öffnen</a></p>
+    </div>`;
+  const text = `Norevan Tagesreport — ${today}\n\n` +
+    `Umsatz heute: ${eur(revenueCents)}\nBestellungen heute: ${orderCount}\nUmsatz (7 Tage): ${eur(weekRevenueCents)}\n\n` +
+    `Niedriger Lagerbestand:\n${lowStock.length ? lowStock.map((p) => `- ${p.name}: ${p.stock === 0 ? 'AUSVERKAUFT' : p.stock + ' Stk'}`).join('\n') : '- alles gut bestückt'}\n\n` +
+    `Dashboard: ${BRAND.site}/admin`;
+
+  try {
+    await getTransporter().sendMail({ from: mailFrom(), to, subject, text, html });
+    console.log(`[emailService] Tagesreport gesendet an ${to}`);
+  } catch (err) {
+    console.error('[emailService] Tagesreport fehlgeschlagen:', err.message);
   }
 }
