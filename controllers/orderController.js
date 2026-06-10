@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import pool from '../config/database.js';
-import { sendOrderConfirmation, sendShippingNotification, sendAbandonedCart } from '../services/emailService.js';
+import { sendOrderConfirmation, sendShippingNotification, sendAbandonedCart, sendDailySummary } from '../services/emailService.js';
 import { isStripeEnabled, createCheckoutSession, getOrCreateCustomer } from '../services/stripeService.js';
 import { applyDiscountInTx } from './discountController.js';
 
@@ -402,6 +402,43 @@ export const runAbandonedCartReminders = async (req, res, next) => {
     }
 
     res.json({ status: 'success', data: { candidates: orders.length, sent } });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * POST /api/v1/tasks/daily-summary — email the owner today's realized revenue,
+ * order count, 7-day revenue and a low-stock list. Triggered by a scheduled job
+ * (guarded by the shared cron secret in the route).
+ */
+export const runDailySummary = async (req, res, next) => {
+  try {
+    const { rows: today } = await pool.query(
+      `SELECT COALESCE(SUM(subtotal_cents),0)::int AS cents, COUNT(*)::int AS n
+       FROM orders WHERE status IN ('paid','shipped','delivered')
+         AND created_at >= date_trunc('day', now())`,
+    );
+    const { rows: week } = await pool.query(
+      `SELECT COALESCE(SUM(subtotal_cents),0)::int AS cents FROM orders
+       WHERE status IN ('paid','shipped','delivered')
+         AND created_at >= now() - interval '7 days'`,
+    );
+    const { rows: low } = await pool.query(
+      `SELECT name, stock FROM products WHERE stock <= 5 ORDER BY stock ASC, name LIMIT 30`,
+    );
+
+    await sendDailySummary({
+      revenueCents: today[0].cents,
+      orderCount: today[0].n,
+      weekRevenueCents: week[0].cents,
+      lowStock: low.map((r) => ({ name: r.name, stock: r.stock })),
+    });
+
+    res.json({
+      status: 'success',
+      data: { revenueCents: today[0].cents, orders: today[0].n, lowStockItems: low.length },
+    });
   } catch (err) {
     next(err);
   }

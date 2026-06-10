@@ -1,0 +1,25 @@
+name: Daily owner summary
+
+# Emails the owner a daily report (today's revenue + order count + low-stock
+# list). The backend does the work; this job just triggers it on a schedule.
+# Guarded by the same shared secret as the other tasks.
+#
+# Required repo secret:
+#   CRON_SECRET — must match the backend's CRON_SECRET env var.
+
+on:
+  schedule:
+    - cron: "0 19 * * *" # daily ~21:00 Europe/Berlin (end of day)
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger daily summary email
+        run: |
+          curl -sS -m 120 --retry 4 --retry-delay 15 --retry-all-errors \
+            -X POST \
+            -H "X-Cron-Secret: ${{ secrets.CRON_SECRET }}" \
+            -w "\nHTTP %{http_code} in %{time_total}s\n" \
+            "https://norevan-backend.onrender.com/api/v1/tasks/daily-summary"

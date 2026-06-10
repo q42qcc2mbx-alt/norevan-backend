@@ -6,6 +6,7 @@ import {
   listAllOrders,
   updateOrderStatus,
   runAbandonedCartReminders,
+  runDailySummary,
 } from '../controllers/orderController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import {
@@ -39,5 +40,8 @@ router.patch('/admin/orders/:id',    protect, requireRole('staff'), updateOrderS
 // Scheduled task — abandoned-checkout reminders. Guarded by a shared secret
 // (X-Cron-Secret), called by the GitHub Actions cron.
 router.post('/tasks/abandoned-cart', requireCronSecret, runAbandonedCartReminders);
+
+// Scheduled task — daily owner report (revenue + low stock). Same cron guard.
+router.post('/tasks/daily-summary', requireCronSecret, runDailySummary);
 
 export default router;
