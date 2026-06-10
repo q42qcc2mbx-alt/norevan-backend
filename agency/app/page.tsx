@@ -1,11 +1,12 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
-import WhyUs from "@/components/WhyUs";
 import AuditSection from "@/components/AuditSection";
+import WhyUs from "@/components/WhyUs";
 import Services from "@/components/Services";
-import Security from "@/components/Security";
+import Portfolio from "@/components/Portfolio";
 import Stats from "@/components/Stats";
 import Testimonials from "@/components/Testimonials";
+import Process from "@/components/Process";
 import Faq from "@/components/Faq";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
@@ -16,12 +17,13 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
-        <WhyUs />
         <AuditSection />
+        <WhyUs />
         <Services />
-        <Security />
+        <Portfolio />
         <Stats />
         <Testimonials />
+        <Process />
         <Faq />
         <Contact />
       </main>

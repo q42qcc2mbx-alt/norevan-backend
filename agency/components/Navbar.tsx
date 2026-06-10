@@ -5,10 +5,10 @@ import { AnimatePresence, motion } from "motion/react";
 import { Menu, X, Zap } from "lucide-react";
 
 const links = [
-  { href: "#warum-wir", label: "Warum wir" },
-  { href: "#analyse", label: "Kostenlose Analyse" },
+  { href: "#warum-wir", label: "Vorteile" },
   { href: "#leistungen", label: "Leistungen" },
-  { href: "#sicherheit", label: "Sicherheit" },
+  { href: "#portfolio", label: "Portfolio" },
+  { href: "#ablauf", label: "Ablauf" },
   { href: "#faq", label: "FAQ" },
 ];
 
@@ -17,7 +17,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    const onScroll = () => setScrolled(window.scrollY > 16);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -27,36 +27,42 @@ export default function Navbar() {
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "border-b border-edge/80 bg-night/85 backdrop-blur-xl"
+          ? "border-b border-edge bg-white/85 shadow-[0_1px_2px_rgba(15,23,42,0.04)] backdrop-blur-xl"
           : "bg-transparent"
       }`}
     >
-      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:h-20 md:px-8">
-        <a href="#top" className="flex items-center gap-2.5 text-white">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-cyan-glow shadow-lg shadow-accent/30">
+      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:h-[4.5rem] md:px-8">
+        <a href="#top" className="flex items-center gap-2.5">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-cyan-glow shadow-md shadow-accent/25">
             <Zap className="h-5 w-5 text-white" strokeWidth={2.5} />
           </span>
-          <span className="text-lg font-bold tracking-tight">
-            NOREVAN<span className="text-accent-soft"> Digital</span>
+          <span className="text-lg font-bold tracking-tight text-ink">
+            NOREVAN<span className="text-accent"> Digital</span>
           </span>
         </a>
 
-        <div className="hidden items-center gap-8 lg:flex">
+        <div className="hidden items-center gap-7 lg:flex">
           {links.map((link) => (
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-slate-300 transition-colors hover:text-white"
+              className="text-sm font-medium text-ink-soft transition-colors hover:text-ink"
             >
               {link.label}
             </a>
           ))}
         </div>
 
-        <div className="hidden lg:block">
+        <div className="hidden items-center gap-3 lg:flex">
+          <a
+            href="#kontakt"
+            className="btn-secondary inline-flex items-center rounded-full px-5 py-2.5 text-sm font-semibold"
+          >
+            Projekt starten
+          </a>
           <a
             href="#analyse"
-            className="btn-primary inline-flex items-center rounded-full px-5 py-2.5 text-sm font-semibold text-white"
+            className="btn-primary inline-flex items-center rounded-full px-5 py-2.5 text-sm font-semibold"
           >
             Kostenlose Analyse
           </a>
@@ -67,7 +73,7 @@ export default function Navbar() {
           aria-label={open ? "Menü schließen" : "Menü öffnen"}
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className="rounded-lg p-2 text-slate-200 transition-colors hover:bg-white/5 lg:hidden"
+          className="rounded-lg p-2 text-ink transition-colors hover:bg-card lg:hidden"
         >
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -80,7 +86,7 @@ export default function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="overflow-hidden border-b border-edge bg-night/95 backdrop-blur-xl lg:hidden"
+            className="overflow-hidden border-b border-edge bg-white/95 backdrop-blur-xl lg:hidden"
           >
             <div className="space-y-1 px-5 pt-2 pb-6">
               {links.map((link) => (
@@ -88,18 +94,27 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className="block rounded-lg px-3 py-3 text-base font-medium text-slate-200 transition-colors hover:bg-white/5 hover:text-white"
+                  className="block rounded-lg px-3 py-3 text-base font-medium text-ink-soft transition-colors hover:bg-card hover:text-ink"
                 >
                   {link.label}
                 </a>
               ))}
-              <a
-                href="#analyse"
-                onClick={() => setOpen(false)}
-                className="btn-primary mt-3 block rounded-full px-5 py-3 text-center text-base font-semibold text-white"
-              >
-                Kostenlose Analyse anfordern
-              </a>
+              <div className="space-y-2.5 pt-3">
+                <a
+                  href="#analyse"
+                  onClick={() => setOpen(false)}
+                  className="btn-primary block rounded-full px-5 py-3 text-center text-base font-semibold"
+                >
+                  Kostenlose Analyse
+                </a>
+                <a
+                  href="#kontakt"
+                  onClick={() => setOpen(false)}
+                  className="btn-secondary block rounded-full px-5 py-3 text-center text-base font-semibold"
+                >
+                  Projekt starten
+                </a>
+              </div>
             </div>
           </motion.div>
         )}

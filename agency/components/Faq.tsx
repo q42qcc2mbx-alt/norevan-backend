@@ -37,27 +37,24 @@ export default function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="relative py-24 md:py-32">
+    <section id="faq" className="relative py-20 md:py-28">
       <div className="mx-auto max-w-3xl px-5 md:px-8">
-        <SectionHeading
-          eyebrow="FAQ"
-          title="Häufige Fragen, klare Antworten."
-        />
+        <SectionHeading eyebrow="FAQ" title="Häufige Fragen, klare Antworten." />
         <div className="space-y-3">
           {faqs.map(({ q, a }, i) => {
             const open = openIndex === i;
             return (
-              <Reveal key={q} delay={i * 0.05}>
-                <div className="card-glow overflow-hidden rounded-2xl">
+              <Reveal key={q} delay={i * 0.04}>
+                <div className="card overflow-hidden bg-white">
                   <button
                     type="button"
                     onClick={() => setOpenIndex(open ? null : i)}
                     aria-expanded={open}
                     className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
                   >
-                    <span className="text-base font-semibold text-white">{q}</span>
+                    <span className="text-base font-semibold text-ink">{q}</span>
                     <ChevronDown
-                      className={`h-5 w-5 shrink-0 text-accent-soft transition-transform duration-300 ${
+                      className={`h-5 w-5 shrink-0 text-accent transition-transform duration-300 ${
                         open ? "rotate-180" : ""
                       }`}
                     />
@@ -71,7 +68,7 @@ export default function Faq() {
                         transition={{ duration: 0.3, ease: "easeOut" }}
                         className="overflow-hidden"
                       >
-                        <p className="px-6 pb-5 text-sm leading-relaxed text-slate-400">
+                        <p className="px-6 pb-5 text-sm leading-relaxed text-ink-soft">
                           {a}
                         </p>
                       </motion.div>

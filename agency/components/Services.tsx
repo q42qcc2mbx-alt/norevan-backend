@@ -1,81 +1,71 @@
-import {
-  Palette,
-  ShieldCheck,
-  Rocket,
-  Search,
-  Bot,
-  Workflow,
-  LifeBuoy,
-  Server,
-} from "lucide-react";
+import { ArrowRight, Bot, Code2, Rocket, ShieldCheck } from "lucide-react";
 import SectionHeading from "./ui/SectionHeading";
 import Reveal from "./ui/Reveal";
 
 const services = [
   {
-    icon: Palette,
-    title: "Website Redesign",
-    text: "Modernes, markenstarkes Design, das Vertrauen aufbaut und verkauft.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Cyber Security Check",
-    text: "Schwachstellen-Analyse, Härtung und Schutz vor gängigen Angriffen.",
+    icon: Code2,
+    title: "Website Entwicklung",
+    text: "Moderne, blitzschnelle Websites mit Next.js und React — vom Konzept über das Design bis zum Launch. Mobile-First, barrierearm und auf Conversion ausgelegt.",
+    points: ["Individuelles Design", "CMS nach Wahl", "Launch in 4–8 Wochen"],
   },
   {
     icon: Rocket,
-    title: "Performance Optimierung",
-    text: "Core Web Vitals im grünen Bereich — Ladezeiten, die begeistern.",
+    title: "Website Optimierung",
+    text: "Wir analysieren Ihre bestehende Website und holen messbar mehr heraus: kürzere Ladezeiten, bessere Rankings, höhere Conversion-Rate.",
+    points: ["Core Web Vitals im grünen Bereich", "Technisches SEO", "Vorher-Nachher-Report"],
   },
   {
-    icon: Search,
-    title: "SEO Optimierung",
-    text: "Technisches und inhaltliches SEO für nachhaltige Top-Rankings.",
+    icon: ShieldCheck,
+    title: "Sicherheit & Performance",
+    text: "Security-Audit, Härtung und laufendes Monitoring — kombiniert mit Caching, CDN und Hosting-Beratung für maximale Stabilität.",
+    points: ["Schwachstellen-Analyse", "Backups & Monitoring", "DSGVO-Check"],
   },
   {
     icon: Bot,
-    title: "KI-Integration",
-    text: "Chatbots, intelligente Suche und KI-Features, die echten Mehrwert liefern.",
-  },
-  {
-    icon: Workflow,
-    title: "Automatisierungen",
-    text: "Wiederkehrende Abläufe automatisieren — von Leads bis Reporting.",
-  },
-  {
-    icon: LifeBuoy,
-    title: "Wartung & Support",
-    text: "Updates, Monitoring und schnelle Hilfe — Ihre Website bleibt zuverlässig.",
-  },
-  {
-    icon: Server,
-    title: "Hosting-Beratung",
-    text: "Das richtige Setup für Geschwindigkeit, Sicherheit und faire Kosten.",
+    title: "KI & Automatisierung",
+    text: "Intelligente Chatbots, automatisierte Abläufe und KI-Features, die Zeit sparen und echten Mehrwert für Ihre Kunden schaffen.",
+    points: ["KI-Chatbots & Suche", "Workflow-Automatisierung", "Individuelle Integrationen"],
   },
 ];
 
 export default function Services() {
   return (
-    <section id="leistungen" className="relative py-24 md:py-32">
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"
-        aria-hidden
-      />
+    <section id="leistungen" className="relative bg-card py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <SectionHeading
-          eyebrow="Unsere Leistungen"
-          title="Alles, was Ihre Website erfolgreich macht."
-          subtitle="Von der ersten Analyse bis zum laufenden Betrieb — ein Partner für das gesamte digitale Fundament Ihres Unternehmens."
+          eyebrow="Leistungen"
+          title="Vier Leistungen. Ein Ziel: Ihr Erfolg im Web."
+          subtitle="Klar fokussiert statt beliebig — wir konzentrieren uns auf das, was Ihre Website wirklich voranbringt."
         />
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {services.map(({ icon: Icon, title, text }, i) => (
-            <Reveal key={title} delay={(i % 4) * 0.07}>
-              <article className="card-glow group h-full rounded-2xl p-6">
-                <span className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-accent/25 to-cyan-glow/10 text-accent-soft transition-transform duration-300 group-hover:scale-110">
-                  <Icon className="h-5.5 w-5.5" />
-                </span>
-                <h3 className="mb-2 text-base font-semibold text-white">{title}</h3>
-                <p className="text-sm leading-relaxed text-slate-400">{text}</p>
+        <div className="grid gap-5 md:grid-cols-2">
+          {services.map(({ icon: Icon, title, text, points }, i) => (
+            <Reveal key={title} delay={(i % 2) * 0.08}>
+              <article className="card group h-full bg-white p-7 md:p-8">
+                <div className="flex items-start gap-4">
+                  <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-cyan-glow text-white shadow-md shadow-accent/25 transition-transform duration-300 group-hover:scale-105">
+                    <Icon className="h-6 w-6" />
+                  </span>
+                  <div>
+                    <h3 className="text-lg font-semibold text-ink md:text-xl">{title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-ink-soft">{text}</p>
+                  </div>
+                </div>
+                <ul className="mt-5 space-y-2 border-t border-edge pt-5">
+                  {points.map((point) => (
+                    <li key={point} className="flex items-center gap-2.5 text-sm text-ink-soft">
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+                <a
+                  href="#kontakt"
+                  className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition-colors hover:text-accent-deep"
+                >
+                  Unverbindlich anfragen
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </a>
               </article>
             </Reveal>
           ))}

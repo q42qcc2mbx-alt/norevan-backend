@@ -46,7 +46,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#05060a",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
 };
@@ -73,7 +73,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="de" className={inter.variable}>
-      <body className="min-h-dvh bg-night font-sans antialiased">
+      <body className="min-h-dvh bg-white font-sans antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

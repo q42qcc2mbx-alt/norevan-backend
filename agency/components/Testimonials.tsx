@@ -7,7 +7,7 @@ const testimonials = [
     name: "Sarah Becker",
     role: "Geschäftsführerin, Becker Immobilien",
     initials: "SB",
-    gradient: "from-violet-500 to-indigo-500",
+    gradient: "from-blue-500 to-indigo-500",
     quote:
       "Unsere Website lädt jetzt in unter einer Sekunde und wir bekommen dreimal so viele Anfragen wie vorher. Die Zusammenarbeit war absolut professionell — klare Kommunikation, schnelle Umsetzung.",
   },
@@ -31,7 +31,7 @@ const testimonials = [
 
 export default function Testimonials() {
   return (
-    <section id="kunden" className="relative py-24 md:py-32">
+    <section id="kunden" className="relative bg-card py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <SectionHeading
           eyebrow="Kundenstimmen"
@@ -40,26 +40,26 @@ export default function Testimonials() {
         />
         <div className="grid gap-5 md:grid-cols-3">
           {testimonials.map(({ name, role, initials, gradient, quote }, i) => (
-            <Reveal key={name} delay={i * 0.1}>
-              <figure className="card-glow flex h-full flex-col rounded-2xl p-7">
+            <Reveal key={name} delay={i * 0.08}>
+              <figure className="card flex h-full flex-col bg-white p-7">
                 <div className="mb-4 flex gap-1" aria-label="5 von 5 Sternen">
                   {Array.from({ length: 5 }).map((_, s) => (
                     <Star key={s} className="h-4 w-4 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
-                <blockquote className="flex-1 text-sm leading-relaxed text-slate-300">
+                <blockquote className="flex-1 text-sm leading-relaxed text-ink-soft">
                   „{quote}“
                 </blockquote>
-                <figcaption className="mt-6 flex items-center gap-3.5">
+                <figcaption className="mt-6 flex items-center gap-3.5 border-t border-edge pt-5">
                   <span
-                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-sm font-bold text-white shadow-lg`}
+                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-sm font-bold text-white shadow-md`}
                     aria-hidden
                   >
                     {initials}
                   </span>
                   <div>
-                    <p className="text-sm font-semibold text-white">{name}</p>
-                    <p className="text-xs text-slate-400">{role}</p>
+                    <p className="text-sm font-semibold text-ink">{name}</p>
+                    <p className="text-xs text-ink-muted">{role}</p>
                   </div>
                 </figcaption>
               </figure>
