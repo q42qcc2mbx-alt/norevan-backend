@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import {
   ArrowRight,
@@ -25,8 +26,8 @@ function HeroVisual() {
         <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
         <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
         <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-        <span className="ml-3 hidden flex-1 items-center rounded-md bg-white px-3 py-1 text-xs text-ink-muted ring-1 ring-edge sm:flex">
-          ihre-website.de — Audit-Report
+        <span className="ml-3 hidden flex-1 items-center rounded-md bg-surface px-3 py-1 text-xs text-ink-muted ring-1 ring-edge sm:flex">
+          ihre-website.de — KI-Audit-Report
         </span>
       </div>
 
@@ -35,7 +36,7 @@ function HeroVisual() {
         <div className="flex flex-col items-center justify-center gap-2">
           <div className="relative h-28 w-28">
             <svg viewBox="0 0 112 112" className="h-full w-full -rotate-90">
-              <circle cx="56" cy="56" r="46" fill="none" stroke="#e2e8f0" strokeWidth="9" />
+              <circle cx="56" cy="56" r="46" fill="none" stroke="var(--t-edge)" strokeWidth="9" />
               <motion.circle
                 cx="56"
                 cy="56"
@@ -78,7 +79,7 @@ function HeroVisual() {
                 <span className="text-xs font-semibold text-ink">{label}</span>
                 <span className="text-xs text-ink-muted">
                   <s className="opacity-60">{before}</s>
-                  <span className="mx-1.5 text-ink-muted">→</span>
+                  <span className="mx-1.5">→</span>
                   <span className="font-bold text-accent">{after}</span>
                 </span>
               </div>
@@ -97,7 +98,7 @@ function HeroVisual() {
             {["+210% Anfragen", "Core Web Vitals ✓", "DSGVO ✓"].map((chip) => (
               <span
                 key={chip}
-                className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200"
+                className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-600 ring-1 ring-emerald-500/30 dark:text-emerald-400"
               >
                 <CheckCircle2 className="h-3 w-3" />
                 {chip}
@@ -119,14 +120,14 @@ export default function Hero() {
   });
 
   return (
-    <section id="top" className="relative overflow-hidden pt-28 pb-16 md:pt-40 md:pb-28">
+    <section className="relative overflow-hidden pt-28 pb-16 md:pt-40 md:pb-24">
       <div className="hero-glow absolute inset-0" aria-hidden />
       <div className="grid-overlay absolute inset-0" aria-hidden />
 
       <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-5 md:px-8 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
         <div className="text-center lg:text-left">
           <motion.div {...fadeUp(0)}>
-            <span className="inline-flex items-center gap-2 rounded-full border border-edge bg-white px-4 py-1.5 text-xs font-medium text-ink-soft shadow-sm">
+            <span className="inline-flex items-center gap-2 rounded-full border border-edge bg-surface px-4 py-1.5 text-xs font-medium text-ink-soft shadow-sm">
               <Sparkles className="h-3.5 w-3.5 text-accent" />
               Webagentur für messbare Ergebnisse
             </span>
@@ -153,19 +154,19 @@ export default function Hero() {
             {...fadeUp(0.3)}
             className="mt-9 flex flex-col items-center justify-center gap-3.5 sm:flex-row lg:justify-start"
           >
-            <a
-              href="#analyse"
+            <Link
+              href="/analyse"
               className="btn-primary group inline-flex w-full items-center justify-center gap-2 rounded-full px-7 py-3.5 text-base font-semibold sm:w-auto"
             >
               Kostenlose Analyse
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-            </a>
-            <a
-              href="#kontakt"
+            </Link>
+            <Link
+              href="/kontakt"
               className="btn-secondary inline-flex w-full items-center justify-center gap-2 rounded-full px-7 py-3.5 text-base font-semibold sm:w-auto"
             >
               Projekt starten
-            </a>
+            </Link>
           </motion.div>
 
           <motion.div

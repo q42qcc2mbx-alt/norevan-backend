@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { insertRow } from "@/lib/db";
 
 export const runtime = "nodejs";
 
@@ -44,6 +45,9 @@ export async function POST(req: Request) {
     message,
     receivedAt: new Date().toISOString(),
   };
+
+  // Persist for the team dashboard (fire & forget — must not break the UX).
+  insertRow("agency_leads", { name, email, website, message, source: "kontakt" });
 
   // Forward to a webhook (Slack, n8n, Zapier, CRM …) if configured,
   // otherwise the lead is at least visible in the server logs.

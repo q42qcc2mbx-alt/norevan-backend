@@ -45,7 +45,7 @@ export default function Faq() {
             const open = openIndex === i;
             return (
               <Reveal key={q} delay={i * 0.04}>
-                <div className="card overflow-hidden bg-white">
+                <div className="card-surface overflow-hidden">
                   <button
                     type="button"
                     onClick={() => setOpenIndex(open ? null : i)}

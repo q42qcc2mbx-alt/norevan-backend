@@ -41,7 +41,7 @@ export default function Process() {
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map(({ icon: Icon, step, title, text }, i) => (
             <Reveal key={step} delay={i * 0.08}>
-              <article className="card relative h-full bg-white p-7">
+              <article className="card-surface relative h-full p-7">
                 <span className="absolute top-6 right-6 text-3xl font-bold text-edge select-none">
                   {step}
                 </span>

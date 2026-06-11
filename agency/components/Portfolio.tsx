@@ -104,7 +104,7 @@ export default function Portfolio() {
                     {project.tech.map((t) => (
                       <span
                         key={t}
-                        className="rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-ink-soft ring-1 ring-edge"
+                        className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-medium text-ink-soft ring-1 ring-edge"
                       >
                         {t}
                       </span>

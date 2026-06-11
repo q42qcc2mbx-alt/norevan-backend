@@ -63,7 +63,7 @@ export default function Contact() {
         <div className="grid items-start gap-6 lg:grid-cols-[1fr_1.3fr] lg:gap-8">
           <Reveal>
             <div className="space-y-5">
-              <article className="card bg-white p-6">
+              <article className="card-surface p-6">
                 <span className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-accent/10 to-cyan-glow/10 text-accent ring-1 ring-accent/15">
                   <Mail className="h-5 w-5" />
                 </span>
@@ -76,7 +76,7 @@ export default function Contact() {
                 </a>
               </article>
 
-              <article className="card bg-white p-6">
+              <article className="card-surface p-6">
                 <span className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-accent/10 to-cyan-glow/10 text-accent ring-1 ring-accent/15">
                   <ScanSearch className="h-5 w-5" />
                 </span>
@@ -88,7 +88,7 @@ export default function Contact() {
                   sofort einen Überblick über Ihr Potenzial.
                 </p>
                 <a
-                  href="#analyse"
+                  href="/analyse"
                   className="mt-3 inline-block text-sm font-semibold text-accent transition-colors hover:text-accent-deep"
                 >
                   Zur kostenlosen Analyse →

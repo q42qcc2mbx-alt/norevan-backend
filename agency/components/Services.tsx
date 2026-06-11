@@ -41,7 +41,7 @@ export default function Services() {
         <div className="grid gap-5 md:grid-cols-2">
           {services.map(({ icon: Icon, title, text, points }, i) => (
             <Reveal key={title} delay={(i % 2) * 0.08}>
-              <article className="card group h-full bg-white p-7 md:p-8">
+              <article className="card-surface group h-full p-7 md:p-8">
                 <div className="flex items-start gap-4">
                   <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-cyan-glow text-white shadow-md shadow-accent/25 transition-transform duration-300 group-hover:scale-105">
                     <Icon className="h-6 w-6" />
@@ -60,7 +60,7 @@ export default function Services() {
                   ))}
                 </ul>
                 <a
-                  href="#kontakt"
+                  href="/kontakt"
                   className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition-colors hover:text-accent-deep"
                 >
                   Unverbindlich anfragen
