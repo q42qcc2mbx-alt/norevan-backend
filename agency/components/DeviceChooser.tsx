@@ -3,18 +3,20 @@
 import { AnimatePresence, motion } from "motion/react";
 import { Monitor, Smartphone, Tablet } from "lucide-react";
 import { useDevice, type Device } from "@/lib/device-store";
+import { useI18n } from "@/lib/i18n";
 
-// First visit: "Wie nutzen Sie die Seite?" → Handy / Tablet / Computer.
-// The detected option is highlighted; the choice is stored once.
-
-const OPTIONS: { id: Device; label: string; icon: typeof Smartphone; hint: string }[] = [
-  { id: "phone", label: "Handy", icon: Smartphone, hint: "Kompakt & touch-optimiert" },
-  { id: "tablet", label: "Tablet", icon: Tablet, hint: "Mittelgroß, touch" },
-  { id: "desktop", label: "Computer", icon: Monitor, hint: "Volle Ansicht" },
-];
+// First visit: device choice (phone / tablet / desktop). Detected option is
+// highlighted; the choice is stored once.
 
 export default function DeviceChooser() {
+  const { t } = useI18n();
   const { device, chosen, choose } = useDevice();
+
+  const options: { id: Device; label: string; icon: typeof Smartphone; hint: string }[] = [
+    { id: "phone", label: t.device.phone, icon: Smartphone, hint: t.device.phoneHint },
+    { id: "tablet", label: t.device.tablet, icon: Tablet, hint: t.device.tabletHint },
+    { id: "desktop", label: t.device.desktop, icon: Monitor, hint: t.device.desktopHint },
+  ];
 
   return (
     <AnimatePresence>
@@ -26,15 +28,13 @@ export default function DeviceChooser() {
           transition={{ duration: 0.35, ease: "easeOut" }}
           className="fixed inset-x-0 bottom-0 z-[60] p-4"
           role="dialog"
-          aria-label="Geräteauswahl"
+          aria-label={t.device.title}
         >
           <div className="card-elevated mx-auto max-w-md p-5 shadow-2xl">
-            <h2 className="text-base font-bold text-ink">Wie nutzen Sie die Seite?</h2>
-            <p className="mt-1 text-sm text-ink-soft">
-              So passen wir die Darstellung optimal an — jederzeit änderbar.
-            </p>
+            <h2 className="text-base font-bold text-ink">{t.device.title}</h2>
+            <p className="mt-1 text-sm text-ink-soft">{t.device.subtitle}</p>
             <div className="mt-4 grid grid-cols-3 gap-2">
-              {OPTIONS.map(({ id, label, icon: Icon, hint }) => {
+              {options.map(({ id, label, icon: Icon, hint }) => {
                 const detected = id === device;
                 return (
                   <button
@@ -54,7 +54,7 @@ export default function DeviceChooser() {
                     </div>
                     {detected && (
                       <div className="mt-1 text-[9px] font-bold tracking-widest uppercase">
-                        erkannt
+                        {t.device.detected}
                       </div>
                     )}
                   </button>

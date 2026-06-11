@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Services from "@/components/Services";
+import WhyUs from "@/components/WhyUs";
 import Process from "@/components/Process";
 import Faq from "@/components/Faq";
 import CtaBanner from "@/components/CtaBanner";
@@ -14,6 +15,7 @@ export default function LeistungenPage() {
   return (
     <div className="pt-16 md:pt-20">
       <Services />
+      <WhyUs />
       <Process />
       <Faq />
       <CtaBanner />

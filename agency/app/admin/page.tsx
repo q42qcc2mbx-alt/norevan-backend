@@ -8,6 +8,7 @@ import {
   FolderKanban,
   Inbox,
   Loader2,
+  MessageSquareHeart,
   MessageSquareText,
   Plus,
   ScanSearch,
@@ -39,6 +40,16 @@ interface LeadRow {
   source: string;
 }
 
+interface FeedbackRow {
+  id: string;
+  created_at: string;
+  typ: string;
+  rating: number | null;
+  email: string | null;
+  message: string;
+  done: boolean;
+}
+
 interface ProjectRow {
   id: string;
   created_at: string;
@@ -48,7 +59,7 @@ interface ProjectRow {
   notes: string | null;
 }
 
-type Tab = "analysen" | "anfragen" | "projekte" | "nachricht" | "team";
+type Tab = "analysen" | "anfragen" | "projekte" | "nachricht" | "feedback" | "team";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("de-DE", {
@@ -71,21 +82,24 @@ export default function AdminPage() {
   const [message, setMessage] = useState({ email: "", content: "" });
   const [feedback, setFeedback] = useState("");
   const [admins, setAdmins] = useState<string[]>([]);
+  const [feedbacks, setFeedbacks] = useState<FeedbackRow[]>([]);
   const [newAdmin, setNewAdmin] = useState("");
   const [myEmail, setMyEmail] = useState("");
 
   const load = useCallback(async () => {
     const supabase = getSupabase();
-    const [a, l, p, adm] = await Promise.all([
+    const [a, l, p, adm, fb] = await Promise.all([
       supabase.from("agency_analyses").select("*").order("created_at", { ascending: false }).limit(100),
       supabase.from("agency_leads").select("*").order("created_at", { ascending: false }).limit(100),
       supabase.from("agency_projects").select("*").order("created_at", { ascending: false }).limit(100),
       supabase.from("agency_admins").select("email").order("email"),
+      supabase.from("agency_feedback").select("*").order("created_at", { ascending: false }).limit(100),
     ]);
     setAnalysen((a.data ?? []) as AnalyseRow[]);
     setLeads((l.data ?? []) as LeadRow[]);
     setProjekte((p.data ?? []) as ProjectRow[]);
     setAdmins(((adm.data ?? []) as { email: string }[]).map((r) => r.email));
+    setFeedbacks((fb.data ?? []) as FeedbackRow[]);
   }, []);
 
   useEffect(() => {
@@ -194,6 +208,7 @@ export default function AdminPage() {
     { key: "anfragen", label: `Anfragen (${leads.length})`, icon: Inbox },
     { key: "projekte", label: `Projekte (${projekte.length})`, icon: FolderKanban },
     { key: "nachricht", label: "Nachricht senden", icon: MessageSquareText },
+    { key: "feedback", label: `Feedback (${feedbacks.filter((f) => !f.done).length})`, icon: MessageSquareHeart },
     { key: "team", label: `Team (${admins.length})`, icon: Users },
   ];
 
@@ -431,6 +446,44 @@ export default function AdminPage() {
               Der Kunde sieht die Nachricht in seinem Dashboard (Konto mit dieser E-Mail erforderlich).
             </p>
           </form>
+        )}
+
+        {tab === "feedback" && (
+          <div className="max-w-3xl space-y-3">
+            {feedbacks.length === 0 ? (
+              <p className="text-sm text-ink-soft">Noch kein Feedback eingegangen.</p>
+            ) : (
+              feedbacks.map((f) => (
+                <div key={f.id} className={`card-elevated p-5 ${f.done ? "opacity-60" : ""}`}>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-[11px] font-semibold text-accent capitalize">
+                      {f.typ}
+                    </span>
+                    {f.rating != null && (
+                      <span className="text-xs font-semibold text-amber-500">{"★".repeat(f.rating)}{"☆".repeat(5 - f.rating)}</span>
+                    )}
+                    <span className="text-xs text-ink-muted">{formatDate(f.created_at)}</span>
+                    {f.email && (
+                      <a href={`mailto:${f.email}`} className="text-xs text-accent hover:underline">
+                        {f.email}
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await getSupabase().from("agency_feedback").update({ done: !f.done }).eq("id", f.id);
+                        load();
+                      }}
+                      className="ms-auto rounded-full border border-edge px-3 py-1 text-[11px] font-semibold text-ink-soft transition-colors hover:border-accent/40 hover:text-accent"
+                    >
+                      {f.done ? "Wieder öffnen" : "Erledigt ✓"}
+                    </button>
+                  </div>
+                  <p className="mt-2.5 text-sm leading-relaxed whitespace-pre-line text-ink">{f.message}</p>
+                </div>
+              ))
+            )}
+          </div>
         )}
 
         {tab === "team" && (

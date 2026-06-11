@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { I18nProvider } from "@/lib/i18n";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ChatWidget from "@/components/ChatWidget";
 import DeviceChooser from "@/components/DeviceChooser";
+import PwaRegister from "@/components/PwaRegister";
 import "./globals.css";
 
 const inter = Inter({
@@ -87,11 +89,14 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
-          <Navbar />
-          <main className="min-h-[60dvh]">{children}</main>
-          <Footer />
-          <ChatWidget />
-          <DeviceChooser />
+          <I18nProvider>
+            <Navbar />
+            <main className="min-h-[60dvh]">{children}</main>
+            <Footer />
+            <ChatWidget />
+            <DeviceChooser />
+            <PwaRegister />
+          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>

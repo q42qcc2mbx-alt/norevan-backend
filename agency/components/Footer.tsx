@@ -1,28 +1,34 @@
+"use client";
+
 import Link from "next/link";
 import { Zap } from "lucide-react";
-
-const columns = [
-  {
-    title: "Navigation",
-    links: [
-      { href: "/", label: "Startseite" },
-      { href: "/leistungen", label: "Leistungen" },
-      { href: "/portfolio", label: "Portfolio" },
-      { href: "/ueber-uns", label: "Über Uns" },
-    ],
-  },
-  {
-    title: "Service",
-    links: [
-      { href: "/analyse", label: "Kostenlose KI-Analyse" },
-      { href: "/kontakt", label: "Kontakt" },
-      { href: "/login", label: "Kunden-Login" },
-      { href: "/registrieren", label: "Konto erstellen" },
-    ],
-  },
-];
+import { useI18n } from "@/lib/i18n";
+import FeedbackWidget from "./FeedbackWidget";
 
 export default function Footer() {
+  const { t } = useI18n();
+
+  const columns = [
+    {
+      title: t.footer.navigation,
+      links: [
+        { href: "/", label: t.nav.home },
+        { href: "/leistungen", label: t.nav.services },
+        { href: "/portfolio", label: t.nav.portfolio },
+        { href: "/ueber-uns", label: t.nav.about },
+      ],
+    },
+    {
+      title: t.footer.service,
+      links: [
+        { href: "/analyse", label: t.footer.freeAnalysis },
+        { href: "/kontakt", label: t.nav.contact },
+        { href: "/login", label: t.footer.customerLogin },
+        { href: "/registrieren", label: t.footer.createAccount },
+      ],
+    },
+  ];
+
   return (
     <footer className="border-t border-edge bg-page py-12">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
@@ -36,10 +42,10 @@ export default function Footer() {
                 NOREVAN<span className="text-accent"> Digital</span>
               </span>
             </Link>
-            <p className="mt-4 text-sm leading-relaxed text-ink-muted">
-              Wir machen Websites schnell, sicher und erfolgreich — mit
-              messbaren Ergebnissen statt leerer Versprechen.
-            </p>
+            <p className="mt-4 text-sm leading-relaxed text-ink-muted">{t.footer.tagline}</p>
+            <div className="mt-5">
+              <FeedbackWidget trigger="button" />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-10 sm:gap-16">
@@ -65,7 +71,7 @@ export default function Footer() {
 
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-edge pt-6 sm:flex-row">
           <p className="text-xs text-ink-muted">
-            © {new Date().getFullYear()} NOREVAN Digital. Alle Rechte vorbehalten.
+            © {new Date().getFullYear()} NOREVAN Digital. {t.footer.rights}
           </p>
           <a
             href="mailto:kontakt@norevan.digital"

@@ -1,51 +1,18 @@
+"use client";
+
 import { TrendingUp } from "lucide-react";
 import SectionHeading from "./ui/SectionHeading";
 import Reveal from "./ui/Reveal";
+import { useI18n } from "@/lib/i18n";
 
-interface Project {
-  title: string;
-  category: string;
-  description: string;
-  tech: string[];
-  result: string;
-  preview: {
-    gradient: string;
-    accent: string;
-  };
-}
-
-const projects: Project[] = [
-  {
-    title: "Immobilien-Plattform Relaunch",
-    category: "Website Entwicklung",
-    description:
-      "Komplette Neuentwicklung einer veralteten Maklerseite: modernes Design, Objektsuche mit Filtern und blitzschnelle Ladezeiten auf allen Geräten.",
-    tech: ["Next.js", "TypeScript", "Tailwind CSS"],
-    result: "+210% mehr Anfragen in 3 Monaten",
-    preview: { gradient: "from-blue-500 to-indigo-600", accent: "bg-blue-200/70" },
-  },
-  {
-    title: "Online-Shop Performance-Kur",
-    category: "Website Optimierung",
-    description:
-      "Ladezeit von 5,2s auf 0,8s gesenkt: Bildoptimierung, Code-Splitting, Caching-Strategie und aufgeräumter Checkout für einen Mode-Shop.",
-    tech: ["Shopify", "Performance", "Core Web Vitals"],
-    result: "+45% Conversion-Rate im Checkout",
-    preview: { gradient: "from-cyan-500 to-teal-500", accent: "bg-cyan-200/70" },
-  },
-  {
-    title: "Kanzlei-Website mit Security-Audit",
-    category: "Sicherheit & Redesign",
-    description:
-      "Redesign mit Fokus auf Vertrauen und Mandantengewinnung — inklusive Schließung kritischer Sicherheitslücken und DSGVO-konformem Setup.",
-    tech: ["Next.js", "Security-Härtung", "SEO"],
-    result: "Platz 1 bei Google für 12 Keywords",
-    preview: { gradient: "from-slate-600 to-slate-800", accent: "bg-slate-300/70" },
-  },
+const visuals = [
+  { gradient: "from-blue-500 to-indigo-600", accent: "bg-blue-200/70", tech: ["Next.js", "TypeScript", "Tailwind CSS"] },
+  { gradient: "from-cyan-500 to-teal-500", accent: "bg-cyan-200/70", tech: ["Shopify", "Performance", "Core Web Vitals"] },
+  { gradient: "from-slate-600 to-slate-800", accent: "bg-slate-300/70", tech: ["Next.js", "Security", "SEO"] },
 ];
 
 /** Stylised page preview built with CSS — fast, sharp on every screen. */
-function ProjectPreview({ gradient, accent }: Project["preview"]) {
+function ProjectPreview({ gradient, accent }: { gradient: string; accent: string }) {
   return (
     <div
       className={`relative aspect-[16/10] overflow-hidden rounded-t-[calc(1.25rem-1px)] bg-gradient-to-br ${gradient}`}
@@ -77,40 +44,39 @@ function ProjectPreview({ gradient, accent }: Project["preview"]) {
 }
 
 export default function Portfolio() {
+  const { t } = useI18n();
   return (
-    <section id="portfolio" className="relative py-20 md:py-28">
+    <section id="portfolio" className="relative py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <SectionHeading
-          eyebrow="Portfolio"
-          title="Projekte, die Ergebnisse liefern."
-          subtitle="Ein Auszug aus unserer Arbeit — und vor allem: was sie für unsere Kunden gebracht hat."
+          eyebrow={t.portfolio.eyebrow}
+          title={t.portfolio.title}
+          subtitle={t.portfolio.subtitle}
         />
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project, i) => (
+          {t.portfolio.items.map((project, i) => (
             <Reveal key={project.title} delay={i * 0.08}>
               <article className="card group flex h-full flex-col overflow-hidden p-0">
-                <ProjectPreview {...project.preview} />
+                <ProjectPreview gradient={visuals[i].gradient} accent={visuals[i].accent} />
                 <div className="flex flex-1 flex-col p-6">
                   <span className="text-xs font-semibold tracking-wide text-accent uppercase">
                     {project.category}
                   </span>
-                  <h3 className="mt-1.5 text-lg font-semibold text-ink">
-                    {project.title}
-                  </h3>
+                  <h3 className="mt-1.5 text-lg font-semibold text-ink">{project.title}</h3>
                   <p className="mt-2 flex-1 text-sm leading-relaxed text-ink-soft">
                     {project.description}
                   </p>
                   <div className="mt-4 flex flex-wrap gap-2">
-                    {project.tech.map((t) => (
+                    {visuals[i].tech.map((tech) => (
                       <span
-                        key={t}
+                        key={tech}
                         className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-medium text-ink-soft ring-1 ring-edge"
                       >
-                        {t}
+                        {tech}
                       </span>
                     ))}
                   </div>
-                  <p className="mt-4 flex items-center gap-2 border-t border-edge pt-4 text-sm font-semibold text-emerald-600">
+                  <p className="mt-4 flex items-center gap-2 border-t border-edge pt-4 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
                     <TrendingUp className="h-4 w-4 shrink-0" />
                     {project.result}
                   </p>

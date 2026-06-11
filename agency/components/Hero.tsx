@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
+import { useI18n } from "@/lib/i18n";
 import {
   ArrowRight,
   CheckCircle2,
@@ -11,14 +12,11 @@ import {
   Sparkles,
 } from "lucide-react";
 
-const trust = [
-  { icon: Gauge, label: "Ladezeiten unter 1s" },
-  { icon: ShieldCheck, label: "Security nach Best Practice" },
-  { icon: Search, label: "Top-Rankings durch SEO" },
-];
+const trustIcons = [Gauge, ShieldCheck, Search];
 
 /** Stylised audit dashboard — pure CSS/SVG, no image assets. */
 function HeroVisual() {
+  const { t } = useI18n();
   return (
     <div className="card-elevated overflow-hidden">
       {/* Browser chrome */}
@@ -27,7 +25,7 @@ function HeroVisual() {
         <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
         <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
         <span className="ml-3 hidden flex-1 items-center rounded-md bg-surface px-3 py-1 text-xs text-ink-muted ring-1 ring-edge sm:flex">
-          ihre-website.de — KI-Audit-Report
+          {t.hero.visualUrl}
         </span>
       </div>
 
@@ -60,19 +58,19 @@ function HeroVisual() {
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-2xl font-bold text-ink">96</span>
               <span className="text-[10px] font-medium tracking-widest text-ink-muted uppercase">
-                Score
+                {t.hero.visualScore}
               </span>
             </div>
           </div>
-          <span className="text-xs font-medium text-ink-muted">nach Optimierung</span>
+          <span className="text-xs font-medium text-ink-muted">{t.hero.visualAfter}</span>
         </div>
 
         {/* Metrics */}
         <div className="space-y-3.5">
           {[
-            { label: "Ladezeit", before: "4,8s", after: "0,7s", width: "92%" },
-            { label: "Sicherheit", before: "C", after: "A+", width: "100%" },
-            { label: "SEO-Sichtbarkeit", before: "32", after: "94", width: "88%" },
+            { label: t.hero.visualMetrics[0], before: "4,8s", after: "0,7s", width: "92%" },
+            { label: t.hero.visualMetrics[1], before: "C", after: "A+", width: "100%" },
+            { label: t.hero.visualMetrics[2], before: "32", after: "94", width: "88%" },
           ].map(({ label, before, after, width }, i) => (
             <div key={label}>
               <div className="mb-1.5 flex items-baseline justify-between gap-3">
@@ -95,7 +93,7 @@ function HeroVisual() {
           ))}
 
           <div className="flex flex-wrap gap-2 pt-1.5">
-            {["+210% Anfragen", "Core Web Vitals ✓", "DSGVO ✓"].map((chip) => (
+            {t.hero.visualChips.map((chip) => (
               <span
                 key={chip}
                 className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-600 ring-1 ring-emerald-500/30 dark:text-emerald-400"
@@ -112,6 +110,7 @@ function HeroVisual() {
 }
 
 export default function Hero() {
+  const { t } = useI18n();
   const reduceMotion = useReducedMotion();
   const fadeUp = (delay: number) => ({
     initial: reduceMotion ? false : { opacity: 0, y: 28 },
@@ -129,7 +128,7 @@ export default function Hero() {
           <motion.div {...fadeUp(0)}>
             <span className="inline-flex items-center gap-2 rounded-full border border-edge bg-surface px-4 py-1.5 text-xs font-medium text-ink-soft shadow-sm">
               <Sparkles className="h-3.5 w-3.5 text-accent" />
-              Webagentur für messbare Ergebnisse
+              {t.hero.badge}
             </span>
           </motion.div>
 
@@ -137,17 +136,15 @@ export default function Hero() {
             {...fadeUp(0.1)}
             className="mt-6 text-4xl leading-[1.1] font-bold tracking-tight text-balance text-ink md:text-6xl"
           >
-            Wir machen Ihre Website{" "}
-            <span className="text-gradient">schnell, sicher und erfolgreich.</span>
+            {t.hero.title}{" "}
+            <span className="text-gradient">{t.hero.titleAccent}</span>
           </motion.h1>
 
           <motion.p
             {...fadeUp(0.2)}
             className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-ink-soft md:text-xl lg:mx-0"
           >
-            Professionelle Website-Entwicklung und -Optimierung: mehr
-            Geschwindigkeit, mehr Sicherheit, mehr Kunden — mit kostenloser
-            KI-Analyse in 30 Sekunden.
+            {t.hero.subtitle}
           </motion.p>
 
           <motion.div
@@ -158,14 +155,14 @@ export default function Hero() {
               href="/analyse"
               className="btn-primary group inline-flex w-full items-center justify-center gap-2 rounded-full px-7 py-3.5 text-base font-semibold sm:w-auto"
             >
-              Kostenlose Analyse
+              {t.hero.ctaAnalyse}
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
               href="/kontakt"
               className="btn-secondary inline-flex w-full items-center justify-center gap-2 rounded-full px-7 py-3.5 text-base font-semibold sm:w-auto"
             >
-              Projekt starten
+              {t.hero.ctaProject}
             </Link>
           </motion.div>
 
@@ -173,7 +170,9 @@ export default function Hero() {
             {...fadeUp(0.42)}
             className="mt-10 flex flex-wrap items-center justify-center gap-x-7 gap-y-3 lg:justify-start"
           >
-            {trust.map(({ icon: Icon, label }) => (
+            {t.hero.trust.map((label, i) => {
+              const Icon = trustIcons[i];
+              return (
               <span
                 key={label}
                 className="inline-flex items-center gap-2 text-sm font-medium text-ink-muted"
@@ -181,7 +180,7 @@ export default function Hero() {
                 <Icon className="h-4 w-4 text-accent" />
                 {label}
               </span>
-            ))}
+            );})}
           </motion.div>
         </div>
 

@@ -16,12 +16,13 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const { error } = await getSupabase().auth.signInWithPassword({
+    const supabase = getSupabase();
+    const { error } = await supabase.auth.signInWithPassword({
       email: form.email.trim(),
       password: form.password,
     });
-    setLoading(false);
     if (error) {
+      setLoading(false);
       setError(
         /confirm/i.test(error.message)
           ? "Bitte bestätigen Sie zuerst Ihre E-Mail-Adresse (Link in Ihrem Postfach)."
@@ -29,7 +30,9 @@ export default function LoginPage() {
       );
       return;
     }
-    router.push("/dashboard");
+    // Admins land directly in the team dashboard, customers in theirs.
+    const { data: adm } = await supabase.from("agency_admins").select("email").limit(1);
+    router.push(adm && adm.length > 0 ? "/admin" : "/dashboard");
   }
 
   return (

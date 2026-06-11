@@ -4,34 +4,95 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { Menu, ScanSearch, UserRound, X, Zap } from "lucide-react";
+import { Globe, Menu, ScanSearch, UserRound, X, Zap } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
+import { useI18n } from "@/lib/i18n";
+import { LANGS, type Lang } from "@/lib/translations";
+import { getSupabase } from "@/lib/supabase";
 
-const links = [
-  { href: "/", label: "Startseite" },
-  { href: "/leistungen", label: "Leistungen" },
-  { href: "/analyse", label: "KI Analyse" },
-  { href: "/portfolio", label: "Portfolio" },
-  { href: "/ueber-uns", label: "Über Uns" },
-  { href: "/kontakt", label: "Kontakt" },
-];
+function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
+  const { lang, setLang } = useI18n();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        aria-label="Sprache wählen / Choose language"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex h-9 items-center gap-1.5 rounded-full border border-edge bg-surface px-3 text-xs font-semibold text-ink-soft uppercase transition-all hover:border-accent/40 hover:text-ink"
+      >
+        <Globe className="h-4 w-4" />
+        {lang}
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.ul
+            initial={{ opacity: 0, y: 6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            className={`absolute z-50 mt-2 w-36 overflow-hidden rounded-xl border border-edge bg-surface shadow-xl ${
+              compact ? "start-0" : "end-0"
+            }`}
+          >
+            {LANGS.map((l) => (
+              <li key={l.code}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLang(l.code as Lang);
+                    setOpen(false);
+                  }}
+                  className={`block w-full px-4 py-2.5 text-start text-sm font-medium transition-colors ${
+                    lang === l.code ? "bg-accent/10 text-accent" : "text-ink-soft hover:bg-card hover:text-ink"
+                  }`}
+                >
+                  {l.label}
+                </button>
+              </li>
+            ))}
+          </motion.ul>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function Navbar() {
+  const { t } = useI18n();
   const [scrolled, setScrolled] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
   const pathname = usePathname();
   // The menu is "open for" a specific path — navigating closes it implicitly.
   const [openPath, setOpenPath] = useState<string | null>(null);
   const open = openPath === pathname;
-  const setOpen = (next: boolean | ((v: boolean) => boolean)) => {
-    const value = typeof next === "function" ? next(open) : next;
-    setOpenPath(value ? pathname : null);
-  };
+  const setOpen = (next: boolean) => setOpenPath(next ? pathname : null);
+
+  const links = [
+    { href: "/", label: t.nav.home },
+    { href: "/leistungen", label: t.nav.services },
+    { href: "/analyse", label: t.nav.analyse },
+    { href: "/portfolio", label: t.nav.portfolio },
+    { href: "/ueber-uns", label: t.nav.about },
+    { href: "/kontakt", label: t.nav.contact },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const supabase = getSupabase();
+    supabase.auth.getSession().then(({ data }) => setLoggedIn(Boolean(data.session)));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) =>
+      setLoggedIn(Boolean(session)),
+    );
+    return () => sub.subscription.unsubscribe();
   }, []);
 
   return (
@@ -52,7 +113,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div className="hidden items-center gap-6 lg:flex">
+        <div className="hidden items-center gap-6 xl:flex">
           {links.map((link) => {
             const active = pathname === link.href;
             return (
@@ -69,31 +130,33 @@ export default function Navbar() {
           })}
         </div>
 
-        <div className="hidden items-center gap-2.5 lg:flex">
+        <div className="hidden items-center gap-2.5 xl:flex">
+          <LanguageSwitcher />
           <ThemeToggle />
           <Link
-            href="/login"
+            href={loggedIn ? "/dashboard" : "/login"}
             className="btn-secondary inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold"
           >
             <UserRound className="h-4 w-4" />
-            Login
+            {loggedIn ? t.nav.myArea : t.nav.login}
           </Link>
           <Link
             href="/analyse"
             className="btn-primary inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold"
           >
             <ScanSearch className="h-4 w-4" />
-            Kostenlose Analyse
+            {t.nav.freeAnalysis}
           </Link>
         </div>
 
-        <div className="flex items-center gap-2 lg:hidden">
+        <div className="flex items-center gap-2 xl:hidden">
+          <LanguageSwitcher />
           <ThemeToggle />
           <button
             type="button"
-            aria-label={open ? "Menü schließen" : "Menü öffnen"}
+            aria-label={open ? t.nav.closeMenu : t.nav.openMenu}
             aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
+            onClick={() => setOpen(!open)}
             className="rounded-lg p-2 text-ink transition-colors hover:bg-card"
           >
             {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -108,7 +171,7 @@ export default function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="overflow-hidden border-b border-edge bg-page/95 backdrop-blur-xl lg:hidden"
+            className="max-h-[calc(100dvh-4rem)] overflow-x-hidden overflow-y-auto border-b border-edge bg-page/95 backdrop-blur-xl xl:hidden"
           >
             <div className="space-y-1 px-5 pt-2 pb-6">
               {links.map((link, i) => (
@@ -133,15 +196,15 @@ export default function Navbar() {
               <div className="space-y-2.5 pt-3">
                 <Link
                   href="/analyse"
-                  className="btn-primary block rounded-full px-5 py-3 text-center text-base font-semibold"
+                  className="btn-primary block rounded-full px-5 py-3.5 text-center text-base font-semibold"
                 >
-                  Kostenlose Analyse
+                  {t.nav.freeAnalysis}
                 </Link>
                 <Link
-                  href="/login"
-                  className="btn-secondary block rounded-full px-5 py-3 text-center text-base font-semibold"
+                  href={loggedIn ? "/dashboard" : "/login"}
+                  className="btn-secondary block rounded-full px-5 py-3.5 text-center text-base font-semibold"
                 >
-                  Login / Konto
+                  {loggedIn ? t.nav.myArea : t.nav.loginAccount}
                 </Link>
               </div>
             </div>

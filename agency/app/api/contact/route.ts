@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { insertRow } from "@/lib/db";
+import { clientIp, isBot, rateLimited } from "@/lib/security";
 
 export const runtime = "nodejs";
 
@@ -8,16 +9,29 @@ interface ContactPayload {
   email?: string;
   website?: string;
   message?: string;
+  company?: string; // honeypot
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export async function POST(req: Request) {
+  if (rateLimited("contact", clientIp(req), 10, 10 * 60 * 1000)) {
+    return NextResponse.json(
+      { error: "Zu viele Anfragen. Bitte versuchen Sie es in einigen Minuten erneut." },
+      { status: 429 },
+    );
+  }
+
   let body: ContactPayload;
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 400 });
+  }
+
+  // Bots that fill the hidden honeypot field get a fake success.
+  if (isBot(body as Record<string, unknown>)) {
+    return NextResponse.json({ ok: true, message: "Vielen Dank!" });
   }
 
   const name = body.name?.trim() ?? "";

@@ -16,6 +16,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
+import { useI18n } from "@/lib/i18n";
 import Reveal from "./ui/Reveal";
 
 interface AnalyseResult {
@@ -34,16 +35,7 @@ const prioStyles: Record<string, string> = {
   niedrig: "bg-emerald-500/10 text-emerald-600 ring-emerald-500/30 dark:text-emerald-400",
 };
 
-const SCAN_STEPS = [
-  "Website wird geladen …",
-  "Performance & Ladezeit werden gemessen …",
-  "Sicherheits-Header werden geprüft …",
-  "SEO & Struktur werden analysiert …",
-  "Mobile Optimierung wird bewertet …",
-  "KI erstellt Ihre Empfehlungen …",
-];
-
-function ScoreRing({ score }: { score: number }) {
+function ScoreRing({ score, of100 }: { score: number; of100: string }) {
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
   const color = score >= 80 ? "#059669" : score >= 50 ? "#d97706" : "#dc2626";
@@ -67,18 +59,20 @@ function ScoreRing({ score }: { score: number }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-3xl font-bold text-ink">{score}</span>
-        <span className="text-[11px] tracking-widest text-ink-muted uppercase">von 100</span>
+        <span className="text-[11px] tracking-widest text-ink-muted uppercase">{of100}</span>
       </div>
     </div>
   );
 }
 
 function ScanProgress() {
+  const { t } = useI18n();
+  const steps = t.analyse.scanSteps;
   const [step, setStep] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setStep((s) => Math.min(s + 1, SCAN_STEPS.length - 1)), 2200);
+    const id = setInterval(() => setStep((s) => Math.min(s + 1, steps.length - 1)), 2200);
     return () => clearInterval(id);
-  }, []);
+  }, [steps.length]);
   return (
     <div className="flex h-full min-h-[360px] flex-col items-center justify-center text-center">
       <div className="relative mb-6 h-20 w-20">
@@ -87,7 +81,7 @@ function ScanProgress() {
           <Loader2 className="h-8 w-8 animate-spin text-accent" />
         </span>
       </div>
-      <h3 className="text-lg font-semibold text-ink">KI analysiert Ihre Website …</h3>
+      <h3 className="text-lg font-semibold text-ink">{t.analyse.scanning}</h3>
       <AnimatePresence mode="wait">
         <motion.p
           key={step}
@@ -96,7 +90,7 @@ function ScanProgress() {
           exit={{ opacity: 0, y: -8 }}
           className="mt-2 text-sm text-ink-soft"
         >
-          {SCAN_STEPS[step]}
+          {steps[step]}
         </motion.p>
       </AnimatePresence>
     </div>
@@ -104,7 +98,8 @@ function ScanProgress() {
 }
 
 export default function AnalyseSection() {
-  const [form, setForm] = useState({ name: "", email: "", url: "", goal: "" });
+  const { t } = useI18n();
+  const [form, setForm] = useState({ name: "", email: "", url: "", goal: "", company: "" });
   const [phase, setPhase] = useState<"idle" | "scanning" | "done">("idle");
   const [result, setResult] = useState<AnalyseResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -156,7 +151,7 @@ export default function AnalyseSection() {
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
               <label htmlFor="an-name" className="mb-1.5 block text-sm font-medium text-ink">
-                Name
+                {t.analyse.name}
               </label>
               <input
                 id="an-name"
@@ -172,7 +167,7 @@ export default function AnalyseSection() {
             </div>
             <div>
               <label htmlFor="an-email" className="mb-1.5 block text-sm font-medium text-ink">
-                E-Mail
+                {t.analyse.email}
               </label>
               <input
                 id="an-email"
@@ -188,7 +183,7 @@ export default function AnalyseSection() {
             </div>
             <div className="sm:col-span-2">
               <label htmlFor="an-url" className="mb-1.5 block text-sm font-medium text-ink">
-                Website-Link
+                {t.analyse.url}
               </label>
               <input
                 id="an-url"
@@ -202,10 +197,21 @@ export default function AnalyseSection() {
                 className="field"
               />
             </div>
+            {/* Honeypot — invisible to humans; bots that fill it are rejected */}
+            <input
+              type="text"
+              name="company"
+              value={form.company}
+              onChange={update("company")}
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              className="absolute -left-[9999px] h-0 w-0 opacity-0"
+            />
             <div className="sm:col-span-2">
               <label htmlFor="an-goal" className="mb-1.5 block text-sm font-medium text-ink">
-                Was soll verbessert werden?{" "}
-                <span className="font-normal text-ink-muted">(Ihr Ziel)</span>
+                {t.analyse.goal}{" "}
+                <span className="font-normal text-ink-muted">{t.analyse.goalHint}</span>
               </label>
               <textarea
                 id="an-goal"
@@ -213,7 +219,7 @@ export default function AnalyseSection() {
                 maxLength={2000}
                 value={form.goal}
                 onChange={update("goal")}
-                placeholder="z. B. Mehr Kunden gewinnen, schnellere Ladezeiten, besseres Google-Ranking …"
+                placeholder={t.analyse.goalPh}
                 className="field resize-none"
               />
             </div>
@@ -227,22 +233,22 @@ export default function AnalyseSection() {
             {phase === "scanning" ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
-                Analyse läuft …
+                {t.analyse.running}
               </>
             ) : (
               <>
                 <Sparkles className="h-5 w-5" />
-                KI-Analyse starten
+                {t.analyse.start}
               </>
             )}
           </button>
 
           <p className="mt-4 text-center text-xs text-ink-muted">
-            100% kostenlos & unverbindlich. Mit{" "}
+            {t.analyse.freeNote}{" "}
             <Link href="/registrieren" className="font-medium text-accent hover:underline">
-              kostenlosem Konto
+              {t.analyse.freeNoteAccount}
             </Link>{" "}
-            finden Sie Ihre Analysen jederzeit im Dashboard wieder.
+            {t.analyse.freeNoteEnd}
           </p>
         </form>
       </Reveal>
@@ -262,11 +268,9 @@ export default function AnalyseSection() {
                 <span className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-accent/10 to-cyan-glow/10 text-accent ring-1 ring-accent/15">
                   <ScanSearch className="h-8 w-8" />
                 </span>
-                <h3 className="text-lg font-semibold text-ink">Ihre KI-Analyse erscheint hier</h3>
+                <h3 className="text-lg font-semibold text-ink">{t.analyse.resultHere}</h3>
                 <p className="mt-2 max-w-sm text-sm text-ink-soft">
-                  Design, Geschwindigkeit, SEO, Mobile, Sicherheit,
-                  Benutzerfreundlichkeit, Conversion und Struktur — mit
-                  konkreten Empfehlungen und Prioritäten.
+                  {t.analyse.resultHereText}
                 </p>
               </motion.div>
             )}
@@ -287,13 +291,13 @@ export default function AnalyseSection() {
                 <span className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 ring-1 ring-amber-500/30">
                   <AlertTriangle className="h-8 w-8" />
                 </span>
-                <h3 className="text-lg font-semibold text-ink">Analyse nicht möglich</h3>
+                <h3 className="text-lg font-semibold text-ink">{t.analyse.notPossible}</h3>
                 <p className="mt-2 max-w-sm text-sm text-ink-soft">{error}</p>
                 <Link
                   href="/kontakt"
                   className="btn-secondary mt-5 inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold"
                 >
-                  Persönlich beraten lassen
+                  {t.analyse.personalAdvice}
                   <ArrowUpRight className="h-4 w-4" />
                 </Link>
               </motion.div>
@@ -309,9 +313,9 @@ export default function AnalyseSection() {
               >
                 {/* Score + summary */}
                 <div className="flex flex-col items-center gap-6 sm:flex-row">
-                  <ScoreRing score={result.score} />
+                  <ScoreRing score={result.score} of100={t.analyse.of100} />
                   <div className="text-center sm:text-left">
-                    <h3 className="text-lg font-semibold text-ink">Ihr Analyse-Ergebnis</h3>
+                    <h3 className="text-lg font-semibold text-ink">{t.analyse.resultTitle}</h3>
                     <p className="mt-1 text-xs break-all text-ink-muted">{result.url}</p>
                     <p className="mt-3 text-sm leading-relaxed text-ink-soft">{result.summary}</p>
                   </div>
@@ -321,7 +325,7 @@ export default function AnalyseSection() {
                 <div>
                   <h4 className="mb-3 flex items-center gap-2 text-sm font-bold tracking-wide text-ink uppercase">
                     <ListChecks className="h-4 w-4 text-accent" />
-                    Bewertung nach Bereichen
+                    {t.analyse.categories}
                   </h4>
                   <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
                     {result.kategorien.map((k, i) => (
@@ -350,7 +354,7 @@ export default function AnalyseSection() {
                   <div>
                     <h4 className="mb-3 flex items-center gap-2 text-sm font-bold tracking-wide text-ink uppercase">
                       <ShieldAlert className="h-4 w-4 text-red-500" />
-                      Gefundene Probleme
+                      {t.analyse.problems}
                     </h4>
                     <ul className="space-y-2.5">
                       {result.probleme.map((p) => (
@@ -362,7 +366,7 @@ export default function AnalyseSection() {
                                 prioStyles[p.prioritaet] ?? prioStyles.mittel
                               }`}
                             >
-                              {p.prioritaet === "hoch" ? "Priorität: Hoch" : p.prioritaet === "niedrig" ? "Niedrig" : "Mittel"}
+                              {p.prioritaet === "hoch" ? t.analyse.prioHigh : p.prioritaet === "niedrig" ? t.analyse.prioLow : t.analyse.prioMid}
                             </span>
                           </div>
                           <p className="mt-1.5 text-[13px] leading-relaxed text-ink-soft">{p.beschreibung}</p>
@@ -377,7 +381,7 @@ export default function AnalyseSection() {
                   <div>
                     <h4 className="mb-3 flex items-center gap-2 text-sm font-bold tracking-wide text-ink uppercase">
                       <Sparkles className="h-4 w-4 text-accent" />
-                      Empfohlene Verbesserungen
+                      {t.analyse.improvements}
                     </h4>
                     <ul className="space-y-2.5">
                       {result.verbesserungen.map((v) => (
@@ -385,7 +389,7 @@ export default function AnalyseSection() {
                           <div className="flex items-center gap-2.5">
                             <span className="min-w-0 flex-1 text-sm font-semibold text-ink">{v.titel}</span>
                             <span className="shrink-0 rounded-full bg-surface px-2.5 py-0.5 text-[11px] font-medium text-ink-muted ring-1 ring-edge">
-                              Aufwand: {v.aufwand}
+                              {t.analyse.effort}: {v.aufwand}
                             </span>
                           </div>
                           <p className="mt-1.5 text-[13px] leading-relaxed text-ink-soft">{v.beschreibung}</p>
@@ -400,7 +404,7 @@ export default function AnalyseSection() {
                   <div>
                     <h4 className="mb-3 flex items-center gap-2 text-sm font-bold tracking-wide text-ink uppercase">
                       <Lightbulb className="h-4 w-4 text-amber-500" />
-                      Unsere Empfehlung
+                      {t.analyse.recommendation}
                     </h4>
                     <ul className="space-y-2">
                       {result.empfehlungen.map((e) => (
@@ -418,10 +422,10 @@ export default function AnalyseSection() {
                   className="btn-primary inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold"
                 >
                   <Send className="h-4 w-4" />
-                  Probleme jetzt beheben lassen
+                  {t.analyse.fixNow}
                 </Link>
                 <p className="!mt-3 text-center text-xs text-ink-muted">
-                  Ihre Analyse wurde gespeichert — wir melden uns innerhalb von 24 Stunden mit konkreten Vorschlägen.
+                  {t.analyse.saved}
                 </p>
               </motion.div>
             )}

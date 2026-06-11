@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { runAnalyse } from "@/lib/analyse";
 import { insertRow } from "@/lib/db";
+import { isBot } from "@/lib/security";
 
 export const runtime = "nodejs";
 
@@ -28,11 +29,16 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { name?: string; email?: string; url?: string; goal?: string; userId?: string };
+  let body: { name?: string; email?: string; url?: string; goal?: string; userId?: string; company?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 400 });
+  }
+
+  // Bots that fill the hidden honeypot field get a fake error (no audit run).
+  if (isBot(body as Record<string, unknown>)) {
+    return NextResponse.json({ error: "Die Website konnte nicht erreicht werden." }, { status: 422 });
   }
 
   const name = body.name?.trim() ?? "";

@@ -10,17 +10,16 @@ import {
   Send,
   ShieldCheck,
 } from "lucide-react";
+import Link from "next/link";
 import SectionHeading from "./ui/SectionHeading";
 import Reveal from "./ui/Reveal";
+import { useI18n } from "@/lib/i18n";
 
-const promises = [
-  { icon: Clock, text: "Antwort innerhalb von 24 Stunden" },
-  { icon: ShieldCheck, text: "100% unverbindlich & DSGVO-konform" },
-  { icon: CheckCircle2, text: "Persönliche Beratung statt Verkaufsdruck" },
-];
+const promiseIcons = [Clock, ShieldCheck, CheckCircle2];
 
 export default function Contact() {
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const { t } = useI18n();
+  const [form, setForm] = useState({ name: "", email: "", message: "", company: "" });
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [feedback, setFeedback] = useState("");
 
@@ -42,7 +41,7 @@ export default function Contact() {
       if (!res.ok) throw new Error(data.error ?? "Senden fehlgeschlagen.");
       setStatus("sent");
       setFeedback(data.message);
-      setForm({ name: "", email: "", message: "" });
+      setForm({ name: "", email: "", message: "", company: "" });
     } catch (err) {
       setStatus("error");
       setFeedback(
@@ -52,13 +51,9 @@ export default function Contact() {
   }
 
   return (
-    <section id="kontakt" className="relative bg-card py-20 md:py-28">
+    <section id="kontakt" className="relative bg-card py-16 md:py-24">
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
-        <SectionHeading
-          eyebrow="Kontakt"
-          title="Bereit für eine Website, die liefert?"
-          subtitle="Erzählen Sie uns von Ihrem Projekt — Sie erhalten innerhalb von 24 Stunden eine persönliche Antwort mit konkreten nächsten Schritten."
-        />
+        <SectionHeading eyebrow={t.contact.eyebrow} title={t.contact.title} subtitle={t.contact.subtitle} />
 
         <div className="grid items-start gap-6 lg:grid-cols-[1fr_1.3fr] lg:gap-8">
           <Reveal>
@@ -67,7 +62,7 @@ export default function Contact() {
                 <span className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-accent/10 to-cyan-glow/10 text-accent ring-1 ring-accent/15">
                   <Mail className="h-5 w-5" />
                 </span>
-                <h3 className="mb-1 text-base font-semibold text-ink">E-Mail</h3>
+                <h3 className="mb-1 text-base font-semibold text-ink">{t.contact.email}</h3>
                 <a
                   href="mailto:kontakt@norevan.digital"
                   className="text-sm text-ink-soft transition-colors hover:text-accent"
@@ -80,28 +75,26 @@ export default function Contact() {
                 <span className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-accent/10 to-cyan-glow/10 text-accent ring-1 ring-accent/15">
                   <ScanSearch className="h-5 w-5" />
                 </span>
-                <h3 className="mb-1 text-base font-semibold text-ink">
-                  Lieber direkt analysieren?
-                </h3>
-                <p className="text-sm leading-relaxed text-ink-soft">
-                  Starten Sie mit der kostenlosen KI-Analyse — und erhalten Sie
-                  sofort einen Überblick über Ihr Potenzial.
-                </p>
-                <a
+                <h3 className="mb-1 text-base font-semibold text-ink">{t.contact.preferAnalysis}</h3>
+                <p className="text-sm leading-relaxed text-ink-soft">{t.contact.preferAnalysisText}</p>
+                <Link
                   href="/analyse"
                   className="mt-3 inline-block text-sm font-semibold text-accent transition-colors hover:text-accent-deep"
                 >
-                  Zur kostenlosen Analyse →
-                </a>
+                  {t.contact.toAnalysis}
+                </Link>
               </article>
 
               <ul className="space-y-3 px-1">
-                {promises.map(({ icon: Icon, text }) => (
-                  <li key={text} className="flex items-center gap-2.5 text-sm text-ink-soft">
-                    <Icon className="h-4.5 w-4.5 shrink-0 text-accent" />
-                    {text}
-                  </li>
-                ))}
+                {t.contact.promises.map((text, i) => {
+                  const Icon = promiseIcons[i];
+                  return (
+                    <li key={text} className="flex items-center gap-2.5 text-sm text-ink-soft">
+                      <Icon className="h-4.5 w-4.5 shrink-0 text-accent" />
+                      {text}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </Reveal>
@@ -111,7 +104,7 @@ export default function Contact() {
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>
                   <label htmlFor="contact-name" className="mb-1.5 block text-sm font-medium text-ink">
-                    Name
+                    {t.contact.name}
                   </label>
                   <input
                     id="contact-name"
@@ -121,13 +114,13 @@ export default function Contact() {
                     autoComplete="name"
                     value={form.name}
                     onChange={update("name")}
-                    placeholder="Max Mustermann"
+                    placeholder={t.contact.namePh}
                     className="field"
                   />
                 </div>
                 <div>
                   <label htmlFor="contact-email" className="mb-1.5 block text-sm font-medium text-ink">
-                    E-Mail
+                    {t.contact.email}
                   </label>
                   <input
                     id="contact-email"
@@ -137,13 +130,24 @@ export default function Contact() {
                     autoComplete="email"
                     value={form.email}
                     onChange={update("email")}
-                    placeholder="max@firma.de"
+                    placeholder={t.contact.emailPh}
                     className="field"
                   />
                 </div>
+                {/* Honeypot — invisible to humans; bots that fill it are rejected */}
+                <input
+                  type="text"
+                  name="company"
+                  value={form.company}
+                  onChange={update("company")}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  className="absolute -left-[9999px] h-0 w-0 opacity-0"
+                />
                 <div className="sm:col-span-2">
                   <label htmlFor="contact-message" className="mb-1.5 block text-sm font-medium text-ink">
-                    Nachricht
+                    {t.contact.message}
                   </label>
                   <textarea
                     id="contact-message"
@@ -152,7 +156,7 @@ export default function Contact() {
                     maxLength={5000}
                     value={form.message}
                     onChange={update("message")}
-                    placeholder="Beschreiben Sie kurz Ihr Anliegen — z. B. welche Website es geht und was Sie erreichen möchten."
+                    placeholder={t.contact.messagePh}
                     className="field resize-none"
                   />
                 </div>
@@ -166,24 +170,24 @@ export default function Contact() {
                 {status === "sending" ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    Wird gesendet …
+                    {t.contact.sending}
                   </>
                 ) : (
                   <>
                     <Send className="h-5 w-5" />
-                    Anfrage senden
+                    {t.contact.send}
                   </>
                 )}
               </button>
 
               {status === "sent" && (
-                <p className="mt-4 flex items-center justify-center gap-2 text-center text-sm font-medium text-emerald-600">
+                <p className="mt-4 flex items-center justify-center gap-2 text-center text-sm font-medium text-emerald-600 dark:text-emerald-400">
                   <CheckCircle2 className="h-4 w-4 shrink-0" />
                   {feedback}
                 </p>
               )}
               {status === "error" && (
-                <p className="mt-4 text-center text-sm font-medium text-red-600">{feedback}</p>
+                <p className="mt-4 text-center text-sm font-medium text-red-500">{feedback}</p>
               )}
             </form>
           </Reveal>
