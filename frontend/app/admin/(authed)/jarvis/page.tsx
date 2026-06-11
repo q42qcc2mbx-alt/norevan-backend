@@ -4,19 +4,13 @@ import { buildSnapshot } from "@/lib/jarvis/snapshot";
 import { listTasks } from "@/lib/jarvis/store";
 import { JarvisChat } from "@/components/admin/jarvis/JarvisChat";
 import { MemoryTasks } from "@/components/admin/jarvis/MemoryTasks";
+import { Findings } from "@/components/admin/jarvis/Findings";
 import { formatPrice } from "@/lib/format";
 
 export const metadata = {
   title: "JARVIS OMEGA — Norevan",
   robots: { index: false, follow: false },
 };
-
-const LEVEL_STYLE: Record<string, string> = {
-  warn: "border-amber-500/40 bg-amber-500/10 text-amber-300",
-  info: "border-cyan-500/30 bg-cyan-500/10 text-cyan-300",
-  ok: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
-};
-const LEVEL_ICON: Record<string, string> = { warn: "⚠", info: "ℹ", ok: "✓" };
 
 export default async function JarvisPage() {
   const user = await getAdminUser();
@@ -96,14 +90,7 @@ export default async function JarvisPage() {
             <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-400">
               ⚡ Proaktiver Modus · Befunde
             </div>
-            <ul className="space-y-2">
-              {snapshot.findings.map((f, i) => (
-                <li key={i} className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-xs leading-relaxed ${LEVEL_STYLE[f.level]}`}>
-                  <span aria-hidden>{LEVEL_ICON[f.level]}</span>
-                  <span>{f.text}</span>
-                </li>
-              ))}
-            </ul>
+            <Findings findings={snapshot.findings} />
           </div>
         </section>
 
