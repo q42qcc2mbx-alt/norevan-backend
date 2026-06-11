@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ChatWidget from "@/components/ChatWidget";
+import DeviceChooser from "@/components/DeviceChooser";
 import "./globals.css";
 
 const inter = Inter({
@@ -90,6 +91,7 @@ export default function RootLayout({
           <main className="min-h-[60dvh]">{children}</main>
           <Footer />
           <ChatWidget />
+          <DeviceChooser />
         </ThemeProvider>
       </body>
     </html>

@@ -29,6 +29,17 @@ KI-Assistent.
 
 Der **KI-Assistent** (unten rechts) ist auf allen Seiten verfügbar.
 
+## Starter-Kit-Features (integriert)
+
+- **KI-Texthilfe** im Kunden-Dashboard: Beschreibung + Fokus (Texte, SEO,
+  Design, Conversion, Über-uns) → kopierfertige Verbesserungstexte
+  (`/api/ai`, nur für eingeloggte Nutzer; Claude oder Template-Fallback)
+- **Geräteauswahl** beim Erstbesuch (Handy/Tablet/Computer, automatisch
+  erkannt, in localStorage gespeichert, als `data-device` auf `<html>`)
+- **Rollenmodell**: genau zwei Rollen — Kunde und Admin. **Kein Owner**;
+  die vier Teammitglieder sind gleichberechtigte Admins und verwalten die
+  Admin-Liste selbst im Team-Dashboard (Tab „Team").
+
 ## Datenbank (Supabase)
 
 Tabellen `agency_analyses`, `agency_leads`, `agency_projects`,

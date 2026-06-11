@@ -13,6 +13,8 @@ import {
   ScanSearch,
   Send,
   ShieldCheck,
+  Trash2,
+  Users,
 } from "lucide-react";
 import { getSupabase, PROJECT_STEPS, type ProjectStatus } from "@/lib/supabase";
 
@@ -46,7 +48,7 @@ interface ProjectRow {
   notes: string | null;
 }
 
-type Tab = "analysen" | "anfragen" | "projekte" | "nachricht";
+type Tab = "analysen" | "anfragen" | "projekte" | "nachricht" | "team";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("de-DE", {
@@ -68,17 +70,22 @@ export default function AdminPage() {
   const [newProject, setNewProject] = useState({ email: "", title: "" });
   const [message, setMessage] = useState({ email: "", content: "" });
   const [feedback, setFeedback] = useState("");
+  const [admins, setAdmins] = useState<string[]>([]);
+  const [newAdmin, setNewAdmin] = useState("");
+  const [myEmail, setMyEmail] = useState("");
 
   const load = useCallback(async () => {
     const supabase = getSupabase();
-    const [a, l, p] = await Promise.all([
+    const [a, l, p, adm] = await Promise.all([
       supabase.from("agency_analyses").select("*").order("created_at", { ascending: false }).limit(100),
       supabase.from("agency_leads").select("*").order("created_at", { ascending: false }).limit(100),
       supabase.from("agency_projects").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase.from("agency_admins").select("email").order("email"),
     ]);
     setAnalysen((a.data ?? []) as AnalyseRow[]);
     setLeads((l.data ?? []) as LeadRow[]);
     setProjekte((p.data ?? []) as ProjectRow[]);
+    setAdmins(((adm.data ?? []) as { email: string }[]).map((r) => r.email));
   }, []);
 
   useEffect(() => {
@@ -95,6 +102,7 @@ export default function AdminPage() {
         setAllowed(false);
         return;
       }
+      setMyEmail(session.user.email ?? "");
       setAllowed(true);
       await load();
       setChecking(false);
@@ -121,6 +129,29 @@ export default function AdminPage() {
       setNewProject({ email: "", title: "" });
       load();
     }
+  }
+
+  async function addAdmin(e: FormEvent) {
+    e.preventDefault();
+    setFeedback("");
+    const email = newAdmin.trim().toLowerCase();
+    const { error } = await getSupabase().from("agency_admins").insert({ email });
+    setFeedback(
+      error
+        ? "Admin konnte nicht hinzugefügt werden (existiert evtl. bereits)."
+        : "Admin hinzugefügt ✓",
+    );
+    if (!error) {
+      setNewAdmin("");
+      load();
+    }
+  }
+
+  async function removeAdmin(email: string) {
+    setFeedback("");
+    const { error } = await getSupabase().from("agency_admins").delete().eq("email", email);
+    setFeedback(error ? "Entfernen fehlgeschlagen." : "Admin entfernt ✓");
+    if (!error) load();
   }
 
   async function sendMessage(e: FormEvent) {
@@ -163,6 +194,7 @@ export default function AdminPage() {
     { key: "anfragen", label: `Anfragen (${leads.length})`, icon: Inbox },
     { key: "projekte", label: `Projekte (${projekte.length})`, icon: FolderKanban },
     { key: "nachricht", label: "Nachricht senden", icon: MessageSquareText },
+    { key: "team", label: `Team (${admins.length})`, icon: Users },
   ];
 
   return (
@@ -399,6 +431,78 @@ export default function AdminPage() {
               Der Kunde sieht die Nachricht in seinem Dashboard (Konto mit dieser E-Mail erforderlich).
             </p>
           </form>
+        )}
+
+        {tab === "team" && (
+          <div className="max-w-2xl space-y-5">
+            <div className="card-elevated p-6">
+              <h2 className="flex items-center gap-2 text-base font-bold text-ink">
+                <Users className="h-4.5 w-4.5 text-accent" />
+                Team-Admins
+              </h2>
+              <p className="mt-1 text-sm text-ink-soft">
+                Alle Admins sind gleichberechtigt — es gibt keinen Owner. Jeder
+                Admin kann Analysen, Anfragen und Projekte verwalten.
+              </p>
+              <ul className="mt-4 space-y-2.5">
+                {admins.map((email) => (
+                  <li
+                    key={email}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-edge bg-card px-4 py-3"
+                  >
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <ShieldCheck className="h-4 w-4 shrink-0 text-accent" />
+                      <span className="truncate text-sm font-medium text-ink">{email}</span>
+                      {email.toLowerCase() === myEmail.toLowerCase() && (
+                        <span className="shrink-0 rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-semibold text-accent">
+                          Sie
+                        </span>
+                      )}
+                    </div>
+                    {email.toLowerCase() !== myEmail.toLowerCase() && (
+                      <button
+                        type="button"
+                        onClick={() => removeAdmin(email)}
+                        aria-label={`${email} als Admin entfernen`}
+                        className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-red-500/10 hover:text-red-500"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <form onSubmit={addAdmin} className="card-elevated flex flex-col gap-3 p-5 sm:flex-row sm:items-end">
+              <div className="flex-1">
+                <label htmlFor="adm-email" className="mb-1.5 block text-sm font-medium text-ink">
+                  Neuen Admin hinzufügen (E-Mail)
+                </label>
+                <input
+                  id="adm-email"
+                  type="email"
+                  required
+                  value={newAdmin}
+                  onChange={(e) => setNewAdmin(e.target.value)}
+                  placeholder="teammitglied@norevan.digital"
+                  className="field"
+                />
+              </div>
+              <button
+                type="submit"
+                className="btn-primary inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-3 text-sm font-semibold"
+              >
+                <Plus className="h-4 w-4" />
+                Hinzufügen
+              </button>
+            </form>
+            <p className="text-xs text-ink-muted">
+              Hinweis: Das eigene Konto kann nicht entfernt werden, damit das
+              Team sich nicht aussperrt. Der Admin-Zugang gilt für das Konto
+              mit genau dieser E-Mail-Adresse.
+            </p>
+          </div>
         )}
 
         {feedback && <p className="mt-4 text-sm font-medium text-accent">{feedback}</p>}

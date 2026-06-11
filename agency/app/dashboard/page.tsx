@@ -14,6 +14,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { getSupabase, PROJECT_STEPS, type ProjectStatus } from "@/lib/supabase";
+import { navFor, type Role } from "@/lib/roles";
+import AiWebsiteHelper from "@/components/AiWebsiteHelper";
 
 interface AnalyseRow {
   id: string;
@@ -173,22 +175,26 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
-          {isAdmin && (
-            <Link
-              href="/admin"
-              className="btn-primary inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold"
-            >
-              <ShieldCheck className="h-4 w-4" />
-              Team-Dashboard
-            </Link>
-          )}
-          <Link
-            href="/analyse"
-            className="btn-secondary inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold"
-          >
-            <ScanSearch className="h-4 w-4" />
-            Neue Analyse
-          </Link>
+          {navFor((isAdmin ? "admin" : "kunde") as Role)
+            .filter((item) => item.href !== "/dashboard")
+            .map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`${
+                  item.href === "/admin" ? "btn-primary" : "btn-secondary"
+                } inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold`}
+              >
+                {item.href === "/admin" ? (
+                  <ShieldCheck className="h-4 w-4" />
+                ) : item.href === "/analyse" ? (
+                  <ScanSearch className="h-4 w-4" />
+                ) : (
+                  <MessageSquareText className="h-4 w-4" />
+                )}
+                {item.label}
+              </Link>
+            ))}
           <button
             type="button"
             onClick={logout}
@@ -200,7 +206,12 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="mt-10 grid items-start gap-6 lg:grid-cols-2">
+      {/* KI-Texthilfe — exklusiv für eingeloggte Kunden */}
+      <div className="mt-10">
+        <AiWebsiteHelper />
+      </div>
+
+      <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
         {/* Analysen */}
         <div className="card-elevated p-6">
           <h2 className="flex items-center gap-2 text-base font-bold text-ink">
