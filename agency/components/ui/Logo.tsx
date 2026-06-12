@@ -14,7 +14,7 @@
 export type LogoVariant = "monogram" | "pulse" | "bolt";
 
 /** Aktuell verwendete Variante (eine Stelle ändern = überall geändert). */
-export const DEFAULT_VARIANT: LogoVariant = "monogram";
+export const DEFAULT_VARIANT: LogoVariant = "bolt";
 
 function Mark({ variant, size }: { variant: LogoVariant; size: number }) {
   return (
@@ -36,7 +36,11 @@ function Mark({ variant, size }: { variant: LogoVariant; size: number }) {
         {variant === "monogram" && <path d="M6 18 V6 L18 18 V6" />}
         {variant === "pulse" && <path d="M3 12 H7 L9.5 6.5 L13 17.5 L15 12 H21" />}
         {variant === "bolt" && (
-          <path d="M13 3 L5 13 H11 L10 21 L19 10 H12 Z" fill="white" strokeWidth={1.5} />
+          <path
+            d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"
+            fill="white"
+            stroke="none"
+          />
         )}
       </svg>
     </span>
