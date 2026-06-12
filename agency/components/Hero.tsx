@@ -119,7 +119,7 @@ export default function Hero() {
   });
 
   return (
-    <section className="relative overflow-hidden pt-28 pb-16 md:pt-40 md:pb-24">
+    <section className="relative overflow-hidden pt-24 pb-10 md:pt-40 md:pb-24">
       <div className="hero-glow absolute inset-0" aria-hidden />
       <div className="grid-overlay absolute inset-0" aria-hidden />
 
@@ -149,7 +149,7 @@ export default function Hero() {
 
           <motion.div
             {...fadeUp(0.3)}
-            className="mt-9 flex flex-col items-center justify-center gap-3.5 sm:flex-row lg:justify-start"
+            className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start"
           >
             <Link
               href="/analyse"
@@ -168,7 +168,7 @@ export default function Hero() {
 
           <motion.div
             {...fadeUp(0.42)}
-            className="mt-10 flex flex-wrap items-center justify-center gap-x-7 gap-y-3 lg:justify-start"
+            className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5 lg:justify-start"
           >
             {t.hero.trust.map((label, i) => {
               const Icon = trustIcons[i];
@@ -185,6 +185,7 @@ export default function Hero() {
         </div>
 
         <motion.div
+          className="hidden md:block"
           initial={reduceMotion ? false : { opacity: 0, y: 36, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.85, delay: 0.25, ease: [0.21, 0.65, 0.36, 1] }}

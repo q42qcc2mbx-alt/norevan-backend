@@ -8,10 +8,10 @@ import { useI18n } from "@/lib/i18n";
 export default function CtaBanner() {
   const { t } = useI18n();
   return (
-    <section className="relative py-14 md:py-20">
+    <section className="relative py-8 md:py-16">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <Reveal>
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent to-accent-deep px-6 py-12 text-center shadow-xl shadow-accent/25 md:px-12 md:py-16">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent to-accent-deep px-6 py-10 text-center shadow-xl shadow-accent/25 md:px-12 md:py-16">
             <div
               className="pointer-events-none absolute inset-0 bg-[radial-gradient(45%_60%_at_80%_0%,rgba(6,182,212,0.35),transparent)]"
               aria-hidden
