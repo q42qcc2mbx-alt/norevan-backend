@@ -134,7 +134,7 @@ export default function Hero() {
 
           <motion.h1
             {...fadeUp(0.1)}
-            className="mt-6 text-4xl leading-[1.1] font-bold tracking-tight text-balance text-ink md:text-6xl"
+            className="mt-6 font-display text-4xl leading-[1.1] font-bold tracking-tight text-balance text-ink md:text-6xl"
           >
             {t.hero.title}{" "}
             <span className="text-gradient">{t.hero.titleAccent}</span>

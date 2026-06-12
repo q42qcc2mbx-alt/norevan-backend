@@ -12,7 +12,7 @@ export default function SectionHeading({ eyebrow, title, subtitle }: SectionHead
       <span className="mb-4 inline-block rounded-full border border-accent/20 bg-accent/[0.06] px-4 py-1.5 text-xs font-semibold tracking-widest text-accent uppercase">
         {eyebrow}
       </span>
-      <h2 className="text-3xl font-bold tracking-tight text-balance text-ink md:text-[2.75rem] md:leading-[1.15]">
+      <h2 className="font-display text-3xl font-bold tracking-tight text-balance text-ink md:text-[2.75rem] md:leading-[1.15]">
         {title}
       </h2>
       {subtitle && (

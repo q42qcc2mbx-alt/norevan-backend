@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Zap } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { CONTACT_EMAIL } from "@/lib/site.config";
+import Logo from "./ui/Logo";
 import FeedbackWidget from "./FeedbackWidget";
 
 export default function Footer() {
@@ -27,6 +28,13 @@ export default function Footer() {
         { href: "/registrieren", label: t.footer.createAccount },
       ],
     },
+    {
+      title: t.footer.legal,
+      links: [
+        { href: "/impressum", label: t.footer.imprint },
+        { href: "/datenschutz", label: t.footer.privacy },
+      ],
+    },
   ];
 
   return (
@@ -34,13 +42,8 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <div className="flex flex-col gap-10 md:flex-row md:justify-between">
           <div className="max-w-xs">
-            <Link href="/" className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-cyan-glow">
-                <Zap className="h-4.5 w-4.5 text-white" strokeWidth={2.5} />
-              </span>
-              <span className="font-bold tracking-tight text-ink">
-                NOREVAN<span className="text-accent"> Digital</span>
-              </span>
+            <Link href="/" aria-label="NOREVAN Digital — Startseite">
+              <Logo size={32} />
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-ink-muted">{t.footer.tagline}</p>
             <div className="mt-5">
@@ -48,7 +51,7 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-10 sm:gap-16">
+          <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 sm:gap-16">
             {columns.map((col) => (
               <nav key={col.title} aria-label={col.title}>
                 <h3 className="mb-3.5 text-sm font-semibold text-ink">{col.title}</h3>
@@ -74,10 +77,10 @@ export default function Footer() {
             © {new Date().getFullYear()} NOREVAN Digital. {t.footer.rights}
           </p>
           <a
-            href="mailto:kontakt@norevan.digital"
+            href={`mailto:${CONTACT_EMAIL}`}
             className="text-xs text-ink-muted transition-colors hover:text-ink"
           >
-            kontakt@norevan.digital
+            {CONTACT_EMAIL}
           </a>
         </div>
       </div>

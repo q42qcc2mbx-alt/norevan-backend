@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { Globe, Menu, ScanSearch, UserRound, X, Zap } from "lucide-react";
+import { Globe, Menu, ScanSearch, UserRound, X } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
+import Logo from "./ui/Logo";
 import { useI18n } from "@/lib/i18n";
 import { LANGS, type Lang } from "@/lib/translations";
 import { getSupabase } from "@/lib/supabase";
@@ -104,13 +105,8 @@ export default function Navbar() {
       }`}
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-5 md:h-[4.5rem] md:px-8">
-        <Link href="/" className="flex shrink-0 items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-cyan-glow shadow-md shadow-accent/25">
-            <Zap className="h-5 w-5 text-white" strokeWidth={2.5} />
-          </span>
-          <span className="text-lg font-bold tracking-tight text-ink">
-            NOREVAN<span className="text-accent"> Digital</span>
-          </span>
+        <Link href="/" aria-label="NOREVAN Digital — Startseite" className="shrink-0">
+          <Logo size={36} wordmarkClass="text-lg" />
         </Link>
 
         <div className="hidden items-center gap-6 xl:flex">

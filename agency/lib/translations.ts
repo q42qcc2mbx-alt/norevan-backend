@@ -261,6 +261,9 @@ export const de = {
     rights: "Alle Rechte vorbehalten.",
     feedback: "Feedback geben",
     install: "Als App installieren",
+    legal: "Rechtliches",
+    imprint: "Impressum",
+    privacy: "Datenschutz",
   },
 };
 
@@ -524,6 +527,9 @@ export const en: Dict = {
     rights: "All rights reserved.",
     feedback: "Give feedback",
     install: "Install as app",
+    legal: "Legal",
+    imprint: "Imprint",
+    privacy: "Privacy",
   },
 };
 
@@ -785,6 +791,9 @@ export const ar: Dict = {
     rights: "جميع الحقوق محفوظة.",
     feedback: "أرسل ملاحظاتك",
     install: "تثبيت كتطبيق",
+    legal: "معلومات قانونية",
+    imprint: "بيانات الناشر",
+    privacy: "سياسة الخصوصية",
   },
 };
 
