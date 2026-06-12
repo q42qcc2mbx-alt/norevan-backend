@@ -35,3 +35,4 @@ data/
 
 # Graphify generated knowledge-graph outputs (regenerate with /graphify)
 graphify-out/
+WEBSITE_EXPORT_*.tar.gz
