@@ -84,6 +84,8 @@ export default function AdminPage() {
   const [admins, setAdmins] = useState<string[]>([]);
   const [feedbacks, setFeedbacks] = useState<FeedbackRow[]>([]);
   const [newAdmin, setNewAdmin] = useState("");
+  const [projCreated, setProjCreated] = useState<Record<string, boolean>>({});
+  const [projBusy, setProjBusy] = useState<string | null>(null);
   const [myEmail, setMyEmail] = useState("");
 
   const load = useCallback(async () => {
@@ -129,6 +131,23 @@ export default function AdminPage() {
       .update({ status, updated_at: new Date().toISOString() })
       .eq("id", id);
     load();
+  }
+
+  async function projectFromAnalyse(a: AnalyseRow) {
+    setProjBusy(a.id);
+    try {
+      const { error } = await getSupabase().from("agency_projects").insert({
+        email: a.email.trim().toLowerCase(),
+        title: `Website-Optimierung ${a.website}`.slice(0, 200),
+        notes: a.goal ? `Ziel des Kunden: ${a.goal}` : null,
+      });
+      if (!error) {
+        setProjCreated((m) => ({ ...m, [a.id]: true }));
+        load();
+      }
+    } finally {
+      setProjBusy(null);
+    }
   }
 
   async function createProject(e: FormEvent) {
@@ -264,6 +283,7 @@ export default function AdminPage() {
                     <th className="px-3 py-2.5">Website</th>
                     <th className="px-3 py-2.5">Score</th>
                     <th className="px-3 py-2.5">Ziel / Wünsche</th>
+                    <th className="px-3 py-2.5"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -287,6 +307,20 @@ export default function AdminPage() {
                         </span>
                       </td>
                       <td className="max-w-[220px] px-3 py-3 text-ink-soft">{a.goal || "—"}</td>
+                      <td className="px-3 py-3">
+                        {projCreated[a.id] ? (
+                          <span className="text-[11px] font-bold tracking-wide text-emerald-500 uppercase">✓ Projekt</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => projectFromAnalyse(a)}
+                            disabled={projBusy === a.id}
+                            className="rounded-full border border-accent/40 px-2.5 py-1 text-[11px] font-bold tracking-wide text-accent uppercase transition-colors hover:bg-accent/10 disabled:opacity-50"
+                          >
+                            {projBusy === a.id ? "…" : "→ Projekt"}
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
