@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import {
   FolderKanban,
+  Home,
   Inbox,
   LayoutDashboard,
   Loader2,
+  LogOut,
   MessageSquareHeart,
   MessageSquareText,
   Plus,
@@ -201,6 +203,11 @@ export default function AdminPage() {
     if (!error) setMessage({ email: "", content: "" });
   }
 
+  async function logout() {
+    await getSupabase().auth.signOut();
+    router.push("/");
+  }
+
   if (checking) {
     return (
       <div className="flex min-h-[70dvh] items-center justify-center pt-20">
@@ -246,9 +253,28 @@ export default function AdminPage() {
             Alle Analysen, Anfragen und Projekte an einem Ort.
           </p>
         </div>
-        <Link href="/dashboard" className="btn-secondary self-start rounded-full px-4 py-2 text-sm font-semibold">
-          Mein Dashboard
-        </Link>
+        <nav className="flex flex-wrap items-center gap-2" aria-label="Dashboard-Navigation">
+          <Link href="/" className="btn-secondary inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold">
+            <Home className="h-4 w-4" />
+            Startseite
+          </Link>
+          <Link href="/dashboard" className="btn-secondary inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold">
+            <LayoutDashboard className="h-4 w-4" />
+            Mein Dashboard
+          </Link>
+          <Link href="/analyse" className="btn-secondary inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold">
+            <ScanSearch className="h-4 w-4" />
+            KI-Analyse
+          </Link>
+          <button
+            type="button"
+            onClick={logout}
+            className="btn-secondary inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold"
+          >
+            <LogOut className="h-4 w-4" />
+            Abmelden
+          </button>
+        </nav>
       </div>
 
       {/* Tabs */}

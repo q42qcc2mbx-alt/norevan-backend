@@ -7,6 +7,7 @@ import type { Session } from "@supabase/supabase-js";
 import {
   Check,
   FolderKanban,
+  Home,
   Loader2,
   LogOut,
   MessageSquareText,
@@ -176,6 +177,13 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
+          <Link
+            href="/"
+            className="btn-secondary inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold"
+          >
+            <Home className="h-4 w-4" />
+            Startseite
+          </Link>
           {navFor((isAdmin ? "admin" : "kunde") as Role)
             .filter((item) => item.href !== "/dashboard")
             .map((item) => (
