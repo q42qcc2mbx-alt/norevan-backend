@@ -16,6 +16,7 @@ import {
 import { getSupabase, PROJECT_STEPS, type ProjectStatus } from "@/lib/supabase";
 import { navFor, type Role } from "@/lib/roles";
 import AiWebsiteHelper from "@/components/AiWebsiteHelper";
+import AccountSettings from "@/components/AccountSettings";
 
 interface AnalyseRow {
   id: string;
@@ -280,6 +281,11 @@ export default function DashboardPage() {
               ))}
             </ul>
           )}
+        </div>
+
+        {/* Konto-Einstellungen */}
+        <div className="lg:col-span-2">
+          <AccountSettings currentEmail={session.user.email ?? ""} />
         </div>
 
         {/* Nachrichten */}
