@@ -7,6 +7,7 @@ import type { Session } from "@supabase/supabase-js";
 import {
   FolderKanban,
   Inbox,
+  LayoutDashboard,
   Loader2,
   MessageSquareHeart,
   MessageSquareText,
@@ -18,6 +19,7 @@ import {
   Users,
 } from "lucide-react";
 import { getSupabase, PROJECT_STEPS, type ProjectStatus } from "@/lib/supabase";
+import DashboardOverview from "@/components/admin/DashboardOverview";
 
 interface AnalyseRow {
   id: string;
@@ -59,7 +61,7 @@ interface ProjectRow {
   notes: string | null;
 }
 
-type Tab = "analysen" | "anfragen" | "projekte" | "nachricht" | "feedback" | "team";
+type Tab = "uebersicht" | "analysen" | "anfragen" | "projekte" | "nachricht" | "feedback" | "team";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("de-DE", {
@@ -74,7 +76,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
   const [allowed, setAllowed] = useState(false);
-  const [tab, setTab] = useState<Tab>("analysen");
+  const [tab, setTab] = useState<Tab>("uebersicht");
   const [analysen, setAnalysen] = useState<AnalyseRow[]>([]);
   const [leads, setLeads] = useState<LeadRow[]>([]);
   const [projekte, setProjekte] = useState<ProjectRow[]>([]);
@@ -223,6 +225,7 @@ export default function AdminPage() {
   }
 
   const tabs: { key: Tab; label: string; icon: typeof Inbox }[] = [
+    { key: "uebersicht", label: "Übersicht", icon: LayoutDashboard },
     { key: "analysen", label: `Analysen (${analysen.length})`, icon: ScanSearch },
     { key: "anfragen", label: `Anfragen (${leads.length})`, icon: Inbox },
     { key: "projekte", label: `Projekte (${projekte.length})`, icon: FolderKanban },
@@ -269,6 +272,20 @@ export default function AdminPage() {
       </div>
 
       <div className="mt-6">
+        {tab === "uebersicht" && (
+          <DashboardOverview
+            analysen={analysen}
+            leads={leads}
+            projekte={projekte}
+            feedbacks={feedbacks}
+            admins={admins}
+            onNavigate={(t) => {
+              setTab(t as Tab);
+              setFeedback("");
+            }}
+          />
+        )}
+
         {tab === "analysen" && (
           <div className="card-elevated overflow-x-auto p-2 sm:p-4">
             {analysen.length === 0 ? (
