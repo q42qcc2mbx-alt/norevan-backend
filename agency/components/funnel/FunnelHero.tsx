@@ -210,6 +210,18 @@ export default function FunnelHero() {
     <section className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden px-5 pt-24 pb-12 md:pt-28 md:pb-16">
       <div className="hero-glow absolute inset-0" aria-hidden />
       <div className="grid-overlay absolute inset-0" aria-hidden />
+      {/* Decorative aurora blobs — clipped by the section's overflow-hidden. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="animate-float-slow absolute -top-24 -left-20 h-72 w-72 rounded-full bg-accent/20 blur-3xl" />
+        <div
+          className="animate-float-slow absolute top-1/3 -right-24 h-80 w-80 rounded-full bg-cyan-glow/20 blur-3xl"
+          style={{ animationDelay: "-6s" }}
+        />
+        <div
+          className="animate-float-slow absolute -bottom-20 left-1/4 h-64 w-64 rounded-full bg-accent/10 blur-3xl"
+          style={{ animationDelay: "-11s" }}
+        />
+      </div>
 
       <div className="relative mx-auto w-full max-w-3xl text-center">
         <motion.span

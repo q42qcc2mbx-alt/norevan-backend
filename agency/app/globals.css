@@ -84,6 +84,21 @@ body {
     radial-gradient(60% 50% at 50% 105%, rgba(37, 99, 235, 0.1) 0%, transparent 70%);
 }
 
+/* Premium "aurora" blobs — slow drifting colour clouds behind the hero. */
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(18px, -22px, 0) scale(1.1);
+  }
+}
+.animate-float-slow {
+  animation: float-slow 16s ease-in-out infinite;
+  will-change: transform;
+}
+
 /* Fine grid for a technical, premium feel */
 .grid-overlay {
   background-image:
