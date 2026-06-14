@@ -8,7 +8,9 @@ import { useEffect, useState } from "react";
 
 export type Device = "phone" | "tablet" | "desktop";
 
-const KEY = "norevan_device";
+// Bumped to v2 so the redesigned (centered) device chooser re-appears once for
+// everyone, even visitors who already picked under the old bottom-banner version.
+const KEY = "norevan_device2";
 
 export function detectDevice(): Device {
   if (typeof window === "undefined") return "desktop";

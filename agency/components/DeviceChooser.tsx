@@ -43,18 +43,24 @@ export default function DeviceChooser() {
     <AnimatePresence>
       {!chosen && device !== null && (
         <motion.div
-          initial={{ opacity: 0, y: 48 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 48 }}
-          transition={{ duration: 0.35, ease: "easeOut" }}
-          className="fixed inset-x-0 bottom-0 z-[60] p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-page/80 p-5 backdrop-blur-md"
           role="dialog"
+          aria-modal="true"
           aria-label={t.device.title}
         >
-          <div className="card-elevated mx-auto max-w-md p-5 shadow-2xl">
-            <h2 className="text-base font-bold text-ink">{t.device.title}</h2>
-            <p className="mt-1 text-sm text-ink-soft">{t.device.subtitle}</p>
-            <div className="mt-4 grid grid-cols-3 gap-2">
+          <motion.div
+            initial={{ opacity: 0, y: 24, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.35, ease: [0.21, 0.65, 0.36, 1] }}
+            className="card-elevated w-full max-w-md p-6 text-center shadow-2xl sm:p-7"
+          >
+            <h2 className="font-display text-xl font-bold text-ink md:text-2xl">{t.device.title}</h2>
+            <p className="mx-auto mt-2 max-w-sm text-sm text-ink-soft">{t.device.subtitle}</p>
+            <div className="mt-6 grid grid-cols-3 gap-3">
               {options.map(({ id, label, icon: Icon, hint }) => {
                 const detected = id === device;
                 return (
@@ -62,19 +68,19 @@ export default function DeviceChooser() {
                     key={id}
                     type="button"
                     onClick={() => handleChoose(id)}
-                    className={`rounded-xl border p-3 text-center transition-all ${
+                    className={`flex flex-col items-center rounded-2xl border p-4 text-center transition-all ${
                       detected
-                        ? "border-accent bg-accent text-white shadow-md shadow-accent/30"
-                        : "border-edge bg-card text-ink hover:border-accent/40"
+                        ? "border-accent bg-accent text-white shadow-lg shadow-accent/30"
+                        : "border-edge bg-card text-ink hover:-translate-y-0.5 hover:border-accent/50"
                     }`}
                   >
-                    <Icon className="mx-auto h-6 w-6" />
-                    <div className="mt-1.5 text-sm font-semibold">{label}</div>
+                    <Icon className="h-8 w-8" />
+                    <div className="mt-2 text-sm font-semibold">{label}</div>
                     <div className={`mt-0.5 text-[10px] ${detected ? "text-white/80" : "text-ink-muted"}`}>
                       {hint}
                     </div>
                     {detected && (
-                      <div className="mt-1 text-[9px] font-bold tracking-widest uppercase">
+                      <div className="mt-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[9px] font-bold tracking-widest uppercase">
                         {t.device.detected}
                       </div>
                     )}
@@ -82,7 +88,7 @@ export default function DeviceChooser() {
                 );
               })}
             </div>
-          </div>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
