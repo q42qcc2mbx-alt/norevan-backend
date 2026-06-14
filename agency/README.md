@@ -21,7 +21,7 @@ KI-Assistent.
 | `/leistungen` | Leistungen, Ablauf, FAQ |
 | `/analyse` | KI-Website-Analyse (URL + Ziel → Score, Probleme, Empfehlungen, Prioritäten) |
 | `/portfolio` | Projektkarten mit Ergebnissen |
-| `/ueber-uns` | Team (Ahmad, Mohammad, Mazen, Abdulghani) + Werte |
+| `/ueber-uns` | Team (rollenbasiert: Entwicklung, Design, Sicherheit, Wachstum) + Werte |
 | `/kontakt` | Kontaktformular |
 | `/login`, `/registrieren` | Kundenkonto (Supabase Auth) |
 | `/dashboard` | Kunden-Dashboard: Analysen, Projekte mit Status-Timeline, Nachrichten |

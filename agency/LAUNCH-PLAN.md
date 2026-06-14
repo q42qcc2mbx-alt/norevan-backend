@@ -42,8 +42,8 @@ ist — sortiert nach Priorität. ✅ = bereits erledigt, ⬜ = offen,
 
 ### 1.4 Team & Zugänge
 - ✅ 4 gleichberechtigte Admins, Verwaltung im Tab „Team".
-- ⬜👤 Die 3 Platzhalter-Adressen (`mohammad@/mazen@/abdulghani@norevan.digital`)
-  durch **echte E-Mails** ersetzen (Tab „Team") + jeder registriert ein Konto.
+- ⬜👤 Die Platzhalter-Adressen im Tab „Team" durch **echte E-Mails** ersetzen
+  (z. B. `kontakt@`, `team@…`) + jeder registriert ein Konto.
 - ⬜👤 Entscheiden: E-Mail-Bestätigung bei Registrierung an/aus
   (Supabase → Authentication → Providers → Email → "Confirm email").
 - ⬜ Supabase Auth → URL Configuration: Site-URL + Redirect auf die echte

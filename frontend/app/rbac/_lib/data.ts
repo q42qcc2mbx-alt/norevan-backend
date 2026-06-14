@@ -77,7 +77,7 @@ export const REVENUE_BY_REGION = [
 ];
 
 export const EMPLOYEES = [
-  { name: "Ahmad A.", role: "owner", email: "owner@norevan.shop" },
+  { name: "Mara K.", role: "owner", email: "owner@norevan.shop" },
   { name: "Nina S.", role: "admin", email: "nina@norevan.shop" },
   { name: "Kjell B.", role: "admin", email: "kjell@norevan.shop" },
   { name: "Pia M.", role: "staff", email: "pia@norevan.shop" },
