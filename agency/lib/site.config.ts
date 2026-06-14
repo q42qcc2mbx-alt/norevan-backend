@@ -83,6 +83,37 @@ export const privacy = {
   retention: "Anfragedaten werden gelöscht, sobald sie für die Bearbeitung nicht mehr erforderlich sind, spätestens nach gesetzlichen Aufbewahrungsfristen.",
 } as const;
 
+// ── Preise (Orientierung, die die KI nennen darf) ─────────────────────────
+// WICHTIG: Das sind VORSCHLÄGE — bitte prüfen und an Ihre echten Preise
+// anpassen. Sie ändern alles an EINER Stelle; die KI (Kunden-Chat + Admin-
+// Assistent) nennt automatisch diese Werte, immer als „ab"/Orientierung,
+// nie als verbindliches Angebot. `quote: false` → KI nennt keine Zahlen,
+// sondern verweist nur aufs kostenlose Erstgespräch.
+export const pricing = {
+  quote: true,
+  note: "Orientierungspreise. Der genaue Festpreis folgt nach der kostenlosen Analyse — abhängig vom Umfang.",
+  packages: [
+    { name: "Kostenlose KI-Website-Analyse", price: "0 €", desc: "30-Sekunden-Scan: Performance, Sicherheit, SEO, Mobile & Conversion-Killer." },
+    { name: "Website-Optimierung", price: "ab 690 €", desc: "Bestehende Seite messbar schneller, sicherer und conversion-stärker." },
+    { name: "Neue Landingpage", price: "ab 1.490 €", desc: "Eine fokussierte, blitzschnelle Seite, die verkauft." },
+    { name: "Mehrseitige Unternehmens-Website", price: "ab 2.900 €", desc: "Individuelles Design, mehrere Seiten, CMS nach Wahl." },
+    { name: "Sicherheit & Performance", price: "ab 490 €", desc: "Security-Audit, Härtung, Backups & Monitoring, DSGVO-Check." },
+    { name: "Betreuung & Wartung", price: "ab 49 €/Monat", desc: "Updates, Monitoring, kleine Änderungen, fester Ansprechpartner." },
+  ],
+} as const;
+
+/** Preis-Wissen als Text für die KI-System-Prompts. */
+export function pricingSummary(): string {
+  if (!pricing.quote) {
+    return "PREISE: Nenne KEINE konkreten Zahlen. Sag, der Preis hängt vom Umfang ab und wird nach der kostenlosen Analyse als transparentes Festpreis-Angebot genannt.";
+  }
+  return (
+    "PREIS-ORIENTIERUNG (du darfst diese nennen — IMMER als „ab\"/Orientierung, NIE als verbindliches Angebot):\n" +
+    pricing.packages.map((p) => `- ${p.name}: ${p.price} — ${p.desc}`).join("\n") +
+    `\nHinweis an den Kunden: ${pricing.note}`
+  );
+}
+
 // ── Funktions-Schalter (Feature-Flags) ────────────────────────────────────
 export const features = {
   /**

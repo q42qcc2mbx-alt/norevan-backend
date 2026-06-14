@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { pricing, pricingSummary } from "@/lib/site.config";
 
 export const runtime = "nodejs";
 
@@ -50,13 +51,17 @@ const SYSTEM_PROMPT = `Du bist der KI-Berater von NOREVAN Digital — einer Weba
 - Mach dezent die "Kosten des Nichtstuns" spürbar: eine langsame/unklare Seite verliert täglich still Kunden.
 - Führe fast jede Antwort zu EINEM nächsten Schritt: primär die kostenlose Analyse (Startseite oder /analyse), bei Kaufsignalen das Erstgespräch (/kontakt oder kontakt@norevan.digital, Antwort in 24 h).
 - Einwände souverän behandeln:
-  • Preis: "Hängt vom Umfang ab — eine gezielte Optimierung ist deutlich günstiger als ein Redesign. Nach der kostenlosen Analyse bekommen Sie ein transparentes Festpreis-Angebot." Nenne NIE erfundene konkrete Preise/Zahlen.
+  • Preis: Nenne die Preis-Orientierung unten (immer als „ab") und betone, dass der genaue Festpreis nach der kostenlosen Analyse folgt — eine Optimierung ist meist deutlich günstiger als ein Redesign.
   • "Warum gratis? Wo ist der Haken?": Ehrlich — die Analyse beweist unsere Expertise; gefällt sie, denken Sie an uns. Kein Haken, keine versteckten Kosten, keine nervigen Anrufe.
   • Zeit/Aufwand: Optimierungen oft in 1–2 Wochen, Redesign 4–8 Wochen; die Seite bleibt online.
   • Vertrauen: EU-Server, DSGVO, persönlich geprüft.
 
+═══ WENN JEMAND WISSEN WILL, WAS ER VERBESSERN KANN ═══
+- Gib 1–2 konkrete, allgemein nützliche Tipps (z. B. Ladezeit unter 1 Sek., ein klarer Call-to-Action, mobil-optimiert, Vertrauenselemente).
+- Empfiehl dann die kostenlose Analyse für die genaue, auf SEINE Seite bezogene Liste mit Score — die zeigt schwarz auf weiß, wo der Hebel liegt.
+
 ═══ HARTE REGELN ═══
-- Erfinde NICHTS: keine Preise, keine Kundennamen/Referenzen, keine Statistiken außer den oben genannten. Im Zweifel ehrlich sagen, dass das Team das im Erstgespräch klärt.
+- Erfinde keine Kundennamen/Referenzen und keine Statistiken außer den oben genannten. Preise nennst du NUR gemäß der Preis-Orientierung unten — immer als „ab"/Orientierung, nie als verbindliches Angebot. Im Zweifel ehrlich sagen, dass das Team das im Erstgespräch final klärt.
 - Versprich nichts Unrealistisches und keine Garantien.
 - Bleib beim Thema Websites/Online-Erfolg/Agentur. Bei fachfremden Fragen freundlich zurücklenken.
 - Wenn du etwas nicht weißt, biete den direkten Draht zum Team an statt zu raten.`;
@@ -70,7 +75,15 @@ interface ChatMessage {
 function ruleBasedReply(text: string): string {
   const t = text.toLowerCase();
   if (/(preis|kosten|kostet|budget|teuer|euro|€)/.test(t)) {
-    return "Die Kosten hängen vom Umfang ab — eine gezielte Optimierung ist deutlich günstiger als ein komplettes Redesign. Am besten starten Sie mit der kostenlosen Analyse (Startseite oder /analyse); danach erhalten Sie ein transparentes Festpreis-Angebot ohne Überraschungen. 👍";
+    if (!pricing.quote) {
+      return "Die Kosten hängen vom Umfang ab — nach der kostenlosen Analyse erhalten Sie ein transparentes Festpreis-Angebot ohne Überraschungen. Starten Sie am besten direkt auf der Startseite. 👍";
+    }
+    const anchors = pricing.packages
+      .filter((p) => p.price !== "0 €")
+      .slice(0, 3)
+      .map((p) => `${p.name} ${p.price}`)
+      .join(", ");
+    return `Zur Orientierung: ${anchors}. Der genaue Festpreis folgt nach der kostenlosen Analyse — die ist gratis und zeigt sofort, wo der größte Hebel liegt. Soll ich Ihre Seite scannen? 👍`;
   }
   if (/(gratis|kostenlos.*(warum|wieso)|warum.*(gratis|kostenlos)|haken|umsonst)/.test(t)) {
     return "Ehrlich? Die kostenlose Analyse ist unsere beste Visitenkarte: Wir zeigen Ihnen echte, umsetzbare Schwachstellen — gefällt Ihnen das Ergebnis, denken Sie vielleicht an uns. Kein Haken, keine versteckten Kosten und keine nervigen Anrufe.";
@@ -154,7 +167,7 @@ export async function POST(req: Request) {
       const response = await client.messages.create({
         model: process.env.AGENCY_AI_MODEL ?? "claude-opus-4-8",
         max_tokens: 1024,
-        system: SYSTEM_PROMPT,
+        system: `${SYSTEM_PROMPT}\n\n═══ ${pricingSummary()}`,
         messages,
       });
       if (response.stop_reason !== "refusal") {

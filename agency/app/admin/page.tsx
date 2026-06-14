@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import {
+  Bot,
   FolderKanban,
   Home,
   Inbox,
@@ -22,6 +23,7 @@ import {
 } from "lucide-react";
 import { getSupabase, PROJECT_STEPS, type ProjectStatus } from "@/lib/supabase";
 import DashboardOverview from "@/components/admin/DashboardOverview";
+import AdminAssistant from "@/components/admin/AdminAssistant";
 
 interface AnalyseRow {
   id: string;
@@ -63,7 +65,7 @@ interface ProjectRow {
   notes: string | null;
 }
 
-type Tab = "uebersicht" | "analysen" | "anfragen" | "projekte" | "nachricht" | "feedback" | "team";
+type Tab = "uebersicht" | "assistent" | "analysen" | "anfragen" | "projekte" | "nachricht" | "feedback" | "team";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("de-DE", {
@@ -233,6 +235,7 @@ export default function AdminPage() {
 
   const tabs: { key: Tab; label: string; icon: typeof Inbox }[] = [
     { key: "uebersicht", label: "Übersicht", icon: LayoutDashboard },
+    { key: "assistent", label: "KI-Assistent", icon: Bot },
     { key: "analysen", label: `Analysen (${analysen.length})`, icon: ScanSearch },
     { key: "anfragen", label: `Anfragen (${leads.length})`, icon: Inbox },
     { key: "projekte", label: `Projekte (${projekte.length})`, icon: FolderKanban },
@@ -311,6 +314,8 @@ export default function AdminPage() {
             }}
           />
         )}
+
+        {tab === "assistent" && <AdminAssistant />}
 
         {tab === "analysen" && (
           <div className="card-elevated overflow-x-auto p-2 sm:p-4">
