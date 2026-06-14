@@ -206,7 +206,7 @@ export default function AnalyseSection() {
               tabIndex={-1}
               autoComplete="off"
               aria-hidden="true"
-              className="absolute -left-[9999px] h-0 w-0 opacity-0"
+              className="sr-only"
             />
             <div className="sm:col-span-2">
               <label htmlFor="an-goal" className="mb-1.5 block text-sm font-medium text-ink">
