@@ -13,13 +13,13 @@ interface Msg {
 const GREETING: Msg = {
   role: "assistant",
   content:
-    "Hallo 👋\nIch bin der Norevan KI-Assistent.\nWie kann ich dir helfen?",
+    "Hallo 👋 Schön, dass Sie da sind!\nIch bin der KI-Berater von NOREVAN Digital. Fragen Sie mich alles zu Ihrer Website — oder lassen Sie sie in 30 Sekunden kostenlos analysieren.",
 };
 
 const QUICK_REPLIES = [
-  "Was bietet ihr an?",
-  "Was kostet eine Website?",
-  "Wie lange dauert ein Projekt?",
+  "Verliert meine Website Kunden?",
+  "Was kostet eine neue Website?",
+  "Wie läuft die Zusammenarbeit ab?",
 ];
 
 /** Render /analyse, /kontakt etc. in replies as real links. */
