@@ -127,10 +127,10 @@ function ruleBasedAnalyse(audit: AuditResult, goal: string): AnalyseResult {
 
   const empfehlungen = [
     probleme.some((p) => p.prioritaet === "hoch")
-      ? "Zuerst die kritischen Punkte beheben — sie kosten aktuell messbar Besucher und Vertrauen."
-      : "Die technische Basis ist solide — jetzt gezielt Performance und Conversion ausbauen.",
-    "Vorher-Nachher-Messung einrichten (Core Web Vitals, Rankings, Conversion-Rate), um den Erfolg nachzuweisen.",
-    "Nach der Optimierung: laufendes Monitoring und Wartung, damit die Verbesserungen dauerhaft bestehen bleiben.",
+      ? "Zuerst die kritischen Punkte beheben — sie kosten Sie aktuell täglich Besucher, Vertrauen und damit Umsatz."
+      : "Die technische Basis ist solide — jetzt gezielt Performance und Conversion ausbauen, um aus mehr Besuchern Kunden zu machen.",
+    "Erfolg messbar machen: ein Vorher-Nachher-Report (Ladezeit, Rankings, Anfragen) zeigt Ihnen den Gegenwert schwarz auf weiß.",
+    "Im kostenlosen Erstgespräch gehen wir den wichtigsten Hebel konkret mit Ihnen durch — unverbindlich und ohne Verkaufsdruck.",
   ];
 
   return {
@@ -153,10 +153,17 @@ async function aiAnalyse(audit: AuditResult, goal: string): Promise<AnalyseResul
       model: process.env.AGENCY_AI_MODEL ?? "claude-opus-4-8",
       max_tokens: 4096,
       system:
-        "Du bist ein Senior-Webconsultant der Agentur NOREVAN Digital. Du erstellst aus technischen Audit-Daten eine professionelle, verständliche Website-Analyse auf Deutsch (Sie-Form). Antworte AUSSCHLIESSLICH mit validem JSON ohne Markdown, exakt in diesem Schema: " +
+        "Du bist ein Senior-Webconsultant der Agentur NOREVAN Digital. Aus technischen Audit-Daten machst du eine Website-Analyse, die der Kunde sofort versteht — und die ihn überzeugt, das Potenzial mit uns zu heben. Auf Deutsch, in der Sie-Form.\n\n" +
+        "TONFALL & VERKAUF (wichtig):\n" +
+        "- Sprich die Sprache des Geldes, nicht die der Technik. Übersetze jeden Befund in eine geschäftliche Folge: verlorene Kunden, weniger Anfragen, schlechtere Google-Position, Umsatz, der täglich liegen bleibt, Vorsprung der Konkurrenz.\n" +
+        "- Jede 'beschreibung' nennt zuerst die Folge fürs Geschäft, dann kurz, dass es behebbar ist. Technik-Begriffe nur, wenn unvermeidbar — und dann in einfachen Worten erklärt.\n" +
+        "- Die 'summary' ist ein Hook: benenne klar den größten Hebel und mach Lust, ihn zu heben. Mach die 'Kosten des Nichtstuns' spürbar, aber seriös — kein Alarmismus, keine Angstmache.\n" +
+        "- Die letzte 'empfehlung' lädt warm zum kostenlosen Erstgespräch ein, ohne Verkaufsdruck.\n" +
+        "- EHRLICH & verbindlich: Erfinde keine Preise, Garantien, Kundennamen oder Messwerte, die nicht aus den Audit-Daten stammen. Keine Übertreibung — Vertrauen ist wichtiger als der schnelle Abschluss.\n\n" +
+        "Antworte AUSSCHLIESSLICH mit validem JSON ohne Markdown, exakt in diesem Schema: " +
         '{"summary": string, "kategorien": [{"name": string, "score": number}], "probleme": [{"titel": string, "beschreibung": string, "prioritaet": "hoch"|"mittel"|"niedrig", "kategorie": string}], "verbesserungen": [{"titel": string, "beschreibung": string, "aufwand": "gering"|"mittel"|"hoch"}], "empfehlungen": [string]}. ' +
         `Die kategorien müssen genau diese acht Namen verwenden: ${CATEGORY_NAMES.join(", ")}. ` +
-        "Maximal 6 probleme, 4 verbesserungen, 3 empfehlungen. Konkret, ehrlich, ohne Übertreibung — aber so formuliert, dass der Mehrwert einer professionellen Optimierung klar wird.",
+        "Maximal 6 probleme, 4 verbesserungen, 3 empfehlungen.",
       messages: [
         {
           role: "user",
