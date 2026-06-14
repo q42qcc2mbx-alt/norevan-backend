@@ -268,6 +268,119 @@ export const de = {
     imprint: "Impressum",
     privacy: "Datenschutz",
   },
+  funnel: {
+    badge: "Limitiert: nur 10 Tiefen-Analysen pro Monat",
+    titleLead: "Ihre Website verliert gerade Kunden.",
+    titleAccent: "Sehen Sie in 30 Sekunden, wie viele.",
+    subtitle:
+      "Kostenlose KI-gestützte Analyse. Kein Verkaufsgespräch, keine Verpflichtung — nur ein ehrlicher Report, der zeigt, wo Ihnen Umsatz durch die Finger rinnt.",
+    urlAria: "Ihre Website-Adresse",
+    urlPlaceholder: "https://ihre-website.de",
+    scanCta: "Jetzt kostenlos scannen",
+    trust: ["SSL-verschlüsselt", "Server in der EU", "DSGVO-konform"],
+    noSignup: "keine Anmeldung nötig",
+    urlError: "Bitte geben Sie eine gültige Website-Adresse ein (z. B. ihre-firma.de).",
+    analyzing: "Analysiere",
+    scanSteps: [
+      "Scanne DOM-Struktur …",
+      "Messe Ladezeit & Performance …",
+      "Identifiziere Conversion-Killer …",
+      "Prüfe Darstellung auf Smartphones …",
+    ],
+    skeletonLabels: ["Performance-Score", "Conversion-Leck #1", "Umsatz-Impact", "Mobile-Darstellung"],
+    skeletonBadge: "Vollständiger Report",
+    cancel: "Abbrechen",
+    foundCriticalOne: "{n} kritische Schwachstelle gefunden.",
+    foundCriticalMany: "{n} kritische Schwachstellen gefunden.",
+    foundIssueOne: "{n} Schwachstelle mit Umsatz-Potenzial gefunden.",
+    foundIssueMany: "{n} Schwachstellen mit Umsatz-Potenzial gefunden.",
+    foundStrong: "Ihre Seite ist technisch stark — wir zeigen Ihnen den Feinschliff.",
+    gateSubIssues:
+      "Mindestens eine davon kostet Sie wahrscheinlich täglich Kunden. Wohin sollen wir Ihren vollständigen Report senden?",
+    gateSubStrong: "Wir senden Ihnen den vollständigen Report mit dem letzten Conversion-Potenzial. Wohin?",
+    emailAria: "Ihre E-Mail-Adresse",
+    emailPlaceholder: "ihre@email.de",
+    unlock: "Report freischalten",
+    consent:
+      "Ja, senden Sie mir meinen kostenlosen Report. Meine Einwilligung kann ich jederzeit widerrufen.",
+    consentLink: "Datenschutz",
+    emailError: "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+    consentError: "Bitte bestätigen Sie kurz, dass wir Ihnen den Report senden dürfen.",
+    noSpam: "kein Spam, Abmeldung mit 1 Klick",
+    successTitle: "Geschafft!",
+    successEmailed:
+      "Ihr Report ist unterwegs — prüfen Sie Ihr Postfach (auch den Spam-Ordner). Wir haben Ihnen die wichtigste Schwachstelle rot markiert.",
+    successNotEmailed:
+      "Wir haben Ihre Anfrage erhalten und melden uns in Kürze persönlich mit Ihrem vollständigen Report.",
+    another: "Weitere Website prüfen",
+    errorTitle: "Kurz hakt es …",
+    retry: "Erneut versuchen",
+    advice: "Persönlich beraten lassen",
+    scanFailed: "Die Website konnte nicht gescannt werden.",
+    unreachable: "Die Website konnte nicht erreicht werden. Bitte prüfen Sie die Adresse.",
+    genericFail: "Das hat leider nicht geklappt.",
+    pain: {
+      title: "Was Sie eine „okaye“ Website wirklich kostet",
+      subtitle: "Es geht nicht um Technik. Es geht um Umsatz, den Sie nicht sehen.",
+      cards: [
+        {
+          stat: "Über die Hälfte",
+          title: "Ihrer Besucher ist weg, bevor die Seite lädt",
+          text: "Lädt Ihre Seite länger als 3 Sekunden, springt mehr als jeder zweite Besucher ab. Jeder von ihnen war ein möglicher Kunde — verloren an die Ladezeit.",
+        },
+        {
+          stat: "Jeden Tag",
+          title: "stiller Umsatz, den Sie nie zu Gesicht bekommen",
+          text: "Eine Website, die nicht verkauft, kostet Sie nicht nichts — sie kostet Sie täglich Aufträge. Anfragen, die nie ankommen. Niemand sagt es Ihnen.",
+        },
+        {
+          stat: "Ihr Wettbewerber",
+          title: "kassiert die Kunden, die eigentlich Sie suchen",
+          text: "Während Sie zögern, gewinnt die schnellere, klarere Seite. Sichtbarkeit, Vertrauen und Aufträge gehen an den, der zuerst optimiert — nicht an den Besseren.",
+        },
+      ],
+      closing:
+        "Die gute Nachricht: Jeder dieser Punkte ist messbar — und behebbar. Der erste Schritt ist, zu wissen, wie groß das Leck ist.",
+    },
+    founders: {
+      title: "Keine Agentur-Maschine.",
+      titleAccent: "Echte Spezialisten.",
+      subtitle:
+        "Vier Spezialisten für Entwicklung, Design, Sicherheit und Wachstum analysieren Ihre Seite persönlich — kein Bot, kein Praktikant. Genau deshalb sind die Plätze begrenzt.",
+      roles: ["Entwicklung & Architektur", "Design & Conversion", "Sicherheit & Performance", "SEO & Wachstum"],
+      quote:
+        "„Wir empfehlen nur, was Ihrem Ziel wirklich dient — auch wenn das mal die kleinere Lösung ist. Vertrauen ist unsere wichtigste Währung.“",
+      quoteBy: "— Das Team von NOREVAN Digital",
+    },
+    faq: {
+      title: "Ehrliche Antworten",
+      subtitle: "Keine Marketing-Phrasen. Was Sie wirklich wissen wollen.",
+      items: [
+        {
+          q: "Warum macht ihr das gratis? Wo ist der Haken?",
+          a: "Ehrlich? Weil es unsere beste Verkaufsmethode ist. Wir könnten Ihnen erzählen, dass wir gut sind — oder wir beweisen es, indem wir Ihre Seite analysieren und echte, umsetzbare Schwachstellen zeigen. Gefällt Ihnen der Report, denken Sie vielleicht an uns, wenn Sie sie beheben wollen. Wenn nicht, behalten Sie einen wertvollen Report. Kein Haken, keine versteckten Kosten.",
+        },
+        {
+          q: "Bekomme ich danach nervige Anrufe?",
+          a: "Nein. Sie bekommen Ihren Report per E-Mail. Ob Sie danach mit uns sprechen möchten, entscheiden ausschließlich Sie.",
+        },
+        {
+          q: "Warum nur 10 Analysen pro Monat?",
+          a: "Weil wir jede Analyse persönlich prüfen — kein anonymer Massen-Report. Tiefe statt Masse. Deshalb sind die Plätze begrenzt.",
+        },
+        {
+          q: "Ist meine Website-Adresse und E-Mail bei euch sicher?",
+          a: "Ja. Alles läuft SSL-verschlüsselt, Ihre Daten liegen auf Servern in der EU und werden ausschließlich für Ihren Report verwendet — vollständig DSGVO-konform. Details in unserer Datenschutzerklärung.",
+        },
+        {
+          q: "Was kostet es, wenn ich danach mit euch arbeite?",
+          a: "Das besprechen wir transparent in einem (optionalen) Gespräch — passend zu dem, was Ihre Seite wirklich braucht. Der Report selbst bleibt für Sie kostenlos und unverbindlich.",
+        },
+      ],
+      ctaTitle: "Bereit? In 30 Sekunden wissen Sie mehr.",
+      ctaButton: "Website jetzt kostenlos scannen",
+    },
+  },
 };
 
 export type Dict = typeof de;
@@ -537,6 +650,118 @@ export const en: Dict = {
     imprint: "Imprint",
     privacy: "Privacy",
   },
+  funnel: {
+    badge: "Limited: only 10 deep analyses per month",
+    titleLead: "Your website is losing customers right now.",
+    titleAccent: "See how many in 30 seconds.",
+    subtitle:
+      "Free AI-powered analysis. No sales call, no commitment — just an honest report showing where revenue is slipping through your fingers.",
+    urlAria: "Your website address",
+    urlPlaceholder: "https://your-website.com",
+    scanCta: "Scan for free now",
+    trust: ["SSL-encrypted", "Servers in the EU", "GDPR-compliant"],
+    noSignup: "no sign-up required",
+    urlError: "Please enter a valid website address (e.g. your-company.com).",
+    analyzing: "Analysing",
+    scanSteps: [
+      "Scanning DOM structure …",
+      "Measuring load time & performance …",
+      "Identifying conversion killers …",
+      "Checking mobile display …",
+    ],
+    skeletonLabels: ["Performance score", "Conversion leak #1", "Revenue impact", "Mobile display"],
+    skeletonBadge: "Full report",
+    cancel: "Cancel",
+    foundCriticalOne: "{n} critical issue found.",
+    foundCriticalMany: "{n} critical issues found.",
+    foundIssueOne: "{n} issue with revenue potential found.",
+    foundIssueMany: "{n} issues with revenue potential found.",
+    foundStrong: "Your site is technically strong — we will show you the finishing touches.",
+    gateSubIssues:
+      "At least one of them is probably costing you customers every day. Where should we send your full report?",
+    gateSubStrong: "We will send you the full report with the last bit of conversion potential. Where to?",
+    emailAria: "Your email address",
+    emailPlaceholder: "you@email.com",
+    unlock: "Unlock report",
+    consent: "Yes, send me my free report. I can withdraw my consent at any time.",
+    consentLink: "Privacy",
+    emailError: "Please enter a valid email address.",
+    consentError: "Please confirm that we may send you the report.",
+    noSpam: "no spam, unsubscribe with one click",
+    successTitle: "Done!",
+    successEmailed:
+      "Your report is on its way — check your inbox (and the spam folder). We have marked the most important issue in red.",
+    successNotEmailed:
+      "We have received your request and will get back to you personally with your full report shortly.",
+    another: "Check another website",
+    errorTitle: "Small hiccup …",
+    retry: "Try again",
+    advice: "Get personal advice",
+    scanFailed: "The website could not be scanned.",
+    unreachable: "The website could not be reached. Please check the address.",
+    genericFail: "That did not work, unfortunately.",
+    pain: {
+      title: "What an “okay” website really costs you",
+      subtitle: "It is not about technology. It is about revenue you do not see.",
+      cards: [
+        {
+          stat: "More than half",
+          title: "of your visitors leave before the page loads",
+          text: "If your site takes longer than 3 seconds, more than every second visitor bounces. Each of them was a potential customer — lost to load time.",
+        },
+        {
+          stat: "Every day",
+          title: "silent revenue you never get to see",
+          text: "A website that does not sell does not cost you nothing — it costs you orders every day. Enquiries that never arrive. No one tells you.",
+        },
+        {
+          stat: "Your competitor",
+          title: "takes the customers who were actually looking for you",
+          text: "While you hesitate, the faster, clearer site wins. Visibility, trust and orders go to whoever optimises first — not to the better one.",
+        },
+      ],
+      closing:
+        "The good news: every one of these points is measurable — and fixable. The first step is knowing how big the leak is.",
+    },
+    founders: {
+      title: "No agency machine.",
+      titleAccent: "Real specialists.",
+      subtitle:
+        "Four specialists for development, design, security and growth analyse your site personally — no bot, no intern. That is exactly why the slots are limited.",
+      roles: ["Development & Architecture", "Design & Conversion", "Security & Performance", "SEO & Growth"],
+      quote:
+        "“We only recommend what truly serves your goal — even if that is sometimes the smaller solution. Trust is our most important currency.”",
+      quoteBy: "— The NOREVAN Digital team",
+    },
+    faq: {
+      title: "Honest answers",
+      subtitle: "No marketing phrases. What you really want to know.",
+      items: [
+        {
+          q: "Why is this free? What is the catch?",
+          a: "Honestly? Because it is our best sales method. We could tell you we are good — or we prove it by analysing your site and showing real, actionable weaknesses. If you like the report, you might think of us when you want to fix them. If not, you keep a valuable report. No catch, no hidden costs.",
+        },
+        {
+          q: "Will I get annoying phone calls afterwards?",
+          a: "No. You get your report by email. Whether you want to talk to us afterwards is entirely your decision.",
+        },
+        {
+          q: "Why only 10 analyses per month?",
+          a: "Because we review every analysis personally — no anonymous mass report. Depth over volume. That is why the slots are limited.",
+        },
+        {
+          q: "Are my website address and email safe with you?",
+          a: "Yes. Everything is SSL-encrypted, your data is stored on servers in the EU and used solely for your report — fully GDPR-compliant. Details in our privacy policy.",
+        },
+        {
+          q: "What does it cost if I work with you afterwards?",
+          a: "We discuss that transparently in an (optional) call — tailored to what your site really needs. The report itself stays free and non-binding for you.",
+        },
+      ],
+      ctaTitle: "Ready? You will know more in 30 seconds.",
+      ctaButton: "Scan your website for free now",
+    },
+  },
 };
 
 export const ar: Dict = {
@@ -803,6 +1028,116 @@ export const ar: Dict = {
     legal: "معلومات قانونية",
     imprint: "بيانات الناشر",
     privacy: "سياسة الخصوصية",
+  },
+  funnel: {
+    badge: "محدود: 10 تحليلات معمّقة فقط شهريًا",
+    titleLead: "موقعك يخسر العملاء الآن.",
+    titleAccent: "اكتشف كم خلال 30 ثانية.",
+    subtitle:
+      "تحليل مجاني مدعوم بالذكاء الاصطناعي. بلا مكالمة بيع، بلا التزام — مجرد تقرير صادق يكشف أين تتسرّب أرباحك.",
+    urlAria: "عنوان موقعك",
+    urlPlaceholder: "https://your-website.com",
+    scanCta: "افحص مجانًا الآن",
+    trust: ["مشفّر بـ SSL", "خوادم في الاتحاد الأوروبي", "متوافق مع GDPR"],
+    noSignup: "بدون تسجيل",
+    urlError: "يرجى إدخال عنوان موقع صالح (مثال: your-company.com).",
+    analyzing: "جارٍ تحليل",
+    scanSteps: [
+      "فحص بنية DOM …",
+      "قياس زمن التحميل والأداء …",
+      "تحديد قاتلات التحويل …",
+      "فحص العرض على الهواتف …",
+    ],
+    skeletonLabels: ["درجة الأداء", "تسريب التحويل رقم 1", "الأثر على الإيرادات", "العرض على الجوال"],
+    skeletonBadge: "التقرير الكامل",
+    cancel: "إلغاء",
+    foundCriticalOne: "تم العثور على {n} ثغرة حرجة.",
+    foundCriticalMany: "تم العثور على {n} ثغرات حرجة.",
+    foundIssueOne: "تم العثور على {n} ثغرة ذات إمكانات ربحية.",
+    foundIssueMany: "تم العثور على {n} ثغرات ذات إمكانات ربحية.",
+    foundStrong: "موقعك قوي تقنيًا — سنعرض لك اللمسات الأخيرة.",
+    gateSubIssues: "واحدة منها على الأقل تكلّفك عملاء كل يوم على الأرجح. إلى أين نرسل تقريرك الكامل؟",
+    gateSubStrong: "سنرسل لك التقرير الكامل مع آخر إمكانات التحويل. إلى أين؟",
+    emailAria: "بريدك الإلكتروني",
+    emailPlaceholder: "you@email.com",
+    unlock: "افتح التقرير",
+    consent: "نعم، أرسلوا لي تقريري المجاني. يمكنني سحب موافقتي في أي وقت.",
+    consentLink: "سياسة الخصوصية",
+    emailError: "يرجى إدخال بريد إلكتروني صالح.",
+    consentError: "يرجى تأكيد السماح لنا بإرسال التقرير إليك.",
+    noSpam: "بلا إزعاج، إلغاء الاشتراك بنقرة واحدة",
+    successTitle: "تم!",
+    successEmailed:
+      "تقريرك في طريقه إليك — تحقّق من بريدك (ومجلد الرسائل غير المرغوبة). لقد ميّزنا أهم ثغرة باللون الأحمر.",
+    successNotEmailed: "استلمنا طلبك وسنتواصل معك شخصيًا قريبًا بتقريرك الكامل.",
+    another: "افحص موقعًا آخر",
+    errorTitle: "حدث خلل بسيط …",
+    retry: "حاول مجددًا",
+    advice: "احصل على استشارة شخصية",
+    scanFailed: "تعذّر فحص الموقع.",
+    unreachable: "تعذّر الوصول إلى الموقع. يرجى التحقق من العنوان.",
+    genericFail: "للأسف لم ينجح ذلك.",
+    pain: {
+      title: "ما الذي يكلّفك حقًا موقع «عادي»",
+      subtitle: "الأمر لا يتعلّق بالتقنية، بل بإيرادات لا تراها.",
+      cards: [
+        {
+          stat: "أكثر من النصف",
+          title: "من زوّارك يغادرون قبل أن يُحمّل الموقع",
+          text: "إذا استغرق موقعك أكثر من 3 ثوانٍ، يغادر أكثر من زائر من كل اثنين. كل واحد منهم كان عميلًا محتملًا — خسرته بسبب زمن التحميل.",
+        },
+        {
+          stat: "كل يوم",
+          title: "إيرادات صامتة لا تراها أبدًا",
+          text: "الموقع الذي لا يبيع لا يكلّفك لا شيء — بل يكلّفك طلبات كل يوم. استفسارات لا تصل أبدًا. لا أحد يخبرك.",
+        },
+        {
+          stat: "منافسك",
+          title: "يحصد العملاء الذين كانوا يبحثون عنك",
+          text: "بينما تتردّد، يفوز الموقع الأسرع والأوضح. الظهور والثقة والطلبات تذهب لمن يحسّن أولًا — لا للأفضل.",
+        },
+      ],
+      closing:
+        "الخبر الجيد: كل نقطة من هذه قابلة للقياس — وقابلة للإصلاح. الخطوة الأولى هي معرفة حجم التسريب.",
+    },
+    founders: {
+      title: "لسنا آلة وكالة.",
+      titleAccent: "متخصّصون حقيقيون.",
+      subtitle:
+        "أربعة متخصّصين في التطوير والتصميم والأمان والنمو يحلّلون موقعك شخصيًا — لا روبوت ولا متدرّب. لهذا السبب بالذات الأماكن محدودة.",
+      roles: ["التطوير والبنية", "التصميم والتحويل", "الأمان والأداء", "السيو والنمو"],
+      quote:
+        "«نوصي فقط بما يخدم هدفك حقًا — حتى لو كان الحل الأصغر أحيانًا. الثقة هي أهم عملاتنا.»",
+      quoteBy: "— فريق NOREVAN Digital",
+    },
+    faq: {
+      title: "إجابات صادقة",
+      subtitle: "بلا عبارات تسويقية. ما تريد معرفته حقًا.",
+      items: [
+        {
+          q: "لماذا هذا مجاني؟ أين الفخّ؟",
+          a: "بصراحة؟ لأنه أفضل وسيلة بيع لدينا. يمكننا أن نقول إننا جيّدون — أو نثبت ذلك بتحليل موقعك وإظهار ثغرات حقيقية قابلة للتنفيذ. إن أعجبك التقرير، فقد تفكّر بنا عند رغبتك في إصلاحها. وإن لم يعجبك، تبقى لديك تقرير قيّم. لا فخّ ولا تكاليف خفية.",
+        },
+        {
+          q: "هل سأتلقّى مكالمات مزعجة بعد ذلك؟",
+          a: "لا. تحصل على تقريرك عبر البريد الإلكتروني. وقرار التحدّث معنا بعد ذلك يعود إليك وحدك.",
+        },
+        {
+          q: "لماذا 10 تحليلات فقط شهريًا؟",
+          a: "لأننا نراجع كل تحليل شخصيًا — لا تقرير جماعي مجهول. العمق بدل الكمّ. لهذا الأماكن محدودة.",
+        },
+        {
+          q: "هل عنوان موقعي وبريدي آمنان لديكم؟",
+          a: "نعم. كل شيء مشفّر بـ SSL، وبياناتك مخزّنة على خوادم في الاتحاد الأوروبي وتُستخدم حصريًا لتقريرك — متوافق تمامًا مع GDPR. التفاصيل في سياسة الخصوصية.",
+        },
+        {
+          q: "كم يكلّف الأمر إذا عملت معكم بعد ذلك؟",
+          a: "نناقش ذلك بشفافية في مكالمة (اختيارية) — بما يناسب ما يحتاجه موقعك فعلًا. أما التقرير نفسه فيبقى مجانيًا وغير مُلزِم لك.",
+        },
+      ],
+      ctaTitle: "جاهز؟ ستعرف المزيد خلال 30 ثانية.",
+      ctaButton: "افحص موقعك مجانًا الآن",
+    },
   },
 };
 
