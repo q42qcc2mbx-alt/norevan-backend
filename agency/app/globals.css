@@ -229,6 +229,15 @@ textarea {
   color-scheme: dark;
 }
 
+/* App mode (phone/tablet): make room for the bottom tab bar and lift the
+   floating chat launcher above it. Safe-area aware for the iPhone notch. */
+html[data-app-mode] body {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+}
+html[data-app-mode] .chat-launcher {
+  bottom: calc(4.75rem + env(safe-area-inset-bottom));
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

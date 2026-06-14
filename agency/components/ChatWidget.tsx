@@ -202,7 +202,7 @@ export default function ChatWidget() {
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.6, type: "spring", stiffness: 260, damping: 20 }}
-        className="btn-primary fixed right-4 bottom-4 z-50 flex h-14 w-14 items-center justify-center rounded-full sm:right-6 sm:bottom-6"
+        className="chat-launcher btn-primary fixed right-4 bottom-4 z-50 flex h-14 w-14 items-center justify-center rounded-full sm:right-6 sm:bottom-6"
       >
         {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
         {!open && (
