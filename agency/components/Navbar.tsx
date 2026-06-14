@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { CheckCircle2, Globe, Lock, Menu, ScanSearch, ShieldCheck, UserRound, X } from "lucide-react";
+import { Globe, Menu, ScanSearch, UserRound, X } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import Logo from "./ui/Logo";
 import { useI18n } from "@/lib/i18n";
@@ -95,42 +95,6 @@ export default function Navbar() {
     );
     return () => sub.subscription.unsubscribe();
   }, []);
-
-  // Funnel mode: the landing page ("/") strips the header to a single focus —
-  // logo + trust signals, no links, no switcher, no login. One way out: the
-  // scanner field. Every other page keeps the full navigation below.
-  if (pathname === "/") {
-    return (
-      <header
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-          scrolled
-            ? "border-b border-edge bg-page/85 shadow-[0_1px_2px_rgba(15,23,42,0.04)] backdrop-blur-xl"
-            : "bg-transparent"
-        }`}
-      >
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:h-[4.5rem] md:px-8">
-          <span aria-label="NOREVAN Digital" className="shrink-0">
-            <Logo size={36} wordmarkClass="text-lg" />
-          </span>
-          <div className="hidden items-center gap-4 sm:flex">
-            {[
-              { icon: Lock, label: "SSL" },
-              { icon: ShieldCheck, label: "EU-Server" },
-              { icon: CheckCircle2, label: "DSGVO-konform" },
-            ].map(({ icon: Icon, label }) => (
-              <span
-                key={label}
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted"
-              >
-                <Icon className="h-4 w-4 text-accent" />
-                {label}
-              </span>
-            ))}
-          </div>
-        </div>
-      </header>
-    );
-  }
 
   return (
     <header
