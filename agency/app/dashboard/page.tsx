@@ -5,19 +5,26 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import {
+  CalendarClock,
   Check,
+  FileDown,
   FolderKanban,
   Home,
   Loader2,
   LogOut,
   MessageSquareText,
   ScanSearch,
+  Send,
   ShieldCheck,
+  X,
 } from "lucide-react";
 import { getSupabase, PROJECT_STEPS, type ProjectStatus } from "@/lib/supabase";
 import { navFor, type Role } from "@/lib/roles";
 import AiWebsiteHelper from "@/components/AiWebsiteHelper";
 import AccountSettings from "@/components/AccountSettings";
+import ReportDetail from "@/components/ReportDetail";
+
+const BOOKING_URL = process.env.NEXT_PUBLIC_BOOKING_URL || "/kontakt";
 
 interface AnalyseRow {
   id: string;
@@ -25,6 +32,7 @@ interface AnalyseRow {
   website: string;
   goal: string | null;
   score: number | null;
+  result: unknown;
 }
 
 interface ProjectRow {
@@ -106,6 +114,9 @@ export default function DashboardPage() {
   const [analysen, setAnalysen] = useState<AnalyseRow[]>([]);
   const [projekte, setProjekte] = useState<ProjectRow[]>([]);
   const [nachrichten, setNachrichten] = useState<MessageRow[]>([]);
+  const [report, setReport] = useState<AnalyseRow | null>(null);
+  const [reply, setReply] = useState("");
+  const [replySending, setReplySending] = useState(false);
 
   const load = useCallback(async (s: Session) => {
     const supabase = getSupabase();
@@ -113,7 +124,7 @@ export default function DashboardPage() {
     const [a, p, m, adm] = await Promise.all([
       supabase
         .from("agency_analyses")
-        .select("id, created_at, website, goal, score")
+        .select("id, created_at, website, goal, score, result")
         .or(`user_id.eq.${s.user.id},email.ilike.${email}`)
         .order("created_at", { ascending: false })
         .limit(20),
@@ -152,6 +163,22 @@ export default function DashboardPage() {
   async function logout() {
     await getSupabase().auth.signOut();
     router.push("/");
+  }
+
+  async function sendReply() {
+    const content = reply.trim();
+    if (!content || replySending || !session) return;
+    setReplySending(true);
+    const { error } = await getSupabase().from("agency_messages").insert({
+      email: (session.user.email ?? "").toLowerCase(),
+      sender: "kunde",
+      content,
+    });
+    setReplySending(false);
+    if (!error) {
+      setReply("");
+      load(session);
+    }
   }
 
   if (loading || !session) {
@@ -204,6 +231,14 @@ export default function DashboardPage() {
                 {item.label}
               </Link>
             ))}
+          <a
+            href={BOOKING_URL}
+            target={BOOKING_URL.startsWith("http") ? "_blank" : undefined}
+            className="btn-primary inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold"
+          >
+            <CalendarClock className="h-4 w-4" />
+            Erstgespräch buchen
+          </a>
           <button
             type="button"
             onClick={logout}
@@ -254,6 +289,15 @@ export default function DashboardPage() {
                       </p>
                     </div>
                   </div>
+                  {a.result != null && (
+                    <button
+                      type="button"
+                      onClick={() => setReport(a)}
+                      className="mt-3 text-xs font-semibold text-accent hover:underline"
+                    >
+                      Vollständigen Report ansehen →
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -325,8 +369,75 @@ export default function DashboardPage() {
               ))}
             </ul>
           )}
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              sendReply();
+            }}
+            className="mt-4 flex items-center gap-2"
+          >
+            <input
+              type="text"
+              value={reply}
+              onChange={(e) => setReply(e.target.value)}
+              maxLength={5000}
+              placeholder="Antwort an das Team …"
+              className="field flex-1"
+            />
+            <button
+              type="submit"
+              disabled={replySending || !reply.trim()}
+              aria-label="Antwort senden"
+              className="btn-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-50"
+            >
+              {replySending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            </button>
+          </form>
         </div>
       </div>
+
+      {report && (
+        <div
+          className="fixed inset-0 z-[90] flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm"
+          onClick={() => setReport(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="print-section my-8 w-full max-w-2xl rounded-2xl border border-edge bg-surface p-6 shadow-2xl"
+          >
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="font-display text-lg font-bold text-ink">Ihr Analyse-Report</h3>
+                <p className="text-xs break-all text-ink-muted">
+                  {report.website} · {formatDate(report.created_at)}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 print:hidden">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="btn-secondary inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold"
+                >
+                  <FileDown className="h-4 w-4" />
+                  Als PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReport(null)}
+                  aria-label="Schließen"
+                  className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-card hover:text-ink"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            <ReportDetail result={report.result} />
+          </div>
+        </div>
+      )}
     </section>
   );
 }

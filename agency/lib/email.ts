@@ -139,3 +139,59 @@ export async function sendAuditReport(to: string, audit: AuditResult): Promise<S
     return { sent: false };
   }
 }
+
+/**
+ * Notify the team that a new lead arrived. Sent to LEAD_NOTIFY_EMAIL via Resend.
+ * Best-effort and env-gated (needs RESEND_API_KEY + LEAD_FROM_EMAIL +
+ * LEAD_NOTIFY_EMAIL); a no-op otherwise.
+ */
+export async function sendTeamLeadNotification(opts: {
+  email: string;
+  source: string;
+  website?: string;
+  score?: number;
+  criticalCount?: number;
+  message?: string;
+}): Promise<SendResult> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.LEAD_FROM_EMAIL;
+  const to = process.env.LEAD_NOTIFY_EMAIL;
+  if (!apiKey || !from || !to) return { sent: false };
+
+  const rows = (
+    [
+      ["Quelle", opts.source],
+      ["E-Mail", opts.email],
+      opts.website ? ["Website", opts.website] : null,
+      typeof opts.score === "number" ? ["Score", `${opts.score}/100`] : null,
+      typeof opts.criticalCount === "number" ? ["Kritische Punkte", String(opts.criticalCount)] : null,
+      opts.message ? ["Nachricht", opts.message] : null,
+    ].filter(Boolean) as [string, string][]
+  )
+    .map(
+      ([k, v]) =>
+        `<tr><td style="padding:6px 12px;color:#8593ad;font-size:13px;">${esc(k)}</td><td style="padding:6px 12px;color:#e8edf7;font-size:13px;font-weight:600;">${esc(v)}</td></tr>`,
+    )
+    .join("");
+
+  const html = `<!doctype html><html lang="de"><body style="margin:0;background:#070b16;font-family:Arial,sans-serif;">
+    <div style="max-width:520px;margin:0 auto;padding:24px 16px;">
+      <div style="background:linear-gradient(135deg,#0a0f1d,#0e1b33);border:1px solid #1e293b;border-radius:16px;padding:24px;">
+        <h1 style="font-size:18px;color:#fff;margin:0 0 14px;">🔔 Neuer Lead</h1>
+        <table style="width:100%;border-collapse:collapse;">${rows}</table>
+        <a href="https://norevan-agency.vercel.app/admin" style="display:inline-block;margin-top:18px;background:linear-gradient(95deg,#2563eb,#1d4ed8);color:#fff;font-size:14px;font-weight:700;text-decoration:none;padding:10px 20px;border-radius:999px;">Im Dashboard ansehen →</a>
+      </div>
+    </div></body></html>`;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ from, to, subject: `🔔 Neuer Lead: ${opts.email} (${opts.source})`, html }),
+    });
+    return { sent: res.ok };
+  } catch (err) {
+    console.error("Team notification failed:", err);
+    return { sent: false };
+  }
+}

@@ -238,6 +238,27 @@ html[data-app-mode] .chat-launcher {
   bottom: calc(4.75rem + env(safe-area-inset-bottom));
 }
 
+/* PDF export: print only the report card (.print-section), hide everything else. */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  .print-section,
+  .print-section * {
+    visibility: visible !important;
+  }
+  .print-section {
+    position: absolute !important;
+    inset: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

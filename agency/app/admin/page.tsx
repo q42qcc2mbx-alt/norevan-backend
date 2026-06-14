@@ -24,6 +24,9 @@ import {
 import { getSupabase, PROJECT_STEPS, type ProjectStatus } from "@/lib/supabase";
 import DashboardOverview from "@/components/admin/DashboardOverview";
 import AdminAssistant from "@/components/admin/AdminAssistant";
+import LeadDetailModal, { type DetailRow } from "@/components/admin/LeadDetailModal";
+
+const LEAD_STATUS = ["neu", "kontaktiert", "Kunde", "verloren"] as const;
 
 interface AnalyseRow {
   id: string;
@@ -34,6 +37,8 @@ interface AnalyseRow {
   goal: string | null;
   score: number | null;
   status: string;
+  notes: string | null;
+  result: unknown;
 }
 
 interface LeadRow {
@@ -44,6 +49,8 @@ interface LeadRow {
   website: string | null;
   message: string | null;
   source: string;
+  status: string | null;
+  notes: string | null;
 }
 
 interface FeedbackRow {
@@ -93,6 +100,9 @@ export default function AdminPage() {
   const [projCreated, setProjCreated] = useState<Record<string, boolean>>({});
   const [projBusy, setProjBusy] = useState<string | null>(null);
   const [myEmail, setMyEmail] = useState("");
+  const [query, setQuery] = useState("");
+  const [leadQuery, setLeadQuery] = useState("");
+  const [detail, setDetail] = useState<{ table: "agency_analyses" | "agency_leads"; row: DetailRow } | null>(null);
 
   const load = useCallback(async () => {
     const supabase = getSupabase();
@@ -210,6 +220,40 @@ export default function AdminPage() {
     router.push("/");
   }
 
+  async function setStatus(table: "agency_analyses" | "agency_leads", id: string, status: string) {
+    await getSupabase().from(table).update({ status }).eq("id", id);
+    load();
+  }
+
+  const matches = (q: string, ...fields: (string | null | undefined)[]) =>
+    !q.trim() || fields.some((f) => (f ?? "").toLowerCase().includes(q.trim().toLowerCase()));
+
+  function StatusSelect({
+    table,
+    id,
+    value,
+  }: {
+    table: "agency_analyses" | "agency_leads";
+    id: string;
+    value: string | null;
+  }) {
+    return (
+      <select
+        value={value ?? "neu"}
+        onChange={(e) => setStatus(table, id, e.target.value)}
+        onClick={(e) => e.stopPropagation()}
+        className="field !w-auto !py-1 !text-xs capitalize"
+        aria-label="Status"
+      >
+        {LEAD_STATUS.map((s) => (
+          <option key={s} value={s}>
+            {s}
+          </option>
+        ))}
+      </select>
+    );
+  }
+
   if (checking) {
     return (
       <div className="flex min-h-[70dvh] items-center justify-center pt-20">
@@ -318,97 +362,148 @@ export default function AdminPage() {
         {tab === "assistent" && <AdminAssistant />}
 
         {tab === "analysen" && (
-          <div className="card-elevated overflow-x-auto p-2 sm:p-4">
-            {analysen.length === 0 ? (
-              <p className="p-4 text-sm text-ink-soft">Noch keine Analysen eingegangen.</p>
-            ) : (
-              <table className="w-full min-w-[640px] text-left text-sm">
-                <thead>
-                  <tr className="border-b border-edge text-xs tracking-wide text-ink-muted uppercase">
-                    <th className="px-3 py-2.5">Datum</th>
-                    <th className="px-3 py-2.5">Name</th>
-                    <th className="px-3 py-2.5">E-Mail</th>
-                    <th className="px-3 py-2.5">Website</th>
-                    <th className="px-3 py-2.5">Score</th>
-                    <th className="px-3 py-2.5">Ziel / Wünsche</th>
-                    <th className="px-3 py-2.5"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {analysen.map((a) => (
-                    <tr key={a.id} className="border-b border-edge/60 align-top last:border-0">
-                      <td className="px-3 py-3 whitespace-nowrap text-ink-muted">{formatDate(a.created_at)}</td>
-                      <td className="px-3 py-3 font-medium text-ink">{a.name}</td>
-                      <td className="px-3 py-3">
-                        <a href={`mailto:${a.email}`} className="text-accent hover:underline">
-                          {a.email}
-                        </a>
-                      </td>
-                      <td className="max-w-[180px] truncate px-3 py-3 text-ink-soft">{a.website}</td>
-                      <td className="px-3 py-3">
-                        <span
-                          className={`inline-flex h-7 w-9 items-center justify-center rounded-md text-xs font-bold text-white ${
-                            (a.score ?? 0) >= 80 ? "bg-emerald-500" : (a.score ?? 0) >= 50 ? "bg-amber-500" : "bg-red-500"
-                          }`}
-                        >
-                          {a.score ?? "–"}
-                        </span>
-                      </td>
-                      <td className="max-w-[220px] px-3 py-3 text-ink-soft">{a.goal || "—"}</td>
-                      <td className="px-3 py-3">
-                        {projCreated[a.id] ? (
-                          <span className="text-[11px] font-bold tracking-wide text-emerald-500 uppercase">✓ Projekt</span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => projectFromAnalyse(a)}
-                            disabled={projBusy === a.id}
-                            className="rounded-full border border-accent/40 px-2.5 py-1 text-[11px] font-bold tracking-wide text-accent uppercase transition-colors hover:bg-accent/10 disabled:opacity-50"
-                          >
-                            {projBusy === a.id ? "…" : "→ Projekt"}
-                          </button>
-                        )}
-                      </td>
+          <div className="space-y-3">
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Suche nach E-Mail, Website oder Name …"
+              className="field max-w-sm"
+            />
+            <div className="card-elevated overflow-x-auto p-2 sm:p-4">
+              {analysen.length === 0 ? (
+                <p className="p-4 text-sm text-ink-soft">Noch keine Analysen eingegangen.</p>
+              ) : (
+                <table className="w-full min-w-[720px] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-edge text-xs tracking-wide text-ink-muted uppercase">
+                      <th className="px-3 py-2.5">Datum</th>
+                      <th className="px-3 py-2.5">E-Mail</th>
+                      <th className="px-3 py-2.5">Website</th>
+                      <th className="px-3 py-2.5">Score</th>
+                      <th className="px-3 py-2.5">Status</th>
+                      <th className="px-3 py-2.5"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                  </thead>
+                  <tbody>
+                    {analysen
+                      .filter((a) => matches(query, a.email, a.website, a.name))
+                      .map((a) => (
+                        <tr key={a.id} className="border-b border-edge/60 align-middle last:border-0">
+                          <td className="px-3 py-3 whitespace-nowrap text-ink-muted">{formatDate(a.created_at)}</td>
+                          <td className="px-3 py-3">
+                            <a href={`mailto:${a.email}`} className="text-accent hover:underline">
+                              {a.email}
+                            </a>
+                          </td>
+                          <td className="max-w-[180px] truncate px-3 py-3 text-ink-soft">{a.website}</td>
+                          <td className="px-3 py-3">
+                            <span
+                              className={`inline-flex h-7 w-9 items-center justify-center rounded-md text-xs font-bold text-white ${
+                                (a.score ?? 0) >= 80 ? "bg-emerald-500" : (a.score ?? 0) >= 50 ? "bg-amber-500" : "bg-red-500"
+                              }`}
+                            >
+                              {a.score ?? "–"}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3">
+                            <StatusSelect table="agency_analyses" id={a.id} value={a.status} />
+                          </td>
+                          <td className="px-3 py-3">
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setDetail({
+                                    table: "agency_analyses",
+                                    row: { id: a.id, email: a.email, name: a.name, website: a.website, result: a.result, notes: a.notes },
+                                  })
+                                }
+                                className="rounded-full border border-edge px-2.5 py-1 text-[11px] font-bold tracking-wide text-ink-soft uppercase transition-colors hover:border-accent/40 hover:text-accent"
+                              >
+                                Report
+                              </button>
+                              {projCreated[a.id] ? (
+                                <span className="text-[11px] font-bold tracking-wide text-emerald-500 uppercase">✓ Projekt</span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => projectFromAnalyse(a)}
+                                  disabled={projBusy === a.id}
+                                  className="rounded-full border border-accent/40 px-2.5 py-1 text-[11px] font-bold tracking-wide text-accent uppercase transition-colors hover:bg-accent/10 disabled:opacity-50"
+                                >
+                                  {projBusy === a.id ? "…" : "→ Projekt"}
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
         )}
 
         {tab === "anfragen" && (
-          <div className="card-elevated overflow-x-auto p-2 sm:p-4">
-            {leads.length === 0 ? (
-              <p className="p-4 text-sm text-ink-soft">Noch keine Anfragen eingegangen.</p>
-            ) : (
-              <table className="w-full min-w-[640px] text-left text-sm">
-                <thead>
-                  <tr className="border-b border-edge text-xs tracking-wide text-ink-muted uppercase">
-                    <th className="px-3 py-2.5">Datum</th>
-                    <th className="px-3 py-2.5">Name</th>
-                    <th className="px-3 py-2.5">E-Mail</th>
-                    <th className="px-3 py-2.5">Quelle</th>
-                    <th className="px-3 py-2.5">Nachricht</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {leads.map((l) => (
-                    <tr key={l.id} className="border-b border-edge/60 align-top last:border-0">
-                      <td className="px-3 py-3 whitespace-nowrap text-ink-muted">{formatDate(l.created_at)}</td>
-                      <td className="px-3 py-3 font-medium text-ink">{l.name}</td>
-                      <td className="px-3 py-3">
-                        <a href={`mailto:${l.email}`} className="text-accent hover:underline">
-                          {l.email}
-                        </a>
-                      </td>
-                      <td className="px-3 py-3 text-ink-muted capitalize">{l.source}</td>
-                      <td className="max-w-[280px] px-3 py-3 text-ink-soft">{l.message || "—"}</td>
+          <div className="space-y-3">
+            <input
+              type="search"
+              value={leadQuery}
+              onChange={(e) => setLeadQuery(e.target.value)}
+              placeholder="Suche nach E-Mail, Name oder Quelle …"
+              className="field max-w-sm"
+            />
+            <div className="card-elevated overflow-x-auto p-2 sm:p-4">
+              {leads.length === 0 ? (
+                <p className="p-4 text-sm text-ink-soft">Noch keine Anfragen eingegangen.</p>
+              ) : (
+                <table className="w-full min-w-[720px] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-edge text-xs tracking-wide text-ink-muted uppercase">
+                      <th className="px-3 py-2.5">Datum</th>
+                      <th className="px-3 py-2.5">E-Mail</th>
+                      <th className="px-3 py-2.5">Quelle</th>
+                      <th className="px-3 py-2.5">Status</th>
+                      <th className="px-3 py-2.5"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                  </thead>
+                  <tbody>
+                    {leads
+                      .filter((l) => matches(leadQuery, l.email, l.name, l.source))
+                      .map((l) => (
+                        <tr key={l.id} className="border-b border-edge/60 align-middle last:border-0">
+                          <td className="px-3 py-3 whitespace-nowrap text-ink-muted">{formatDate(l.created_at)}</td>
+                          <td className="px-3 py-3">
+                            <a href={`mailto:${l.email}`} className="text-accent hover:underline">
+                              {l.email}
+                            </a>
+                          </td>
+                          <td className="px-3 py-3 text-ink-muted capitalize">{l.source}</td>
+                          <td className="px-3 py-3">
+                            <StatusSelect table="agency_leads" id={l.id} value={l.status} />
+                          </td>
+                          <td className="px-3 py-3">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setDetail({
+                                  table: "agency_leads",
+                                  row: { id: l.id, email: l.email, name: l.name, website: l.website, message: l.message, notes: l.notes },
+                                })
+                              }
+                              className="rounded-full border border-edge px-2.5 py-1 text-[11px] font-bold tracking-wide text-ink-soft uppercase transition-colors hover:border-accent/40 hover:text-accent"
+                            >
+                              Details
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
         )}
 
@@ -642,6 +737,16 @@ export default function AdminPage() {
 
         {feedback && <p className="mt-4 text-sm font-medium text-accent">{feedback}</p>}
       </div>
+
+      {detail && (
+        <LeadDetailModal
+          key={detail.row.id}
+          row={detail.row}
+          table={detail.table}
+          onClose={() => setDetail(null)}
+          onSaved={load}
+        />
+      )}
     </section>
   );
 }

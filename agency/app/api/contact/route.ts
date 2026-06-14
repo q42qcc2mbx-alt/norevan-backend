@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { insertRow } from "@/lib/db";
+import { sendTeamLeadNotification } from "@/lib/email";
 import { clientIp, isBot, rateLimited } from "@/lib/security";
 
 export const runtime = "nodejs";
@@ -63,6 +64,9 @@ export async function POST(req: Request) {
   // Persist for the team dashboard. Awaited: on serverless an un-awaited insert
   // is dropped when the function returns — the lead would be silently lost.
   await insertRow("agency_leads", { name, email, website, message, source: "kontakt" });
+
+  // Notify the team by e-mail (best-effort, env-gated).
+  await sendTeamLeadNotification({ email, source: "Kontaktformular", website, message });
 
   // Forward to a webhook (Slack, n8n, Zapier, CRM …) if configured,
   // otherwise the lead is at least visible in the server logs.

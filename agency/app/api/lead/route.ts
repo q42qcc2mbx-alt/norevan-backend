@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { runAudit, type AuditResult } from "@/lib/audit";
-import { sendAuditReport } from "@/lib/email";
+import { sendAuditReport, sendTeamLeadNotification } from "@/lib/email";
 import { insertRow } from "@/lib/db";
 import { clientIp, rateLimited, isBot, clean, EMAIL_RE } from "@/lib/security";
 
@@ -113,6 +113,15 @@ export async function POST(req: Request) {
       }),
     }).catch(() => {});
   }
+
+  // Notify the team by e-mail (best-effort, env-gated).
+  await sendTeamLeadNotification({
+    email,
+    source: "Funnel-Analyse",
+    website: audit.url,
+    score: audit.score,
+    criticalCount,
+  });
 
   // Deliver the report. Best-effort: if email isn't configured, the lead is
   // still captured and the team got notified above.
