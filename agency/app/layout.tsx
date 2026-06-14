@@ -70,6 +70,9 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
+  // Required so env(safe-area-inset-*) works on the iPhone notch / home
+  // indicator (app-mode bottom bar, device sheet, install hint).
+  viewportFit: "cover",
 };
 
 const jsonLd = {
