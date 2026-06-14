@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
+import { usePathname } from "next/navigation";
 import { Monitor, Smartphone, Tablet } from "lucide-react";
 import { useDevice, type Device } from "@/lib/device-store";
 import { useI18n } from "@/lib/i18n";
@@ -11,6 +12,10 @@ import { useI18n } from "@/lib/i18n";
 export default function DeviceChooser() {
   const { t } = useI18n();
   const { device, chosen, choose } = useDevice();
+  const pathname = usePathname();
+
+  // Suppressed on the lead-magnet funnel ("/") — nothing competes with the scan.
+  if (pathname === "/") return null;
 
   const options: { id: Device; label: string; icon: typeof Smartphone; hint: string }[] = [
     { id: "phone", label: t.device.phone, icon: Smartphone, hint: t.device.phoneHint },

@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import ChatWidget from "@/components/ChatWidget";
 import DeviceChooser from "@/components/DeviceChooser";
 import PwaRegister from "@/components/PwaRegister";
+import CookieBanner from "@/components/CookieBanner";
 import "./globals.css";
 
 const inter = Inter({
@@ -109,6 +110,7 @@ export default function RootLayout({
             <ChatWidget />
             <DeviceChooser />
             <PwaRegister />
+            <CookieBanner />
           </I18nProvider>
         </ThemeProvider>
         <Analytics />
