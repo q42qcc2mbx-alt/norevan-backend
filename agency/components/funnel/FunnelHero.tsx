@@ -465,8 +465,8 @@ export default function FunnelHero() {
                           className="mt-0.5 h-4 w-4 shrink-0 accent-accent"
                         />
                         <span>
-                          Ja, senden Sie mir meinen kostenlosen Report. Ich kann der Nutzung
-                          jederzeit widersprechen.{" "}
+                          Ja, senden Sie mir meinen kostenlosen Report. Meine Einwilligung kann ich
+                          jederzeit widerrufen.{" "}
                           <a href="/datenschutz" target="_blank" className="text-accent hover:underline">
                             Datenschutz
                           </a>

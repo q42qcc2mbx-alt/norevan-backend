@@ -85,7 +85,7 @@ function reportHtml(audit: AuditResult, bookingUrl: string): string {
         </a>
         <p style="font-size:13px;line-height:1.6;color:#8593ad;margin-top:20px;">
           Kurzer Hinweis: Wir nehmen pro Monat nur eine begrenzte Zahl dieser Gespräche an, weil wir jedes persönlich vorbereiten.<br><br>
-          Beste Grüße<br><strong style="color:#e8edf7;">Ahmad</strong> · Gründer, NOREVAN Digital
+          Beste Grüße<br><strong style="color:#e8edf7;">Ihr Team von NOREVAN Digital</strong>
         </p>
       </div>
     </div>

@@ -13,35 +13,27 @@ export const metadata: Metadata = {
 
 const team = [
   {
-    name: "Ahmad",
-    role: "Gründer & Full-Stack Entwickler",
+    role: "Entwicklung & Architektur",
     icon: Code2,
     gradient: "from-blue-500 to-indigo-500",
-    initials: "A",
-    text: "Verantwortet Architektur und Entwicklung — von der ersten Zeile Code bis zum Launch. Sein Anspruch: Websites, die in unter einer Sekunde laden.",
+    text: "Verantwortet Architektur und Entwicklung — von der ersten Zeile Code bis zum Launch. Der Anspruch: Websites, die in unter einer Sekunde laden.",
   },
   {
-    name: "Mohammad",
-    role: "UI/UX Design & Conversion",
+    role: "Design & Conversion",
     icon: Palette,
     gradient: "from-cyan-500 to-blue-500",
-    initials: "M",
     text: "Gestaltet Interfaces, die Vertrauen schaffen und Besucher intuitiv ans Ziel führen — modern, klar und auf Conversion ausgelegt.",
   },
   {
-    name: "Mazen",
     role: "Sicherheit & Performance",
     icon: ShieldCheck,
     gradient: "from-emerald-500 to-teal-500",
-    initials: "M",
     text: "Findet Schwachstellen, bevor Angreifer es tun. Härtet Websites nach Best Practice und sorgt mit Monitoring für ruhigen Schlaf.",
   },
   {
-    name: "Abdulghani",
     role: "SEO & Wachstum",
     icon: TrendingUp,
     gradient: "from-violet-500 to-purple-500",
-    initials: "A",
     text: "Bringt Websites bei Google nach vorn — mit technischem SEO, sauberer Struktur und datenbasierter Optimierung für nachhaltiges Wachstum.",
   },
 ];
@@ -73,20 +65,16 @@ export default function UeberUnsPage() {
             subtitle="NOREVAN Digital vereint Entwicklung, Design, Sicherheit und Wachstum unter einem Dach — damit Sie einen Ansprechpartner für alles haben."
           />
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {team.map(({ name, role, icon: Icon, gradient, initials, text }, i) => (
-              <Reveal key={name} delay={i * 0.08}>
+            {team.map(({ role, icon: Icon, gradient, text }, i) => (
+              <Reveal key={role} delay={i * 0.08}>
                 <article className="card h-full p-7 text-center">
                   <span
-                    className={`mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-2xl font-bold text-white shadow-lg`}
+                    className={`mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-white shadow-lg`}
                     aria-hidden
                   >
-                    {initials}
+                    <Icon className="h-9 w-9" />
                   </span>
-                  <h2 className="text-lg font-semibold text-ink">{name}</h2>
-                  <p className="mt-0.5 flex items-center justify-center gap-1.5 text-sm font-medium text-accent">
-                    <Icon className="h-4 w-4" />
-                    {role}
-                  </p>
+                  <h2 className="text-lg font-semibold text-ink">{role}</h2>
                   <p className="mt-3 text-sm leading-relaxed text-ink-soft">{text}</p>
                 </article>
               </Reveal>

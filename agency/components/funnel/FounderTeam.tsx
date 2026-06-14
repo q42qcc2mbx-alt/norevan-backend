@@ -1,14 +1,14 @@
 "use client";
 
+import { Code2, Palette, ShieldCheck, TrendingUp } from "lucide-react";
 import Reveal from "@/components/ui/Reveal";
 
-// Breaks the anonymity: real people behind NOREVAN. Avatars are initials in the
-// brand gradient (no stock photos) until real team photos are added (Phase 2).
+// Trust without anonymity — shown by discipline, not by name.
 const TEAM = [
-  { name: "Ahmad", role: "Gründer & Entwicklung", initials: "A", gradient: "from-blue-500 to-indigo-500" },
-  { name: "Mohammad", role: "Design & Conversion", initials: "M", gradient: "from-cyan-500 to-blue-500" },
-  { name: "Mazen", role: "Sicherheit & Performance", initials: "M", gradient: "from-emerald-500 to-teal-500" },
-  { name: "Abdulghani", role: "SEO & Wachstum", initials: "A", gradient: "from-violet-500 to-purple-500" },
+  { role: "Entwicklung & Architektur", icon: Code2, gradient: "from-blue-500 to-indigo-500" },
+  { role: "Design & Conversion", icon: Palette, gradient: "from-cyan-500 to-blue-500" },
+  { role: "Sicherheit & Performance", icon: ShieldCheck, gradient: "from-emerald-500 to-teal-500" },
+  { role: "SEO & Wachstum", icon: TrendingUp, gradient: "from-violet-500 to-purple-500" },
 ];
 
 export default function FounderTeam() {
@@ -17,25 +17,25 @@ export default function FounderTeam() {
       <div className="mx-auto max-w-5xl px-5 text-center md:px-8">
         <Reveal>
           <h2 className="font-display text-3xl font-bold tracking-tight text-balance text-ink md:text-4xl">
-            Keine Agentur-Maschine. <span className="text-gradient">Echte Menschen.</span>
+            Keine Agentur-Maschine. <span className="text-gradient">Echte Spezialisten.</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-ink-soft md:text-lg">
-            Wir machen diese Analyse selbst — kein Bot, kein Praktikant. Genau deshalb sind die
-            Plätze begrenzt.
+            Vier Spezialisten für Entwicklung, Design, Sicherheit und Wachstum analysieren Ihre
+            Seite persönlich — kein Bot, kein Praktikant. Genau deshalb sind die Plätze begrenzt.
           </p>
         </Reveal>
 
         <div className="mt-12 grid grid-cols-2 gap-6 sm:grid-cols-4 md:gap-8">
-          {TEAM.map(({ name, role, initials, gradient }, i) => (
-            <Reveal key={name} delay={i * 0.08}>
+          {TEAM.map(({ role, icon: Icon, gradient }, i) => (
+            <Reveal key={role} delay={i * 0.08}>
               <div className="flex flex-col items-center">
                 <span
-                  className={`flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-2xl font-bold text-white shadow-lg ring-4 ring-page md:h-24 md:w-24`}
+                  className={`flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-white shadow-lg ring-4 ring-page md:h-24 md:w-24`}
+                  aria-hidden
                 >
-                  {initials}
+                  <Icon className="h-9 w-9" />
                 </span>
-                <h3 className="mt-4 text-base font-semibold text-ink">{name}</h3>
-                <p className="mt-0.5 text-sm text-ink-muted">{role}</p>
+                <h3 className="mt-4 text-sm font-semibold text-ink md:text-base">{role}</h3>
               </div>
             </Reveal>
           ))}
@@ -46,7 +46,7 @@ export default function FounderTeam() {
             „Wir empfehlen nur, was Ihrem Ziel wirklich dient — auch wenn das mal die kleinere
             Lösung ist. Vertrauen ist unsere wichtigste Währung.“
           </blockquote>
-          <p className="mt-3 font-display font-semibold text-ink">— Ahmad, Gründer</p>
+          <p className="mt-3 font-display font-semibold text-ink">— Das Team von NOREVAN Digital</p>
         </Reveal>
       </div>
     </section>
