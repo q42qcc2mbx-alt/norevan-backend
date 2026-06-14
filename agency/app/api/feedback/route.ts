@@ -37,7 +37,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Ungültige E-Mail-Adresse." }, { status: 400 });
   }
 
-  insertRow("agency_feedback", { typ, rating, email: email || null, message });
+  // Awaited: on serverless an un-awaited insert is dropped when the function
+  // returns — the feedback would be silently lost.
+  await insertRow("agency_feedback", { typ, rating, email: email || null, message });
 
   return NextResponse.json({ ok: true });
 }

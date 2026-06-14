@@ -67,7 +67,7 @@ export async function POST(req: Request) {
     audit = isValidScan(body.scan) ? body.scan : await runAudit(url);
   } catch {
     // Even when the site can't be analysed, keep the lead so we can follow up.
-    insertRow("agency_leads", {
+    await insertRow("agency_leads", {
       name: "(Funnel-Lead)",
       email,
       website: url,
@@ -86,7 +86,9 @@ export async function POST(req: Request) {
   const criticalCount = audit.findings.filter((f) => f.severity === "critical").length;
 
   // Persist for the team dashboard (consent metadata stored inside the result).
-  insertRow("agency_analyses", {
+  // Awaited: on serverless, an un-awaited insert is dropped when the function
+  // returns — the lead would be silently lost.
+  await insertRow("agency_analyses", {
     name: "(Funnel-Lead)",
     email,
     website: audit.url,
@@ -96,10 +98,10 @@ export async function POST(req: Request) {
     user_id: null,
   });
 
-  // Notify the team in real time (fire & forget).
+  // Notify the team in real time.
   const webhook = process.env.LEAD_WEBHOOK_URL;
   if (webhook) {
-    fetch(webhook, {
+    await fetch(webhook, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

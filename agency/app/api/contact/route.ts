@@ -60,8 +60,9 @@ export async function POST(req: Request) {
     receivedAt: new Date().toISOString(),
   };
 
-  // Persist for the team dashboard (fire & forget — must not break the UX).
-  insertRow("agency_leads", { name, email, website, message, source: "kontakt" });
+  // Persist for the team dashboard. Awaited: on serverless an un-awaited insert
+  // is dropped when the function returns — the lead would be silently lost.
+  await insertRow("agency_leads", { name, email, website, message, source: "kontakt" });
 
   // Forward to a webhook (Slack, n8n, Zapier, CRM …) if configured,
   // otherwise the lead is at least visible in the server logs.

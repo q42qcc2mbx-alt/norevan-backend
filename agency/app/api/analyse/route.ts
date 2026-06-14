@@ -65,8 +65,9 @@ export async function POST(req: Request) {
   try {
     const result = await runAnalyse(url, goal);
 
-    // Persist for the team dashboard and the customer's account (fire & forget).
-    insertRow("agency_analyses", {
+    // Persist for the team dashboard and the customer's account. Awaited: on
+    // serverless an un-awaited insert is dropped when the function returns.
+    await insertRow("agency_analyses", {
       name,
       email,
       website: result.url,
@@ -78,7 +79,7 @@ export async function POST(req: Request) {
 
     const webhook = process.env.LEAD_WEBHOOK_URL;
     if (webhook) {
-      fetch(webhook, {
+      await fetch(webhook, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "analyse", name, email, website: result.url, goal, score: result.score }),
@@ -88,7 +89,7 @@ export async function POST(req: Request) {
     return NextResponse.json(result);
   } catch (err) {
     // Even when the site can't be analysed, keep the lead.
-    insertRow("agency_leads", { name, email, website: url, message: goal, source: "analyse_fehlgeschlagen" });
+    await insertRow("agency_leads", { name, email, website: url, message: goal, source: "analyse_fehlgeschlagen" });
     const message =
       err instanceof Error && err.name === "AbortError"
         ? "Die Website hat zu langsam geantwortet. Genau dafür sind wir da — wir melden uns bei Ihnen."
