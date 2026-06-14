@@ -1,21 +1,37 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { usePathname } from "next/navigation";
 import { Monitor, Smartphone, Tablet } from "lucide-react";
 import { useDevice, type Device } from "@/lib/device-store";
 import { useI18n } from "@/lib/i18n";
 
-// First visit: device choice (phone / tablet / desktop). Detected option is
-// highlighted; the choice is stored once.
+// First visit on ANY page (incl. the homepage): the visitor picks their device
+// (phone / tablet / desktop). The detected option is highlighted; the choice is
+// stored once and exposed as data-device on <html> for device-specific styling.
 
 export default function DeviceChooser() {
   const { t } = useI18n();
   const { device, chosen, choose } = useDevice();
-  const pathname = usePathname();
 
-  // Suppressed on the lead-magnet funnel ("/") — nothing competes with the scan.
-  if (pathname === "/") return null;
+  // Picking "Handy" also switches straight into the app-like fullscreen view
+  // (the click is a user gesture, so the browser allows it). Android does this
+  // instantly; iOS Safari has no fullscreen API, so it just stores the choice.
+  function enterAppMode() {
+    const el = document.documentElement as HTMLElement & {
+      webkitRequestFullscreen?: () => Promise<void>;
+    };
+    const req = el.requestFullscreen?.bind(el) ?? el.webkitRequestFullscreen?.bind(el);
+    try {
+      req?.()?.catch?.(() => {});
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function handleChoose(d: Device) {
+    choose(d);
+    if (d === "phone") enterAppMode();
+  }
 
   const options: { id: Device; label: string; icon: typeof Smartphone; hint: string }[] = [
     { id: "phone", label: t.device.phone, icon: Smartphone, hint: t.device.phoneHint },
@@ -45,7 +61,7 @@ export default function DeviceChooser() {
                   <button
                     key={id}
                     type="button"
-                    onClick={() => choose(id)}
+                    onClick={() => handleChoose(id)}
                     className={`rounded-xl border p-3 text-center transition-all ${
                       detected
                         ? "border-accent bg-accent text-white shadow-md shadow-accent/30"
