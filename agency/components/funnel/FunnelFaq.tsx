@@ -18,10 +18,10 @@ export default function FunnelFaq() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section className="relative border-t border-edge bg-card/40 py-20 md:py-28">
+    <section className="relative border-t border-edge bg-card/40 py-14 md:py-28">
       <div className="mx-auto max-w-3xl px-5 md:px-8">
-        <Reveal className="mb-10 text-center md:mb-12">
-          <h2 className="font-display text-3xl font-bold tracking-tight text-balance text-ink md:text-4xl">
+        <Reveal className="mb-8 text-center md:mb-12">
+          <h2 className="font-display text-2xl font-bold tracking-tight text-balance text-ink md:text-4xl">
             {f.title}
           </h2>
           <p className="mt-4 text-base leading-relaxed text-ink-soft">{f.subtitle}</p>

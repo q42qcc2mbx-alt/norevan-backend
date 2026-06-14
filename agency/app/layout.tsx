@@ -70,9 +70,9 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
-  // Lock zoom on mobile so the page stays put (no pinch-zoom drift / shrink).
-  maximumScale: 1,
-  userScalable: false,
+  // Zoom stays allowed (so nothing is unreachable / accessibility) — the
+  // sideways drift the user disliked is handled by overflow-x:hidden, not by
+  // locking zoom.
   // Required so env(safe-area-inset-*) works on the iPhone notch / home
   // indicator (app-mode bottom bar, device sheet, install hint).
   viewportFit: "cover",

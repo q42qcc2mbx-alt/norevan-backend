@@ -18,10 +18,10 @@ export default function FounderTeam() {
   const f = t.funnel.founders;
 
   return (
-    <section className="relative py-20 md:py-28">
+    <section className="relative py-14 md:py-28">
       <div className="mx-auto max-w-5xl px-5 text-center md:px-8">
         <Reveal>
-          <h2 className="font-display text-3xl font-bold tracking-tight text-balance text-ink md:text-4xl">
+          <h2 className="font-display text-2xl font-bold tracking-tight text-balance text-ink md:text-4xl">
             {f.title} <span className="text-gradient">{f.titleAccent}</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-ink-soft md:text-lg">

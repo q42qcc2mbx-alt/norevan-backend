@@ -207,7 +207,7 @@ export default function FunnelHero() {
         : f.foundStrong;
 
   return (
-    <section className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden px-5 pt-24 pb-16 md:pt-28">
+    <section className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden px-5 pt-24 pb-12 md:pt-28 md:pb-16">
       <div className="hero-glow absolute inset-0" aria-hidden />
       <div className="grid-overlay absolute inset-0" aria-hidden />
 
@@ -229,7 +229,7 @@ export default function FunnelHero() {
           initial={reduceMotion ? false : { opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.08 }}
-          className="mt-6 font-display text-4xl leading-[1.08] font-bold tracking-tight text-balance text-ink md:text-6xl"
+          className="mt-5 font-display text-[1.75rem] leading-[1.15] font-bold tracking-tight text-balance text-ink sm:text-4xl md:text-6xl"
         >
           {f.titleLead} <span className="text-gradient">{f.titleAccent}</span>
         </motion.h1>
@@ -238,7 +238,7 @@ export default function FunnelHero() {
           initial={reduceMotion ? false : { opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.18 }}
-          className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-ink-soft md:text-xl"
+          className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-ink-soft md:text-xl"
         >
           {f.subtitle}
         </motion.p>
