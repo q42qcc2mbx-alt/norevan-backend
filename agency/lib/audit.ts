@@ -401,7 +401,12 @@ export async function runAudit(rawUrl: string): Promise<AuditResult> {
   }
   const hasPhone =
     /href=["']tel:/i.test(html) || /(\+\d{2,3}[\s/-]?\d|\(0\d{2,4}\)|\b0\d{2,4}[\s/-]\d{3,})/.test(html);
-  const hasContact = /<form\b/i.test(html) || /href=["']mailto:/i.test(html) || /(kontakt|contact)/i.test(lower);
+  const hasForm = /<form\b/i.test(html);
+  const hasMailto = /href=["']mailto:/i.test(html);
+  // A contact form or e-mail is already a complete contact channel; only the
+  // bare word "Kontakt" without any actual channel is "weak".
+  const hasStrongContact = hasForm || hasMailto;
+  const hasContact = hasStrongContact || /(kontakt|contact)/i.test(lower);
   if (!hasContact && !hasPhone) {
     findings.push({
       category: "Conversion",
@@ -410,13 +415,22 @@ export async function runAudit(rawUrl: string): Promise<AuditResult> {
       detail:
         "Weder Kontaktformular, E-Mail noch Telefonnummer sind klar erkennbar. Interessenten, die anfragen möchten, springen ab — direkt verlorener Umsatz.",
     });
-  } else if (!hasPhone) {
+  } else if (hasStrongContact || hasPhone) {
+    findings.push({
+      category: "Conversion",
+      severity: "good",
+      title: "Klare Kontaktmöglichkeiten",
+      detail:
+        "Besucher können Sie direkt erreichen (Formular, E-Mail oder Telefon) — die Hürde zur Anfrage ist niedrig.",
+    });
+  } else {
+    // Only the word "Kontakt" found, but no form, e-mail or phone to act on.
     findings.push({
       category: "Conversion",
       severity: "warning",
-      title: "Keine klickbare Telefonnummer",
+      title: "Kein direkter Kontaktweg",
       detail:
-        "Eine sichtbare Telefonnummer als tel:-Link senkt die Hemmschwelle und gewinnt spontane Anfragen — besonders auf dem Smartphone.",
+        "Es gibt keinen anklickbaren Kontaktweg (Formular, E-Mail oder Telefon). Jede zusätzliche Hürde kostet Anfragen — ein klarer Kanal gewinnt spontane Interessenten.",
     });
   }
   const hasTrust =
@@ -439,7 +453,10 @@ export async function runAudit(rawUrl: string): Promise<AuditResult> {
     if (f.severity === "warning") return acc + 8;
     return acc;
   }, 0);
-  const score = Math.max(8, Math.min(98, 100 - penalty));
+  // A genuinely clean audit (no warnings/criticals) can reach 100 — the score
+  // only ever reflects checks we actually ran and passed, never a fabricated
+  // number.
+  const score = Math.max(8, Math.min(100, 100 - penalty));
 
   const criticals = findings.filter((f) => f.severity === "critical").length;
   const warnings = findings.filter((f) => f.severity === "warning").length;

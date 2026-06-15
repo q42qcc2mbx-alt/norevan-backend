@@ -52,29 +52,33 @@ const CATEGORY_NAMES = [
   "Struktur",
 ] as const;
 
-/** Map raw audit findings onto the eight analysis categories. */
+/** Map raw audit findings onto the eight analysis categories. Evidence-based:
+ *  every category starts at 100 and only loses points for real problems we
+ *  actually detected — so a site that passes every check honestly scores 100,
+ *  while a flawed site gets a realistic, lower number. */
 function categoryScores(audit: AuditResult): AnalyseCategory[] {
   const penalty: Record<string, number> = {};
   const add = (cat: string, severity: string) => {
-    penalty[cat] = (penalty[cat] ?? 0) + (severity === "critical" ? 30 : severity === "warning" ? 14 : 0);
+    penalty[cat] = (penalty[cat] ?? 0) + (severity === "critical" ? 32 : severity === "warning" ? 14 : 0);
   };
   for (const f of audit.findings) {
+    if (f.severity === "good") continue; // good findings never reduce a score
     switch (f.category) {
       case "Performance":
         add("Geschwindigkeit", f.severity);
-        add("Conversion", f.severity === "critical" ? "warning" : "good");
+        if (f.severity === "critical") add("Conversion", "warning");
         break;
       case "Sicherheit":
         add("Sicherheit", f.severity);
         break;
       case "SEO":
         add("SEO", f.severity);
-        add("Struktur", f.severity === "critical" ? "warning" : "good");
+        if (f.severity === "critical") add("Struktur", "warning");
         break;
       case "UX":
         add("Benutzerfreundlichkeit", f.severity);
         add("Mobile Optimierung", f.severity);
-        add("Design", f.severity === "critical" ? "warning" : "good");
+        if (f.severity === "critical") add("Design", "warning");
         break;
       case "Conversion":
         add("Conversion", f.severity);
@@ -83,7 +87,7 @@ function categoryScores(audit: AuditResult): AnalyseCategory[] {
   }
   return CATEGORY_NAMES.map((name) => ({
     name,
-    score: Math.max(15, Math.min(96, 92 - (penalty[name] ?? 4))),
+    score: Math.max(15, Math.min(100, 100 - (penalty[name] ?? 0))),
   }));
 }
 
