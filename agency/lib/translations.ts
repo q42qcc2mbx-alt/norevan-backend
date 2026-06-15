@@ -267,6 +267,7 @@ export const de = {
     legal: "Rechtliches",
     imprint: "Impressum",
     privacy: "Datenschutz",
+    agb: "AGB",
   },
   funnel: {
     badge: "Limitiert: nur 10 Tiefen-Analysen pro Monat",
@@ -649,6 +650,7 @@ export const en: Dict = {
     legal: "Legal",
     imprint: "Imprint",
     privacy: "Privacy",
+    agb: "Terms",
   },
   funnel: {
     badge: "Limited: only 10 deep analyses per month",
@@ -1028,6 +1030,7 @@ export const ar: Dict = {
     legal: "معلومات قانونية",
     imprint: "بيانات الناشر",
     privacy: "سياسة الخصوصية",
+    agb: "الشروط والأحكام",
   },
   funnel: {
     badge: "محدود: 10 تحليلات معمّقة فقط شهريًا",

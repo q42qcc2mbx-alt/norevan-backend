@@ -4,7 +4,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://norevan-agency.verc
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const routes = ["", "/leistungen", "/analyse", "/portfolio", "/ueber-uns", "/kontakt"];
-  const legalRoutes = ["/impressum", "/datenschutz"];
+  const legalRoutes = ["/impressum", "/datenschutz", "/agb"];
   return [
     ...routes.map((route) => ({
       url: `${siteUrl}${route}`,

@@ -33,6 +33,7 @@ export default function Footer() {
       links: [
         { href: "/impressum", label: t.footer.imprint },
         { href: "/datenschutz", label: t.footer.privacy },
+        { href: "/agb", label: t.footer.agb },
       ],
     },
   ];

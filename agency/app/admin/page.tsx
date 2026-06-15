@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import {
   Bot,
+  FileText,
   FolderKanban,
   Home,
   Inbox,
@@ -23,6 +24,7 @@ import {
 import { getSupabase, PROJECT_STEPS, type ProjectStatus } from "@/lib/supabase";
 import DashboardOverview from "@/components/admin/DashboardOverview";
 import AdminAssistant from "@/components/admin/AdminAssistant";
+import Templates from "@/components/admin/Templates";
 import DashboardSkeleton from "@/components/ui/DashboardSkeleton";
 import LeadDetailModal, { type DetailRow } from "@/components/admin/LeadDetailModal";
 
@@ -72,7 +74,7 @@ interface ProjectRow {
   notes: string | null;
 }
 
-type Tab = "uebersicht" | "assistent" | "analysen" | "anfragen" | "projekte" | "nachricht" | "feedback" | "team";
+type Tab = "uebersicht" | "assistent" | "analysen" | "anfragen" | "projekte" | "nachricht" | "feedback" | "vorlagen" | "team";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("de-DE", {
@@ -281,6 +283,7 @@ export default function AdminPage() {
     { key: "projekte", label: `Projekte (${projekte.length})`, icon: FolderKanban },
     { key: "nachricht", label: "Nachricht senden", icon: MessageSquareText },
     { key: "feedback", label: `Feedback (${feedbacks.filter((f) => !f.done).length})`, icon: MessageSquareHeart },
+    { key: "vorlagen", label: "Vorlagen", icon: FileText },
     { key: "team", label: `Team (${admins.length})`, icon: Users },
   ];
 
@@ -356,6 +359,8 @@ export default function AdminPage() {
         )}
 
         {tab === "assistent" && <AdminAssistant />}
+
+        {tab === "vorlagen" && <Templates />}
 
         {tab === "analysen" && (
           <div className="space-y-3">
