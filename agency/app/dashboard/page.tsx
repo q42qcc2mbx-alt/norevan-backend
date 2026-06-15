@@ -23,6 +23,7 @@ import { navFor, type Role } from "@/lib/roles";
 import AiWebsiteHelper from "@/components/AiWebsiteHelper";
 import AccountSettings from "@/components/AccountSettings";
 import SecurityStatus from "@/components/SecurityStatus";
+import SecurityCheck from "@/components/SecurityCheck";
 import ReportDetail from "@/components/ReportDetail";
 import DashboardSkeleton from "@/components/ui/DashboardSkeleton";
 
@@ -249,8 +250,9 @@ export default function DashboardPage() {
       </div>
 
       {/* Sicherheits-Status — stärkstes Vertrauenssignal, ganz oben */}
-      <div className="mt-8">
+      <div className="mt-8 grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
         <SecurityStatus />
+        <SecurityCheck defaultUrl={analysen[0]?.website ?? ""} />
       </div>
 
       {/* KI-Texthilfe — exklusiv für eingeloggte Kunden */}
