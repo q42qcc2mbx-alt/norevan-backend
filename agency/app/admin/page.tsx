@@ -12,6 +12,7 @@ import {
   Inbox,
   LayoutDashboard,
   LogOut,
+  MessageCircle,
   MessageSquareHeart,
   MessageSquareText,
   Plus,
@@ -25,6 +26,7 @@ import { getSupabase, PROJECT_STEPS, type ProjectStatus } from "@/lib/supabase";
 import DashboardOverview from "@/components/admin/DashboardOverview";
 import AdminAssistant from "@/components/admin/AdminAssistant";
 import Templates from "@/components/admin/Templates";
+import LiveChats from "@/components/admin/LiveChats";
 import DashboardSkeleton from "@/components/ui/DashboardSkeleton";
 import LeadDetailModal, { type DetailRow } from "@/components/admin/LeadDetailModal";
 
@@ -74,7 +76,7 @@ interface ProjectRow {
   notes: string | null;
 }
 
-type Tab = "uebersicht" | "assistent" | "analysen" | "anfragen" | "projekte" | "nachricht" | "feedback" | "vorlagen" | "team";
+type Tab = "uebersicht" | "assistent" | "chats" | "analysen" | "anfragen" | "projekte" | "nachricht" | "feedback" | "vorlagen" | "team";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("de-DE", {
@@ -277,6 +279,7 @@ export default function AdminPage() {
 
   const tabs: { key: Tab; label: string; icon: typeof Inbox }[] = [
     { key: "uebersicht", label: "Übersicht", icon: LayoutDashboard },
+    { key: "chats", label: "Anfrage-Chats", icon: MessageCircle },
     { key: "assistent", label: "KI-Assistent", icon: Bot },
     { key: "analysen", label: `Analysen (${analysen.length})`, icon: ScanSearch },
     { key: "anfragen", label: `Anfragen (${leads.length})`, icon: Inbox },
@@ -359,6 +362,8 @@ export default function AdminPage() {
         )}
 
         {tab === "assistent" && <AdminAssistant />}
+
+        {tab === "chats" && <LiveChats />}
 
         {tab === "vorlagen" && <Templates />}
 

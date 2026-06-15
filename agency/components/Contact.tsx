@@ -2,6 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 import {
+  ArrowRight,
+  Bot,
   CheckCircle2,
   Clock,
   Loader2,
@@ -58,6 +60,24 @@ export default function Contact() {
       />
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <SectionHeading eyebrow={t.contact.eyebrow} title={t.contact.title} subtitle={t.contact.subtitle} />
+
+        <Reveal className="mx-auto mb-8 max-w-2xl">
+          <Link
+            href="/anfrage"
+            className="group flex items-center gap-3 rounded-2xl border border-accent/30 bg-accent/[0.06] p-4 transition-colors hover:bg-accent/10"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-cyan-glow text-white">
+              <Bot className="h-5 w-5" />
+            </span>
+            <span className="flex-1 text-sm">
+              <span className="font-semibold text-ink">Schneller: Anfrage mit Sofort-Chat</span>
+              <span className="block text-ink-soft">
+                Alle Infos angeben — unser KI-Berater antwortet sofort, ein Mensch meldet sich persönlich.
+              </span>
+            </span>
+            <ArrowRight className="h-5 w-5 shrink-0 text-accent transition-transform group-hover:translate-x-1 rtl:rotate-180" />
+          </Link>
+        </Reveal>
 
         <div className="grid items-start gap-6 lg:grid-cols-[1fr_1.3fr] lg:gap-8">
           <Reveal>
