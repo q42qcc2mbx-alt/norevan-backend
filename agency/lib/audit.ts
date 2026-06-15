@@ -655,3 +655,24 @@ export async function runAudit(
 
   return { url: res.url || url.href, score, loadTimeMs, htmlSizeKb, findings, summary };
 }
+
+export type SecurityGrade = "A" | "B" | "C" | "D";
+
+/** Reduce the audit's security findings to an honest grade + lists. Shared by
+ *  the portal live-check and the monthly security-report cron so both agree. */
+export function summariseSecurity(findings: AuditFinding[]): {
+  grade: SecurityGrade;
+  protectedTitles: string[];
+  issues: AuditFinding[];
+} {
+  const sec = findings.filter((f) => f.category === "Sicherheit");
+  const crit = sec.filter((f) => f.severity === "critical").length;
+  const warn = sec.filter((f) => f.severity === "warning").length;
+  const grade: SecurityGrade =
+    crit >= 2 ? "D" : crit === 1 ? "C" : warn === 0 ? "A" : warn === 1 ? "B" : "C";
+  return {
+    grade,
+    protectedTitles: sec.filter((f) => f.severity === "good").map((f) => f.title),
+    issues: sec.filter((f) => f.severity !== "good"),
+  };
+}
