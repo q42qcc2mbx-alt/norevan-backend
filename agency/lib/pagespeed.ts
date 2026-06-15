@@ -40,18 +40,26 @@ export async function runPageSpeed(rawUrl: string): Promise<PageSpeedResult | nu
     if (!res.ok) return null;
     const data = (await res.json()) as {
       lighthouseResult?: {
+        runtimeError?: { code?: string; message?: string };
         categories?: { performance?: { score?: number } };
         audits?: Record<string, LhAudit>;
       };
     };
 
     const lh = data.lighthouseResult;
+    // Lighthouse couldn't reliably load the page (e.g. NO_FCP, blocked,
+    // timed out) — don't surface a misleading number, treat it as "no data".
+    if (lh?.runtimeError) return null;
     const score = lh?.categories?.performance?.score;
     if (typeof score !== "number") return null;
+    const rounded = Math.round(score * 100);
+    // A real Lighthouse run never scores exactly 0 — that only happens when the
+    // page failed to render. Show no block instead of a wrong "0/100".
+    if (rounded <= 0) return null;
     const audits = lh?.audits ?? {};
 
     return {
-      score: Math.round(score * 100),
+      score: rounded,
       lcpMs: audits["largest-contentful-paint"]?.numericValue,
       cls: audits["cumulative-layout-shift"]?.numericValue,
       tbtMs: audits["total-blocking-time"]?.numericValue,
