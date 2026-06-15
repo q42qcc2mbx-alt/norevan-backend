@@ -1,7 +1,7 @@
 export type AuditSeverity = "critical" | "warning" | "good";
 
 export interface AuditFinding {
-  category: "Performance" | "Sicherheit" | "SEO" | "UX";
+  category: "Performance" | "Sicherheit" | "SEO" | "UX" | "Conversion";
   severity: AuditSeverity;
   title: string;
   detail: string;
@@ -278,6 +278,105 @@ export async function runAudit(rawUrl: string): Promise<AuditResult> {
       title: "Sprache nicht deklariert",
       detail:
         "Das lang-Attribut fehlt im <html>-Tag — relevant für Screenreader und Suchmaschinen.",
+    });
+  }
+
+  // --- SEO (vertieft) ---
+  if (!/<link[^>]+rel=["']canonical["']/i.test(html)) {
+    findings.push({
+      category: "SEO",
+      severity: "warning",
+      title: "Canonical-Tag fehlt",
+      detail:
+        'Ohne <link rel="canonical"> kann Google ähnliche URLs als doppelten Inhalt werten (Duplicate Content) — das schwächt Ihr Ranking.',
+    });
+  }
+  if (!/application\/ld\+json|itemtype=["']https?:\/\/schema\.org/i.test(html)) {
+    findings.push({
+      category: "SEO",
+      severity: "warning",
+      title: "Keine strukturierten Daten (schema.org)",
+      detail:
+        "Strukturierte Daten helfen Google, Ihr Angebot zu verstehen, und schalten Rich-Snippets (Sterne, Öffnungszeiten, Preise) in den Suchergebnissen frei — mehr Klicks bei gleichem Ranking.",
+    });
+  }
+  const h1Count = (lower.match(/<h1[\s>]/g) ?? []).length;
+  if (h1Count > 1) {
+    findings.push({
+      category: "SEO",
+      severity: "warning",
+      title: `Mehrere H1-Überschriften (${h1Count})`,
+      detail:
+        "Pro Seite sollte es genau eine H1 geben. Mehrere H1 verwässern für Suchmaschinen das Hauptthema der Seite.",
+    });
+  }
+
+  // --- Sicherheit (vertieft) ---
+  if (res.url.startsWith("https:") && /\ssrc=["']http:\/\//i.test(html)) {
+    findings.push({
+      category: "Sicherheit",
+      severity: "warning",
+      title: "Unsichere Inhalte (Mixed Content)",
+      detail:
+        "Die HTTPS-Seite lädt Ressourcen über unverschlüsseltes HTTP. Browser blockieren diese teils oder warnen — das untergräbt das Schloss-Symbol und das Vertrauen.",
+    });
+  }
+  const generator = html.match(/<meta[^>]+name=["']generator["'][^>]+content=["']([^"']+)["']/i)?.[1] ?? "";
+  if (generator && /\d/.test(generator)) {
+    findings.push({
+      category: "Sicherheit",
+      severity: "warning",
+      title: "Software-Version sichtbar",
+      detail: `Die Seite gibt ihre Software preis: „${generator.slice(0, 60)}". Das erleichtert Angreifern, gezielt bekannte Schwachstellen veralteter Versionen auszunutzen.`,
+    });
+  }
+
+  // --- Conversion ---
+  const ctaPattern =
+    /(jetzt|kostenlos|anfrage|anfragen|angebot|termin|buchen|demo|beratung|starten|loslegen|kaufen|bestellen|mehr erfahren|get started|contact|book|buy now|sign up)/i;
+  const clickables = html.match(/<(?:a|button)\b[^>]*>([\s\S]*?)<\/(?:a|button)>/gi) ?? [];
+  const hasCta =
+    clickables.some((b) => ctaPattern.test(b.replace(/<[^>]+>/g, " "))) ||
+    /class=["'][^"']*\b(btn|button|cta)\b/i.test(html);
+  if (!hasCta) {
+    findings.push({
+      category: "Conversion",
+      severity: "warning",
+      title: "Kein klarer Call-to-Action erkennbar",
+      detail:
+        'Es ist kein eindeutiger Handlungsaufruf zu finden (z. B. „Jetzt anfragen", „Termin buchen"). Besucher wissen nicht, was sie als Nächstes tun sollen — einer der häufigsten Conversion-Killer.',
+    });
+  }
+  const hasPhone =
+    /href=["']tel:/i.test(html) || /(\+\d{2,3}[\s/-]?\d|\(0\d{2,4}\)|\b0\d{2,4}[\s/-]\d{3,})/.test(html);
+  const hasContact = /<form\b/i.test(html) || /href=["']mailto:/i.test(html) || /(kontakt|contact)/i.test(lower);
+  if (!hasContact && !hasPhone) {
+    findings.push({
+      category: "Conversion",
+      severity: "critical",
+      title: "Keine einfache Kontaktmöglichkeit gefunden",
+      detail:
+        "Weder Kontaktformular, E-Mail noch Telefonnummer sind klar erkennbar. Interessenten, die anfragen möchten, springen ab — direkt verlorener Umsatz.",
+    });
+  } else if (!hasPhone) {
+    findings.push({
+      category: "Conversion",
+      severity: "warning",
+      title: "Keine klickbare Telefonnummer",
+      detail:
+        "Eine sichtbare Telefonnummer als tel:-Link senkt die Hemmschwelle und gewinnt spontane Anfragen — besonders auf dem Smartphone.",
+    });
+  }
+  const hasTrust =
+    /(bewertung|kundenstimm|testimonial|rezension|garantie|zertifik|ausgezeichnet|trusted|referenz)/i.test(lower) ||
+    /aggregaterating|"review"/i.test(html);
+  if (!hasTrust) {
+    findings.push({
+      category: "Conversion",
+      severity: "warning",
+      title: "Wenig Vertrauenselemente",
+      detail:
+        "Bewertungen, Referenzen, Garantien oder Zertifikate sind nicht sichtbar. Solche Trust-Signale steigern die Conversion-Rate messbar.",
     });
   }
 

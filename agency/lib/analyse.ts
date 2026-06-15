@@ -64,6 +64,9 @@ function categoryScores(audit: AuditResult): AnalyseCategory[] {
         add("Mobile Optimierung", f.severity);
         add("Design", f.severity === "critical" ? "warning" : "good");
         break;
+      case "Conversion":
+        add("Conversion", f.severity);
+        break;
     }
   }
   return CATEGORY_NAMES.map((name) => ({
