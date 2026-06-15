@@ -10,7 +10,7 @@ const icons = [ClipboardCheck, MessagesSquare, Wrench, Rocket];
 export default function Process() {
   const { t } = useI18n();
   return (
-    <section id="ablauf" className="relative bg-card py-16 md:py-24">
+    <section id="ablauf" className="relative bg-card py-12 md:py-24">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <SectionHeading eyebrow={t.process.eyebrow} title={t.process.title} subtitle={t.process.subtitle} />
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">

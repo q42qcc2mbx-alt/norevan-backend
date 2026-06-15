@@ -47,7 +47,7 @@ function ProjectPreview({ gradient, accent }: { gradient: string; accent: string
 export default function Portfolio() {
   const { t } = useI18n();
   return (
-    <section id="portfolio" className="relative overflow-hidden py-16 md:py-24">
+    <section id="portfolio" className="relative overflow-hidden py-12 md:py-24">
       <Aurora />
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <SectionHeading

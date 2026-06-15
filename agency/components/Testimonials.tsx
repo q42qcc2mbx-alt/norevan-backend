@@ -14,7 +14,7 @@ const visuals = [
 export default function Testimonials() {
   const { t } = useI18n();
   return (
-    <section id="kunden" className="relative bg-card py-16 md:py-24">
+    <section id="kunden" className="relative bg-card py-12 md:py-24">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <SectionHeading
           eyebrow={t.testimonials.eyebrow}

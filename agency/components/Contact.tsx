@@ -51,7 +51,7 @@ export default function Contact() {
   }
 
   return (
-    <section id="kontakt" className="relative bg-card py-16 md:py-24">
+    <section id="kontakt" className="relative bg-card py-12 md:py-24">
       <div
         className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"
         aria-hidden

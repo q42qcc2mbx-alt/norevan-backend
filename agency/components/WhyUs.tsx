@@ -10,7 +10,7 @@ const icons = [Gauge, ShieldCheck, Search, Sparkles, TrendingUp, Wrench];
 export default function WhyUs() {
   const { t } = useI18n();
   return (
-    <section id="warum-wir" className="relative py-16 md:py-24">
+    <section id="warum-wir" className="relative py-12 md:py-24">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <SectionHeading eyebrow={t.whyus.eyebrow} title={t.whyus.title} subtitle={t.whyus.subtitle} />
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

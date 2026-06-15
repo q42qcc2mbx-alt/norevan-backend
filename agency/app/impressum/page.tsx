@@ -15,7 +15,7 @@ function field(value: string, placeholder: string) {
 export default function ImpressumPage() {
   return (
     <div className="pt-16 md:pt-20">
-      <section className="mx-auto max-w-3xl px-5 py-16 md:px-8 md:py-20">
+      <section className="mx-auto max-w-3xl px-5 py-12 md:px-8 md:py-20">
         <p className="text-xs font-semibold uppercase tracking-wide text-accent">
           Rechtliches
         </p>

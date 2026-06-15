@@ -12,7 +12,7 @@ export default function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="relative py-16 md:py-24">
+    <section id="faq" className="relative py-12 md:py-24">
       <div className="mx-auto max-w-3xl px-5 md:px-8">
         <SectionHeading eyebrow={t.faq.eyebrow} title={t.faq.title} />
         <div className="space-y-3">

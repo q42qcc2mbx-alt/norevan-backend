@@ -11,7 +11,7 @@ const icons = [Code2, Rocket, ShieldCheck, Bot];
 export default function Services() {
   const { t } = useI18n();
   return (
-    <section id="leistungen" className="relative bg-card py-16 md:py-24">
+    <section id="leistungen" className="relative bg-card py-12 md:py-24">
       <div
         className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"
         aria-hidden

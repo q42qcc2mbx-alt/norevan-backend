@@ -16,7 +16,7 @@ const numbers = [
 export default function Stats() {
   const { t } = useI18n();
   return (
-    <section id="ergebnisse" className="relative py-16 md:py-24">
+    <section id="ergebnisse" className="relative py-12 md:py-24">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <SectionHeading eyebrow={t.stats.eyebrow} title={t.stats.title} subtitle={t.stats.subtitle} />
         <div className="grid grid-cols-2 gap-4 md:gap-5 lg:grid-cols-4">

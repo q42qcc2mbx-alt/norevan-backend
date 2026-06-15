@@ -57,7 +57,7 @@ const values = [
 export default function UeberUnsPage() {
   return (
     <div className="pt-16 md:pt-20">
-      <section className="relative py-20 md:py-28">
+      <section className="relative py-12 md:py-28">
         <div className="hero-glow absolute inset-0" aria-hidden />
         <Aurora />
         <div className="relative mx-auto max-w-7xl px-5 md:px-8">
@@ -85,7 +85,7 @@ export default function UeberUnsPage() {
         </div>
       </section>
 
-      <section className="relative bg-card py-20 md:py-28">
+      <section className="relative bg-card py-12 md:py-28">
         <div className="mx-auto max-w-7xl px-5 md:px-8">
           <SectionHeading
             eyebrow="Unsere Werte"
