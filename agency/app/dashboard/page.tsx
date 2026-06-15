@@ -22,6 +22,7 @@ import { getSupabase, PROJECT_STEPS, type ProjectStatus } from "@/lib/supabase";
 import { navFor, type Role } from "@/lib/roles";
 import AiWebsiteHelper from "@/components/AiWebsiteHelper";
 import AccountSettings from "@/components/AccountSettings";
+import SecurityStatus from "@/components/SecurityStatus";
 import ReportDetail from "@/components/ReportDetail";
 import DashboardSkeleton from "@/components/ui/DashboardSkeleton";
 
@@ -247,8 +248,13 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Sicherheits-Status — stärkstes Vertrauenssignal, ganz oben */}
+      <div className="mt-8">
+        <SecurityStatus />
+      </div>
+
       {/* KI-Texthilfe — exklusiv für eingeloggte Kunden */}
-      <div className="mt-10">
+      <div className="mt-6">
         <AiWebsiteHelper />
       </div>
 
