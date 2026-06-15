@@ -224,7 +224,7 @@ export default function FunnelHero() {
           {f.badge}
         </span>
 
-        <h1 className="rise rise-1 mt-5 font-display text-[1.75rem] leading-[1.15] font-bold tracking-tight text-balance text-ink sm:text-4xl md:text-6xl">
+        <h1 className="rise-lcp mt-5 font-display text-[1.75rem] leading-[1.15] font-bold tracking-tight text-balance text-ink sm:text-4xl md:text-6xl">
           {f.titleLead} <span className="text-gradient">{f.titleAccent}</span>
         </h1>
 
