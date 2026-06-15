@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { runAudit, type AuditResult } from "./audit";
+import { runPageSpeed, type PageSpeedResult } from "./pagespeed";
 
 export interface AnalyseCategory {
   name: string;
@@ -19,6 +20,13 @@ export interface AnalyseRecommendation {
   aufwand: "gering" | "mittel" | "hoch";
 }
 
+export interface AnalysePerformance {
+  score: number; // Google PageSpeed mobile score 0–100
+  lcpMs?: number;
+  cls?: number;
+  tbtMs?: number;
+}
+
 export interface AnalyseResult {
   url: string;
   score: number;
@@ -27,6 +35,10 @@ export interface AnalyseResult {
   probleme: AnalyseProblem[];
   verbesserungen: AnalyseRecommendation[];
   empfehlungen: string[];
+  /** Real Google PageSpeed metrics (mobile), when available. */
+  performance?: AnalysePerformance;
+  /** Screenshot of the analysed page (data URI) — live display only, not stored. */
+  screenshot?: string;
 }
 
 const CATEGORY_NAMES = [
@@ -148,7 +160,11 @@ function ruleBasedAnalyse(audit: AuditResult, goal: string): AnalyseResult {
 }
 
 /** Ask Claude to turn the technical audit + the visitor's goal into a tailored analysis. */
-async function aiAnalyse(audit: AuditResult, goal: string): Promise<AnalyseResult | null> {
+async function aiAnalyse(
+  audit: AuditResult,
+  goal: string,
+  ps: PageSpeedResult | null,
+): Promise<AnalyseResult | null> {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   try {
     const client = new Anthropic();
@@ -172,7 +188,15 @@ async function aiAnalyse(audit: AuditResult, goal: string): Promise<AnalyseResul
           role: "user",
           content: `Audit-Daten der Website ${audit.url}:\n${JSON.stringify(
             { score: audit.score, loadTimeMs: audit.loadTimeMs, htmlSizeKb: audit.htmlSizeKb, findings: audit.findings },
-          )}\n\nZiel des Besuchers: ${goal || "nicht angegeben"}`,
+          )}${
+            ps
+              ? `\n\nEchte Google-PageSpeed-Messung (mobil): Performance-Score ${ps.score}/100${
+                  ps.lcpMs ? `, LCP ${(ps.lcpMs / 1000).toFixed(1)}s` : ""
+                }${ps.cls != null ? `, CLS ${ps.cls.toFixed(2)}` : ""}${
+                  ps.tbtMs != null ? `, TBT ${Math.round(ps.tbtMs)}ms` : ""
+                }. Beziehe diese echten Werte in Geschwindigkeit/Conversion ein.`
+              : ""
+          }\n\nZiel des Besuchers: ${goal || "nicht angegeben"}`,
         },
       ],
     });
@@ -201,6 +225,12 @@ async function aiAnalyse(audit: AuditResult, goal: string): Promise<AnalyseResul
 }
 
 export async function runAnalyse(rawUrl: string, goal: string): Promise<AnalyseResult> {
-  const audit = await runAudit(rawUrl);
-  return (await aiAnalyse(audit, goal)) ?? ruleBasedAnalyse(audit, goal);
+  // Run the HTML audit and Google PageSpeed in parallel. runPageSpeed never
+  // throws (returns null on error/timeout), so it never breaks the analysis.
+  const [audit, ps] = await Promise.all([runAudit(rawUrl), runPageSpeed(rawUrl)]);
+  const base = (await aiAnalyse(audit, goal, ps)) ?? ruleBasedAnalyse(audit, goal);
+  const performance = ps
+    ? { score: ps.score, lcpMs: ps.lcpMs, cls: ps.cls, tbtMs: ps.tbtMs }
+    : undefined;
+  return { ...base, performance, screenshot: ps?.screenshot };
 }

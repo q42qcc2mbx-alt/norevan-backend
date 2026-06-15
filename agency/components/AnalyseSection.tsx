@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   ArrowUpRight,
   CheckCircle2,
+  Gauge,
   Lightbulb,
   ListChecks,
   Loader2,
@@ -27,6 +28,12 @@ interface AnalyseResult {
   probleme: { titel: string; beschreibung: string; prioritaet: string; kategorie: string }[];
   verbesserungen: { titel: string; beschreibung: string; aufwand: string }[];
   empfehlungen: string[];
+  performance?: { score: number; lcpMs?: number; cls?: number; tbtMs?: number };
+  screenshot?: string;
+}
+
+function scoreHue(score: number) {
+  return score >= 90 ? "text-emerald-500" : score >= 50 ? "text-amber-500" : "text-red-500";
 }
 
 const prioStyles: Record<string, string> = {
@@ -320,6 +327,50 @@ export default function AnalyseSection() {
                     <p className="mt-3 text-sm leading-relaxed text-ink-soft">{result.summary}</p>
                   </div>
                 </div>
+
+                {/* Real Google PageSpeed (mobile) + screenshot */}
+                {(result.performance || result.screenshot) && (
+                  <div className="grid items-center gap-5 rounded-2xl border border-edge bg-card p-4 sm:grid-cols-[auto_1fr]">
+                    {result.screenshot && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={result.screenshot}
+                        alt="Vorschau der Website"
+                        className="mx-auto h-40 w-auto rounded-lg shadow-md ring-1 ring-edge"
+                      />
+                    )}
+                    {result.performance && (
+                      <div>
+                        <p className="flex items-center gap-2 text-xs font-bold tracking-wide text-ink-muted uppercase">
+                          <Gauge className="h-4 w-4 text-accent" />
+                          Google-Performance (mobil)
+                        </p>
+                        <p className={`mt-1 text-3xl font-bold ${scoreHue(result.performance.score)}`}>
+                          {result.performance.score}
+                          <span className="text-base font-medium text-ink-muted">/100</span>
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {result.performance.lcpMs != null && (
+                            <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-medium text-ink-soft ring-1 ring-edge">
+                              LCP {(result.performance.lcpMs / 1000).toFixed(1)}s
+                            </span>
+                          )}
+                          {result.performance.cls != null && (
+                            <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-medium text-ink-soft ring-1 ring-edge">
+                              CLS {result.performance.cls.toFixed(2)}
+                            </span>
+                          )}
+                          {result.performance.tbtMs != null && (
+                            <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-medium text-ink-soft ring-1 ring-edge">
+                              TBT {Math.round(result.performance.tbtMs)}ms
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-2 text-[11px] text-ink-muted">Gemessen mit Google PageSpeed (Lighthouse).</p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Category bars */}
                 <div>

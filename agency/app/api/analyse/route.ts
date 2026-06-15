@@ -73,7 +73,8 @@ export async function POST(req: Request) {
       website: result.url,
       goal,
       score: result.score,
-      result,
+      // Drop the (large) screenshot before persisting — keep the metrics.
+      result: { ...result, screenshot: undefined },
       user_id: body.userId || null,
     });
 

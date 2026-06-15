@@ -36,6 +36,7 @@ interface StoredResult {
   probleme?: Problem[];
   verbesserungen?: Improvement[];
   empfehlungen?: string[];
+  performance?: { score?: number; lcpMs?: number; cls?: number; tbtMs?: number };
 }
 
 function sevClass(sev?: string) {
@@ -58,9 +59,27 @@ export default function ReportDetail({ result, className = "" }: { result: unkno
     return <p className={`text-sm text-ink-soft ${className}`}>Für diese Analyse liegen keine Detaildaten vor.</p>;
   }
 
+  const perf = r.performance;
+
   return (
     <div className={`space-y-5 text-left ${className}`}>
       {r.summary && <p className="text-sm leading-relaxed text-ink-soft">{r.summary}</p>}
+
+      {perf && typeof perf.score === "number" && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-edge bg-card p-3.5">
+          <span className="text-xs font-bold tracking-wide text-ink-muted uppercase">Google-Performance (mobil):</span>
+          <span
+            className={`text-sm font-bold ${
+              perf.score >= 90 ? "text-emerald-500" : perf.score >= 50 ? "text-amber-500" : "text-red-500"
+            }`}
+          >
+            {perf.score}/100
+          </span>
+          {perf.lcpMs != null && <span className="text-xs text-ink-soft">· LCP {(perf.lcpMs / 1000).toFixed(1)}s</span>}
+          {perf.cls != null && <span className="text-xs text-ink-soft">· CLS {perf.cls.toFixed(2)}</span>}
+          {perf.tbtMs != null && <span className="text-xs text-ink-soft">· TBT {Math.round(perf.tbtMs)}ms</span>}
+        </div>
+      )}
 
       {kategorien.length > 0 && (
         <div className="grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
