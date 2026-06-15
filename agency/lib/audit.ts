@@ -18,6 +18,55 @@ export interface AuditResult {
 
 const FETCH_TIMEOUT_MS = 12_000;
 const MAX_HTML_BYTES = 2_000_000;
+const PROBE_TIMEOUT_MS = 6_000;
+const UA = "Mozilla/5.0 (compatible; NorevanAudit/1.0; +https://norevan.digital)";
+
+/** Lightweight GET for same-origin resources (robots.txt, sitemap.xml,
+ *  favicon). Best-effort: returns null on any error/timeout. */
+async function probe(target: string): Promise<{ status: number; text: string } | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PROBE_TIMEOUT_MS);
+  try {
+    const u = new URL(target);
+    assertPublicHost(u);
+    const res = await fetch(u, {
+      signal: controller.signal,
+      redirect: "follow",
+      headers: { "User-Agent": UA },
+    });
+    const text = (await res.text().catch(() => "")).slice(0, 50_000);
+    return { status: res.status, text };
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** Does the plain-HTTP version redirect to HTTPS? true/false, or null when
+ *  inconclusive. */
+async function httpRedirectsToHttps(host: string): Promise<boolean | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PROBE_TIMEOUT_MS);
+  try {
+    const u = new URL(`http://${host}/`);
+    assertPublicHost(u);
+    const res = await fetch(u, {
+      signal: controller.signal,
+      redirect: "manual",
+      headers: { "User-Agent": UA },
+    });
+    if (res.status >= 300 && res.status < 400) {
+      return (res.headers.get("location") ?? "").toLowerCase().startsWith("https:");
+    }
+    if (res.status === 200) return false; // served over HTTP without redirect
+    return null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 function normalizeUrl(input: string): URL {
   const trimmed = input.trim();
@@ -138,7 +187,10 @@ async function fetchSite(startUrl: URL) {
   }
 }
 
-export async function runAudit(rawUrl: string): Promise<AuditResult> {
+export async function runAudit(
+  rawUrl: string,
+  opts: { deep?: boolean } = {},
+): Promise<AuditResult> {
   const url = normalizeUrl(rawUrl);
   assertPublicHost(url);
 
@@ -445,6 +497,140 @@ export async function runAudit(rawUrl: string): Promise<AuditResult> {
       detail:
         "Bewertungen, Referenzen, Garantien oder Zertifikate sind nicht sichtbar. Solche Trust-Signale steigern die Conversion-Rate messbar.",
     });
+  }
+
+  // --- Standards & Social (cheap, always) ---
+  const ctCharset = /charset=/i.test(headers.get("content-type") ?? "");
+  if (!ctCharset && !/<meta[^>]+charset/i.test(html)) {
+    findings.push({
+      category: "SEO",
+      severity: "warning",
+      title: "Zeichensatz nicht deklariert",
+      detail:
+        "Ohne deklarierten Zeichensatz (UTF-8) kann es bei Umlauten und Sonderzeichen zu Darstellungsfehlern kommen — unprofessionell und schlecht für die Lesbarkeit.",
+    });
+  }
+  if (!/^\s*<!doctype html>/i.test(html)) {
+    findings.push({
+      category: "SEO",
+      severity: "warning",
+      title: "Kein moderner HTML5-Doctype",
+      detail:
+        "Ohne <!DOCTYPE html> rendern Browser im veralteten „Quirks-Modus“ — das führt zu inkonsistenter Darstellung über verschiedene Geräte hinweg.",
+    });
+  }
+  const hasOg = /<meta[^>]+property=["']og:/i.test(html);
+  if (hasOg && !/<meta[^>]+property=["']og:image/i.test(html)) {
+    findings.push({
+      category: "SEO",
+      severity: "warning",
+      title: "Kein Social-Vorschaubild (og:image)",
+      detail:
+        "Beim Teilen auf WhatsApp, LinkedIn oder Facebook erscheint kein Vorschaubild. Links wirken weniger vertrauenswürdig und werden deutlich seltener geklickt.",
+    });
+  }
+  const viewportContent = html.match(/<meta[^>]+name=["']viewport["'][^>]*content=["']([^"']*)["']/i)?.[1] ?? "";
+  if (viewportContent && !/width\s*=\s*device-width/i.test(viewportContent)) {
+    findings.push({
+      category: "UX",
+      severity: "warning",
+      title: "Viewport nicht korrekt für Mobilgeräte",
+      detail:
+        "Der Viewport-Tag enthält kein width=device-width. Auf dem Smartphone wird die Seite dadurch falsch skaliert und ist schwer bedienbar.",
+    });
+  }
+  // On an HTTPS site every cookie should carry the Secure flag.
+  const setCookie = headers.get("set-cookie") ?? "";
+  if (res.url.startsWith("https:") && setCookie && !/;\s*secure/i.test(setCookie)) {
+    findings.push({
+      category: "Sicherheit",
+      severity: "warning",
+      title: "Cookies ohne Secure-Flag",
+      detail:
+        "Gesetzte Cookies tragen nicht das Secure-Flag und können so über unverschlüsselte Verbindungen abgegriffen werden — ein vermeidbares Sicherheitsrisiko.",
+    });
+  }
+
+  // --- Deep checks (only on the full /analyse, not the fast funnel scan) ---
+  if (opts.deep) {
+    const origin = (() => {
+      try {
+        return new URL(res.url || url.href).origin;
+      } catch {
+        return url.origin;
+      }
+    })();
+    const host = new URL(origin).host;
+    const [robots, sitemap, httpsRedirect] = await Promise.all([
+      probe(`${origin}/robots.txt`),
+      probe(`${origin}/sitemap.xml`),
+      httpRedirectsToHttps(host),
+    ]);
+
+    // robots.txt — crawlability
+    if (!robots || robots.status >= 400) {
+      findings.push({
+        category: "SEO",
+        severity: "warning",
+        title: "Keine robots.txt gefunden",
+        detail:
+          "Ohne robots.txt steuern Sie nicht, was Suchmaschinen crawlen, und der übliche Verweis auf Ihre Sitemap fehlt — Google findet Ihre Unterseiten langsamer.",
+      });
+    } else {
+      // Blanket block: "Disallow: /" (root) for all bots, without an Allow: /.
+      const blocksAll =
+        /user-agent:\s*\*/i.test(robots.text) &&
+        /disallow:\s*\/\s*(\n|$)/i.test(robots.text) &&
+        !/allow:\s*\/\s*(\n|$)/i.test(robots.text);
+      if (blocksAll) {
+        findings.push({
+          category: "SEO",
+          severity: "critical",
+          title: "Suchmaschinen ausgesperrt (robots.txt)",
+          detail:
+            "Die robots.txt blockiert das Crawlen der gesamten Website (Disallow: /). Google kann die Seite nicht indexieren — sie erscheint praktisch nicht in der Suche. Das kostet Sie nahezu jeden organischen Besucher.",
+        });
+      }
+    }
+
+    // Sitemap — present at /sitemap.xml or referenced in robots.txt
+    const sitemapInRobots = !!robots && /sitemap:/i.test(robots.text);
+    const sitemapOk = (sitemap && sitemap.status < 400) || sitemapInRobots;
+    if (!sitemapOk) {
+      findings.push({
+        category: "SEO",
+        severity: "warning",
+        title: "Keine Sitemap gefunden",
+        detail:
+          "Es ist keine XML-Sitemap auffindbar. Eine Sitemap hilft Google, alle Unterseiten vollständig und schnell zu erfassen — besonders wichtig bei mehr als nur einer Handvoll Seiten.",
+      });
+    }
+
+    // HTTP → HTTPS redirect
+    if (httpsRedirect === false) {
+      findings.push({
+        category: "Sicherheit",
+        severity: "warning",
+        title: "Kein erzwungenes HTTPS",
+        detail:
+          "Die Seite ist auch unverschlüsselt über http:// erreichbar, ohne Weiterleitung auf https://. Besucher können versehentlich auf der unsicheren Version landen — schlecht für Vertrauen und Ranking.",
+      });
+    }
+
+    // Favicon — link in HTML, or a reachable /favicon.ico
+    const hasIconLink = /<link[^>]+rel=["'][^"']*icon["']/i.test(html);
+    if (!hasIconLink) {
+      const favicon = await probe(`${origin}/favicon.ico`);
+      if (!favicon || favicon.status >= 400) {
+        findings.push({
+          category: "UX",
+          severity: "warning",
+          title: "Kein Favicon",
+          detail:
+            "Im Browser-Tab und in Lesezeichen fehlt das Symbol Ihrer Marke. Das wirkt unfertig und schwächt den Wiedererkennungswert.",
+        });
+      }
+    }
   }
 
   // --- Score ---

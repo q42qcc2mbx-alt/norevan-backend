@@ -231,7 +231,7 @@ async function aiAnalyse(
 export async function runAnalyse(rawUrl: string, goal: string): Promise<AnalyseResult> {
   // Run the HTML audit and Google PageSpeed in parallel. runPageSpeed never
   // throws (returns null on error/timeout), so it never breaks the analysis.
-  const [audit, ps] = await Promise.all([runAudit(rawUrl), runPageSpeed(rawUrl)]);
+  const [audit, ps] = await Promise.all([runAudit(rawUrl, { deep: true }), runPageSpeed(rawUrl)]);
   const base = (await aiAnalyse(audit, goal, ps)) ?? ruleBasedAnalyse(audit, goal);
   const performance = ps
     ? { score: ps.score, lcpMs: ps.lcpMs, cls: ps.cls, tbtMs: ps.tbtMs }
