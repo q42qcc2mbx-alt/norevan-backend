@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, LogIn } from "lucide-react";
 import { getSupabase } from "@/lib/supabase";
+import Aurora from "@/components/ui/Aurora";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -38,6 +39,7 @@ export default function LoginPage() {
   return (
     <section className="relative flex min-h-[80dvh] items-center justify-center overflow-hidden px-5 pt-24 pb-16">
       <div className="hero-glow absolute inset-0" aria-hidden />
+      <Aurora />
       <div className="relative w-full max-w-md">
         <div className="card-elevated p-7 sm:p-9">
           <h1 className="text-2xl font-bold tracking-tight text-ink">Willkommen zurück</h1>

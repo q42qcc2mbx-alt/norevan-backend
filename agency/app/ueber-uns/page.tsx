@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Code2, Palette, ShieldCheck, TrendingUp } from "lucide-react";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Reveal from "@/components/ui/Reveal";
+import Aurora from "@/components/ui/Aurora";
 import Stats from "@/components/Stats";
 import CtaBanner from "@/components/CtaBanner";
 
@@ -58,6 +59,7 @@ export default function UeberUnsPage() {
     <div className="pt-16 md:pt-20">
       <section className="relative py-20 md:py-28">
         <div className="hero-glow absolute inset-0" aria-hidden />
+        <Aurora />
         <div className="relative mx-auto max-w-7xl px-5 md:px-8">
           <SectionHeading
             eyebrow="Über Uns"
