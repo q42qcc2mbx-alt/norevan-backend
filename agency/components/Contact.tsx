@@ -52,6 +52,10 @@ export default function Contact() {
 
   return (
     <section id="kontakt" className="relative bg-card py-16 md:py-24">
+      <div
+        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"
+        aria-hidden
+      />
       <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <SectionHeading eyebrow={t.contact.eyebrow} title={t.contact.title} subtitle={t.contact.subtitle} />
 

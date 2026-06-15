@@ -3,6 +3,7 @@
 import { TrendingUp } from "lucide-react";
 import SectionHeading from "./ui/SectionHeading";
 import Reveal from "./ui/Reveal";
+import Aurora from "./ui/Aurora";
 import { useI18n } from "@/lib/i18n";
 
 const visuals = [
@@ -46,8 +47,9 @@ function ProjectPreview({ gradient, accent }: { gradient: string; accent: string
 export default function Portfolio() {
   const { t } = useI18n();
   return (
-    <section id="portfolio" className="relative py-16 md:py-24">
-      <div className="mx-auto max-w-7xl px-5 md:px-8">
+    <section id="portfolio" className="relative overflow-hidden py-16 md:py-24">
+      <Aurora />
+      <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <SectionHeading
           eyebrow={t.portfolio.eyebrow}
           title={t.portfolio.title}
