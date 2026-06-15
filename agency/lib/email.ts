@@ -141,6 +141,45 @@ export async function sendAuditReport(to: string, audit: AuditResult): Promise<S
 }
 
 /**
+ * Friendly follow-up nudge to a lead who hasn't heard back yet. Best-effort,
+ * env-gated (RESEND_API_KEY + LEAD_FROM_EMAIL).
+ */
+export async function sendFollowUpEmail(to: string, name?: string): Promise<SendResult> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.LEAD_FROM_EMAIL;
+  if (!apiKey || !from) return { sent: false };
+
+  const bookingUrl = process.env.BOOKING_URL || "https://norevan-agency.vercel.app/kontakt";
+  const hi = name ? `Hallo ${esc(name)},` : "Hallo,";
+  const html = `<!doctype html><html lang="de"><body style="margin:0;background:#070b16;font-family:Arial,sans-serif;">
+    <div style="max-width:560px;margin:0 auto;padding:28px 16px;">
+      <div style="background:linear-gradient(135deg,#0a0f1d,#0e1b33);border:1px solid #1e293b;border-radius:18px;padding:28px;">
+        <div style="font-size:18px;font-weight:800;color:#e8edf7;">NOREVAN <span style="color:#60a5fa;">Digital</span></div>
+        <p style="font-size:15px;line-height:1.65;color:#a8b5cc;margin:20px 0 0;">
+          ${hi}<br><br>
+          Sie hatten kürzlich Interesse an einer schnelleren, sichereren Website — wir wollten kurz nachhaken. Häufig steckt der größte Hebel in 1–2 Punkten, die sich schnell beheben lassen.
+          <br><br>Wenn Sie mögen, gehen wir das in einem kurzen, kostenlosen Gespräch (15&nbsp;Min.) konkret durch — unverbindlich.
+        </p>
+        <a href="${esc(bookingUrl)}" style="display:inline-block;margin-top:18px;background:linear-gradient(95deg,#2563eb,#1d4ed8);color:#fff;font-size:15px;font-weight:700;text-decoration:none;padding:13px 26px;border-radius:999px;">Kostenloses Gespräch sichern →</a>
+        <p style="font-size:13px;color:#8593ad;margin-top:20px;">Beste Grüße<br><strong style="color:#e8edf7;">Ihr Team von NOREVAN Digital</strong></p>
+      </div>
+      <p style="font-size:11px;color:#5b6b88;text-align:center;margin:16px 8px 0;">Sie erhalten diese E-Mail aufgrund Ihrer Anfrage. Keine weitere Nachricht gewünscht? Einfach kurz antworten.</p>
+    </div></body></html>`;
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ from, to, subject: "Kurz nachgehakt — Ihre Website-Anfrage", html }),
+    });
+    return { sent: res.ok };
+  } catch (err) {
+    console.error("Follow-up email failed:", err);
+    return { sent: false };
+  }
+}
+
+/**
  * Notify the team that a new lead arrived. Sent to LEAD_NOTIFY_EMAIL via Resend.
  * Best-effort and env-gated (needs RESEND_API_KEY + LEAD_FROM_EMAIL +
  * LEAD_NOTIFY_EMAIL); a no-op otherwise.

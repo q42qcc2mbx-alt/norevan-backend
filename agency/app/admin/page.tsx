@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import {
+  BarChart3,
   Bot,
   FileText,
   FolderKanban,
@@ -27,6 +28,7 @@ import DashboardOverview from "@/components/admin/DashboardOverview";
 import AdminAssistant from "@/components/admin/AdminAssistant";
 import Templates from "@/components/admin/Templates";
 import LiveChats from "@/components/admin/LiveChats";
+import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import DashboardSkeleton from "@/components/ui/DashboardSkeleton";
 import LeadDetailModal, { type DetailRow } from "@/components/admin/LeadDetailModal";
 
@@ -76,7 +78,7 @@ interface ProjectRow {
   notes: string | null;
 }
 
-type Tab = "uebersicht" | "assistent" | "chats" | "analysen" | "anfragen" | "projekte" | "nachricht" | "feedback" | "vorlagen" | "team";
+type Tab = "uebersicht" | "statistik" | "assistent" | "chats" | "analysen" | "anfragen" | "projekte" | "nachricht" | "feedback" | "vorlagen" | "team";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("de-DE", {
@@ -279,6 +281,7 @@ export default function AdminPage() {
 
   const tabs: { key: Tab; label: string; icon: typeof Inbox }[] = [
     { key: "uebersicht", label: "Übersicht", icon: LayoutDashboard },
+    { key: "statistik", label: "Statistik", icon: BarChart3 },
     { key: "chats", label: "Anfrage-Chats", icon: MessageCircle },
     { key: "assistent", label: "KI-Assistent", icon: Bot },
     { key: "analysen", label: `Analysen (${analysen.length})`, icon: ScanSearch },
@@ -359,6 +362,10 @@ export default function AdminPage() {
               setFeedback("");
             }}
           />
+        )}
+
+        {tab === "statistik" && (
+          <AdminAnalytics analysen={analysen} leads={leads} />
         )}
 
         {tab === "assistent" && <AdminAssistant />}
