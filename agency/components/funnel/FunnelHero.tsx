@@ -214,43 +214,27 @@ export default function FunnelHero() {
       <Aurora />
 
       <div className="relative mx-auto w-full max-w-3xl text-center">
-        <motion.span
-          initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400"
+        <span
+          className="rise inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400"
         >
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500/60" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
           </span>
           {f.badge}
-        </motion.span>
+        </span>
 
-        <motion.h1
-          initial={reduceMotion ? false : { opacity: 0, y: 22 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.08 }}
-          className="mt-5 font-display text-[1.75rem] leading-[1.15] font-bold tracking-tight text-balance text-ink sm:text-4xl md:text-6xl"
-        >
+        <h1 className="rise rise-1 mt-5 font-display text-[1.75rem] leading-[1.15] font-bold tracking-tight text-balance text-ink sm:text-4xl md:text-6xl">
           {f.titleLead} <span className="text-gradient">{f.titleAccent}</span>
-        </motion.h1>
+        </h1>
 
-        <motion.p
-          initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.18 }}
-          className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-ink-soft md:text-xl"
-        >
+        <p className="rise rise-2 mx-auto mt-4 max-w-xl text-base leading-relaxed text-ink-soft md:text-xl">
           {f.subtitle}
-        </motion.p>
+        </p>
 
-        <motion.form
+        <form
           onSubmit={startScan}
-          initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.28 }}
-          className="mx-auto mt-8 w-full max-w-2xl"
+          className="rise rise-3 mx-auto mt-8 w-full max-w-2xl"
         >
           <div className="flex flex-col gap-3 rounded-2xl border border-edge bg-surface/80 p-2 shadow-lg backdrop-blur-sm focus-within:border-accent/50 focus-within:shadow-[0_0_0_4px_rgba(37,99,235,0.12)] sm:flex-row sm:items-center sm:rounded-full">
             <label htmlFor="funnel-url" className="sr-only">
@@ -278,14 +262,9 @@ export default function FunnelHero() {
           {hint && phase === "idle" && (
             <p className="mt-2.5 text-sm font-medium text-amber-600 dark:text-amber-400">{hint}</p>
           )}
-        </motion.form>
+        </form>
 
-        <motion.div
-          initial={reduceMotion ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.42 }}
-          className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2"
-        >
+        <div className="rise rise-4 mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
           {f.trust.map((label, i) => {
             const Icon = TRUST_ICONS[i] ?? Lock;
             return (
@@ -299,7 +278,7 @@ export default function FunnelHero() {
             );
           })}
           <span className="text-sm text-ink-muted">· {f.noSignup}</span>
-        </motion.div>
+        </div>
       </div>
 
       {/* Steps 2 + 3: full-screen funnel overlay */}
