@@ -102,6 +102,14 @@ export const pricing = {
   ],
 } as const;
 
+/** Die drei kommerziellen Wege auf /loesungen. Preise sind Orientierung
+ *  („ab"), zentral hier editierbar — Miete bitte an dein Modell anpassen. */
+export const solutions = {
+  optimieren: { price: "ab 690 €" },
+  mieten: { price: "ab 99 €/Monat" },
+  kaufen: { price: "ab 1.490 €" },
+} as const;
+
 /** Preis-Wissen als Text für die KI-System-Prompts. */
 export function pricingSummary(): string {
   if (!pricing.quote) {

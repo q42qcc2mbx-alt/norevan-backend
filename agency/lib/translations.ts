@@ -4,6 +4,7 @@
 export const de = {
   nav: {
     home: "Startseite",
+    solutions: "Lösungen",
     services: "Leistungen",
     analyse: "KI Analyse",
     portfolio: "Portfolio",
@@ -393,6 +394,7 @@ export type Dict = typeof de;
 export const en: Dict = {
   nav: {
     home: "Home",
+    solutions: "Solutions",
     services: "Services",
     analyse: "AI Analysis",
     portfolio: "Portfolio",
@@ -777,6 +779,7 @@ export const en: Dict = {
 export const ar: Dict = {
   nav: {
     home: "الرئيسية",
+    solutions: "الحلول",
     services: "خدماتنا",
     analyse: "تحليل بالذكاء الاصطناعي",
     portfolio: "أعمالنا",

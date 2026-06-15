@@ -73,6 +73,7 @@ export default function Navbar() {
 
   const links = [
     { href: "/", label: t.nav.home },
+    { href: "/loesungen", label: t.nav.solutions },
     { href: "/leistungen", label: t.nav.services },
     { href: "/analyse", label: t.nav.analyse },
     { href: "/portfolio", label: t.nav.portfolio },
