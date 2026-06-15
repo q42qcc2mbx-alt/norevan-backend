@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://norevan-agency.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const routes = ["", "/loesungen", "/leistungen", "/analyse", "/anfrage", "/portfolio", "/ueber-uns", "/kontakt"];
+  const routes = ["", "/loesungen", "/mieten", "/leistungen", "/analyse", "/anfrage", "/portfolio", "/ueber-uns", "/kontakt"];
   const legalRoutes = ["/impressum", "/datenschutz", "/agb"];
   return [
     ...routes.map((route) => ({

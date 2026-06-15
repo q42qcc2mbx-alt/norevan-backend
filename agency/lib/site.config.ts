@@ -106,7 +106,61 @@ export const pricing = {
  *  („ab"), zentral hier editierbar — Miete bitte an dein Modell anpassen. */
 export const solutions = {
   optimieren: { price: "ab 690 €" },
-  mieten: { price: "ab 99 €/Monat" },
+  mieten: {
+    price: "ab 99 €/Monat",
+    // Was in JEDER Mietstufe enthalten ist (der „Rundum-sorglos"-Wert).
+    alwaysIncluded: [
+      "Hosting & EU-Server",
+      "SSL-Verschlüsselung",
+      "Tägliche Backups",
+      "Sicherheit & Updates",
+      "Kundenportal-Zugang",
+      "Persönlicher Support",
+    ],
+    tiers: [
+      {
+        name: "Starter",
+        price: "99 €",
+        per: "/Monat",
+        tagline: "Ideal für eine starke Landingpage oder kleine Firmenseite.",
+        highlight: false,
+        features: [
+          "1–3 Seiten (z. B. Start, Leistungen, Kontakt)",
+          "Individuelles Design, mobil-optimiert",
+          "Kontaktformular",
+          "Kleine Änderungen: bis 1 Std./Monat",
+        ],
+      },
+      {
+        name: "Business",
+        price: "179 €",
+        per: "/Monat",
+        tagline: "Die komplette Firmen-Website für seriösen Auftritt & mehr Anfragen.",
+        highlight: true,
+        features: [
+          "5–8 Seiten inkl. Blog/News",
+          "Erweiterte SEO-Optimierung",
+          "Conversion-optimierte Struktur",
+          "Kleine Änderungen: bis 2 Std./Monat",
+          "Monatlicher Performance-Report",
+        ],
+      },
+      {
+        name: "Premium",
+        price: "ab 299 €",
+        per: "/Monat",
+        tagline: "Für besondere Anforderungen: Buchung, Shop, mehrsprachig, Extras.",
+        highlight: false,
+        features: [
+          "Seitenanzahl nach Bedarf",
+          "Buchungssystem / Shop / Mehrsprachigkeit",
+          "Priorisierter Support",
+          "Laufende Conversion-Optimierung",
+          "Änderungen: bis 4 Std./Monat",
+        ],
+      },
+    ],
+  },
   kaufen: { price: "ab 1.490 €" },
 } as const;
 

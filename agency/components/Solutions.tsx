@@ -76,7 +76,7 @@ const PLANS: Plan[] = [
       "Zugang zum Kundenportal",
       "Keine hohe Anzahlung",
     ],
-    cta: { label: "Miete anfragen", href: "/anfrage" },
+    cta: { label: "Miet-Pakete ansehen", href: "/mieten" },
     popular: true,
   },
   {
