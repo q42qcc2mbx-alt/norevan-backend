@@ -53,7 +53,7 @@ export default function RegistrierenPage() {
   }
 
   return (
-    <section className="relative flex min-h-[80dvh] items-center justify-center overflow-hidden px-5 pt-24 pb-16">
+    <section dir="ltr" className="relative flex min-h-[80dvh] items-center justify-center overflow-hidden px-5 pt-24 pb-16 text-left">
       <div className="hero-glow absolute inset-0" aria-hidden />
       <Aurora />
       <div className="relative w-full max-w-md">

@@ -69,7 +69,7 @@ export default function AiWebsiteHelper() {
   }
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
       {/* Input */}
       <form onSubmit={generate} className="card-elevated p-6">
         <h3 className="flex items-center gap-2 text-base font-bold text-ink">

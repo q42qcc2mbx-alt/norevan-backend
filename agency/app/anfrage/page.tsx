@@ -131,7 +131,7 @@ export default function AnfragePage() {
   }
 
   return (
-    <section className="relative min-h-[80svh] overflow-hidden px-5 pt-24 pb-16 md:pt-32">
+    <section dir="ltr" className="relative min-h-[80svh] overflow-hidden px-5 pt-24 pb-16 text-left md:pt-32">
       <div className="hero-glow absolute inset-0" aria-hidden />
       <Aurora />
       <div className="relative mx-auto w-full max-w-2xl">

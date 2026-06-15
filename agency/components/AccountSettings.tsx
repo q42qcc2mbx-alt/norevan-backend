@@ -79,7 +79,7 @@ export default function AccountSettings({ currentEmail }: { currentEmail: string
         Angemeldet als <span className="font-medium text-ink">{currentEmail}</span>
       </p>
 
-      <div className="mt-5 grid gap-6 md:grid-cols-2">
+      <div className="mt-5 grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Change e-mail */}
         <form onSubmit={changeEmail} className="space-y-3">
           <label htmlFor="acc-email" className="flex items-center gap-1.5 text-sm font-semibold text-ink">

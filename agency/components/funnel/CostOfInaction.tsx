@@ -21,7 +21,7 @@ export default function CostOfInaction() {
           <p className="mt-4 text-base leading-relaxed text-ink-soft md:text-lg">{p.subtitle}</p>
         </Reveal>
 
-        <div className="grid gap-5 md:grid-cols-3 md:gap-6">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3 md:gap-6">
           {p.cards.map((c, i) => {
             const Icon = ICONS[i] ?? Clock;
             return (

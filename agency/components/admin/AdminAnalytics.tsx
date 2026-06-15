@@ -125,7 +125,7 @@ export default function AdminAnalytics({ analysen, leads }: Props) {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Conversion funnel */}
         <div className="card-elevated p-6">
           <h2 className="text-base font-bold text-ink">Conversion-Funnel</h2>

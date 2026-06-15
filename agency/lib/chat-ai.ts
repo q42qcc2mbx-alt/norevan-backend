@@ -63,6 +63,22 @@ const SYSTEM_PROMPT = `Du bist der KI-Berater von NOREVAN Digital — einer Weba
 /** Keyword-based fallback so the assistant works without an API key. */
 export function ruleBasedReply(text: string): string {
   const t = text.toLowerCase();
+
+  // Smalltalk / "who are you" — must come first so it isn't swallowed by the
+  // process matcher (e.g. "wie geht's dir" must NOT trigger the 4-step answer).
+  if (/(wie geht.?s dir|wie geht es dir|wie geht'?s\b|wie gehts|alles gut bei|na wie l|was machst du|wie ist dein tag)/.test(t)) {
+    return "Mir geht's bestens, danke der Nachfrage! 😊 Und Ihnen? Ich bin hier, um Ihre Website schneller, sicherer und erfolgreicher zu machen. Womit kann ich helfen — oder soll ich Ihre Seite gleich kostenlos analysieren?";
+  }
+  if (/(wer bist du|bist du ein|bist du echt|mensch oder|roboter|stell dich vor|wie heißt du)/.test(t)) {
+    return "Ich bin der KI-Berater von NOREVAN Digital — einer Webagentur, die Websites schneller, sicherer und erfolgreicher macht. Fragen Sie mich alles zu Ihrer Website, oder lassen Sie sie in ~30 Sekunden kostenlos analysieren. 👋";
+  }
+
+  // "What can I/we improve?" — give concrete tips. Must come BEFORE the
+  // "why us" matcher, otherwise "verbessern" matches "besser".
+  if (/(verbesser|optimier|besser mach|was kann ich (tun|machen|besser)|was soll(te)? ich|was würdet ihr ändern|tipps?|ratschlag|empfehl|wie mache ich.*besser)/.test(t)) {
+    return "Gern! Die größten Hebel sind fast immer: 1. Ladezeit unter 1 Sekunde, 2. ein einziger, klarer Call-to-Action (z. B. „Jetzt anfragen“), 3. mobil sauber bedienbar und 4. sichtbare Vertrauenselemente. Die genaue Liste für IHRE Seite — mit Score — bekommen Sie in ~30 Sekunden über die kostenlose Analyse. Soll ich sie scannen?";
+  }
+
   if (/(preis|kosten|kostet|budget|teuer|euro|€)/.test(t)) {
     if (!pricing.quote) {
       return "Die Kosten hängen vom Umfang ab — nach der kostenlosen Analyse erhalten Sie ein transparentes Festpreis-Angebot ohne Überraschungen. Starten Sie am besten direkt auf der Startseite. 👍";
@@ -92,7 +108,7 @@ export function ruleBasedReply(text: string): string {
   if (/(dauer|lange|wochen|wie lang|zeit)/.test(t)) {
     return "Gezielte Optimierungen setzen wir meist in 1–2 Wochen um, ein komplettes Redesign dauert je nach Umfang 4–8 Wochen. Ihre Website bleibt dabei durchgehend online — wir arbeiten auf einer Staging-Umgebung.";
   }
-  if (/(ablauf|prozess|wie läuft|schritte|zusammenarbeit|wie geht)/.test(t)) {
+  if (/(ablauf|prozess|wie läuft|wie läufts|schritte|zusammenarbeit|wie arbeitet ihr|wie funktioniert)/.test(t)) {
     return "In vier Schritten: 1. kostenlose Analyse, 2. Konzept & Festpreis-Angebot, 3. Umsetzung auf Staging (Ihre Seite bleibt online), 4. Launch & Betreuung. Transparent und ohne Überraschungen. Möchten Sie mit Schritt 1 starten?";
   }
   if (/(ki|ai|chatbot|bot|automatisier|automatic)/.test(t)) {
@@ -101,7 +117,7 @@ export function ruleBasedReply(text: string): string {
   if (/(neue website|relaunch|redesign|neu bauen|erstellen|entwickeln)/.test(t)) {
     return "Sehr gern — wir bauen moderne, blitzschnelle Websites (Mobile-First, auf Conversion ausgelegt), Launch meist in 4–8 Wochen. Geht es um eine komplett neue Seite oder darum, die bestehende zu verbessern?";
   }
-  if (/(warum.*ihr|warum.*euch|konkurrenz|besser|unterschied|vorteil)/.test(t)) {
+  if (/(warum.*(ihr|euch|norevan|sie)|warum gerade|wieso ihr|konkurrenz|wettbewerb|unterschied|euer vorteil|was macht euch|besser als (die|andere))/.test(t)) {
     return "Weil wir messbar arbeiten: Jedes Projekt startet mit einer Ist-Messung und endet mit einem Vorher-Nachher-Report — Ergebnisse, die Sie in Ihren Zahlen sehen. Dazu ehrliche Beratung und ein festes Team für Entwicklung, Design, Sicherheit und Wachstum.";
   }
   if (/(referenz|ergebnis|beispiel|portfolio|kunden|projekte)/.test(t)) {
@@ -110,7 +126,7 @@ export function ruleBasedReply(text: string): string {
   if (/(kontakt|erreichen|telefon|anruf|mail|sprechen|beratung|termin|gespräch)/.test(t)) {
     return "Sie erreichen uns über das Kontaktformular unter /kontakt oder per E-Mail an kontakt@norevan.digital — Antwort innerhalb von 24 Stunden. Sollen wir ein kurzes, unverbindliches Erstgespräch vereinbaren? 😊";
   }
-  if (/(hallo|hi|hey|guten|moin|servus|huhu)/.test(t)) {
+  if (/\b(hallo|hi|hey|moin|servus|huhu|hallöchen)\b|guten (tag|morgen|abend)/.test(t)) {
     return "Hallo! 👋 Schön, dass Sie da sind. Ich bin der KI-Berater von NOREVAN Digital. Verliert Ihre Website vielleicht gerade Kunden? Geben Sie mir Ihre URL auf der Startseite und ich zeige es Ihnen in 30 Sekunden — kostenlos.";
   }
   if (/(danke|super|toll|perfekt|klasse)/.test(t)) {

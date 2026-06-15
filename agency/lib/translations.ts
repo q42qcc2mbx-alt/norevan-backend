@@ -15,6 +15,10 @@ export const de = {
     loginAccount: "Login / Konto",
     openMenu: "Menü öffnen",
     closeMenu: "Menü schließen",
+    appStart: "Start",
+    appAnalyse: "Analyse",
+    appContact: "Kontakt",
+    appAccount: "Konto",
   },
   hero: {
     badge: "Webagentur für messbare Ergebnisse",
@@ -400,6 +404,10 @@ export const en: Dict = {
     loginAccount: "Login / Account",
     openMenu: "Open menu",
     closeMenu: "Close menu",
+    appStart: "Home",
+    appAnalyse: "Analysis",
+    appContact: "Contact",
+    appAccount: "Account",
   },
   hero: {
     badge: "Web agency for measurable results",
@@ -780,6 +788,10 @@ export const ar: Dict = {
     loginAccount: "تسجيل الدخول / حساب",
     openMenu: "فتح القائمة",
     closeMenu: "إغلاق القائمة",
+    appStart: "الرئيسية",
+    appAnalyse: "تحليل",
+    appContact: "اتصل",
+    appAccount: "حسابي",
   },
   hero: {
     badge: "وكالة ويب لنتائج قابلة للقياس",

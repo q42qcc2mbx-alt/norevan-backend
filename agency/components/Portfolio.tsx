@@ -55,7 +55,7 @@ export default function Portfolio() {
           title={t.portfolio.title}
           subtitle={t.portfolio.subtitle}
         />
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {t.portfolio.items.map((project, i) => (
             <Reveal key={project.title} delay={i * 0.08}>
               <article className="card group flex h-full flex-col overflow-hidden p-0">

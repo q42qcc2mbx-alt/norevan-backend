@@ -21,7 +21,7 @@ export default function Testimonials() {
           title={t.testimonials.title}
           subtitle={t.testimonials.subtitle}
         />
-        <div className="grid gap-5 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
           {t.testimonials.items.map(({ name, role, quote }, i) => (
             <Reveal key={name} delay={i * 0.08}>
               <figure className="card-surface flex h-full flex-col p-7">

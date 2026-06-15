@@ -4,23 +4,25 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Mail, ScanSearch, UserRound } from "lucide-react";
 import { useDevice, isAppModeDevice } from "@/lib/device-store";
+import { useI18n } from "@/lib/i18n";
 
 // Bottom tab navigation for app mode (phone/tablet). Agency-adapted tabs
 // (Start · Analyse · Kontakt · Konto) instead of a shop's Shop/Cart. Respects
 // the iPhone safe-area; only rendered when the device is in app mode.
 
-const TABS = [
-  { href: "/", label: "Start", icon: Home },
-  { href: "/analyse", label: "Analyse", icon: ScanSearch },
-  { href: "/kontakt", label: "Kontakt", icon: Mail },
-  { href: "/dashboard", label: "Konto", icon: UserRound },
-];
-
 export default function AppNavBar() {
   const { device } = useDevice();
+  const { t } = useI18n();
   const pathname = usePathname();
 
   if (!isAppModeDevice(device)) return null;
+
+  const tabs = [
+    { href: "/", label: t.nav.appStart, icon: Home },
+    { href: "/analyse", label: t.nav.appAnalyse, icon: ScanSearch },
+    { href: "/kontakt", label: t.nav.appContact, icon: Mail },
+    { href: "/dashboard", label: t.nav.appAccount, icon: UserRound },
+  ];
 
   return (
     <nav
@@ -29,7 +31,7 @@ export default function AppNavBar() {
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="mx-auto flex max-w-lg items-stretch justify-around">
-        {TABS.map(({ href, label, icon: Icon }) => {
+        {tabs.map(({ href, label, icon: Icon }) => {
           const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
           return (
             <Link

@@ -66,7 +66,7 @@ export default function UeberUnsPage() {
             title="Vier Spezialisten. Ein Ziel: Websites, die liefern."
             subtitle="NOREVAN Digital vereint Entwicklung, Design, Sicherheit und Wachstum unter einem Dach — damit Sie einen Ansprechpartner für alles haben."
           />
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {team.map(({ role, icon: Icon, gradient, text }, i) => (
               <Reveal key={role} delay={i * 0.08}>
                 <article className="card h-full p-7 text-center">
@@ -91,7 +91,7 @@ export default function UeberUnsPage() {
             eyebrow="Unsere Werte"
             title="Wofür wir stehen."
           />
-          <div className="grid gap-5 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
             {values.map(({ title, text }, i) => (
               <Reveal key={title} delay={i * 0.08}>
                 <article className="card-surface h-full p-7">

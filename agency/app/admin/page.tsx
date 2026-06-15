@@ -294,7 +294,7 @@ export default function AdminPage() {
   ];
 
   return (
-    <section className="mx-auto max-w-7xl px-5 pt-28 pb-20 md:px-8 md:pt-32">
+    <section dir="ltr" className="mx-auto max-w-7xl px-5 pt-28 pb-20 text-left md:px-8 md:pt-32">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="flex items-center gap-2.5 text-2xl font-bold tracking-tight text-ink md:text-3xl">

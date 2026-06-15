@@ -22,7 +22,7 @@ export default function Services() {
           title={t.services.title}
           subtitle={t.services.subtitle}
         />
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           {t.services.items.map(({ title, text, points }, i) => {
             const Icon = icons[i];
             return (

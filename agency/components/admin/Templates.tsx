@@ -118,7 +118,7 @@ export default function Templates() {
         Fertige Vorlagen mit Zahlungsschutz (Anzahlung + Eigentumsvorbehalt). Platzhalter in
         eckigen Klammern ersetzen. Firmendaten werden automatisch aus den Stammdaten gefüllt.
       </p>
-      <div className="grid items-start gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
         <TemplateCard icon={FileText} title="Angebot" hint="An Interessenten senden" text={ANGEBOT} />
         <TemplateCard icon={Receipt} title="Rechnung" hint="Nach Auftrag / Fertigstellung" text={RECHNUNG} />
       </div>

@@ -79,7 +79,7 @@ export default function Contact() {
           </Link>
         </Reveal>
 
-        <div className="grid items-start gap-6 lg:grid-cols-[1fr_1.3fr] lg:gap-8">
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_1.3fr] lg:gap-8">
           <Reveal>
             <div className="space-y-5">
               <article className="card-surface p-6">
@@ -125,7 +125,7 @@ export default function Contact() {
 
           <Reveal delay={0.1}>
             <form onSubmit={handleSubmit} className="card-elevated p-6 sm:p-8">
-              <div className="grid gap-5 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div>
                   <label htmlFor="contact-name" className="mb-1.5 block text-sm font-medium text-ink">
                     {t.contact.name}

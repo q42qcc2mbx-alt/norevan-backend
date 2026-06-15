@@ -189,7 +189,7 @@ export default function DashboardPage() {
   const name = (session.user.user_metadata?.name as string) || session.user.email;
 
   return (
-    <section className="mx-auto max-w-7xl px-5 pt-28 pb-20 md:px-8 md:pt-32">
+    <section dir="ltr" className="mx-auto max-w-7xl px-5 pt-28 pb-20 text-left md:px-8 md:pt-32">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -252,7 +252,7 @@ export default function DashboardPage() {
         <AiWebsiteHelper />
       </div>
 
-      <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
         {/* Analysen */}
         <div className="card-elevated p-6">
           <h2 className="flex items-center gap-2.5 text-base font-bold text-ink">

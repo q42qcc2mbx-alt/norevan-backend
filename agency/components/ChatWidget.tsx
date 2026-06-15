@@ -91,7 +91,8 @@ export default function ChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.96 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed right-4 bottom-24 z-50 flex max-h-[calc(100dvh-8rem)] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-2xl border border-edge bg-surface shadow-2xl sm:right-6"
+            dir="ltr"
+            className="fixed right-4 bottom-24 z-50 flex max-h-[calc(100dvh-8rem)] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-2xl border border-edge bg-surface text-left shadow-2xl sm:right-6"
             role="dialog"
             aria-label="KI-Assistent"
           >
