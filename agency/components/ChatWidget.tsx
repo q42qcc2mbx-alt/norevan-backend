@@ -45,11 +45,35 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<Msg[]>([GREETING]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [fieldFocused, setFieldFocused] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, open]);
+
+  // Hide the floating button while the user is typing in any form field, so it
+  // never covers a submit/send button or the on-screen keyboard. State is only
+  // set from event callbacks (not the effect body) to satisfy lint rules.
+  useEffect(() => {
+    const isField = (el: EventTarget | null) =>
+      el instanceof HTMLElement &&
+      (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable);
+    const onFocusIn = (e: FocusEvent) => {
+      if (isField(e.target)) setFieldFocused(true);
+    };
+    const onFocusOut = () => setFieldFocused(false);
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    return () => {
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+    };
+  }, []);
+
+  // Show the launcher unless a page form field is focused (keep it when the
+  // chat itself is open — its own field shouldn't hide the close button).
+  const showFab = open || !fieldFocused;
 
   async function send(text: string) {
     const content = text.trim();
@@ -201,8 +225,11 @@ export default function ChatWidget() {
         aria-label={open ? "KI-Assistent schließen" : "KI-Assistent öffnen"}
         onClick={() => setOpen((v) => !v)}
         initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.6, type: "spring", stiffness: 260, damping: 20 }}
+        animate={{ opacity: showFab ? 1 : 0, scale: showFab ? 1 : 0.5 }}
+        transition={{ delay: showFab ? 0.1 : 0, type: "spring", stiffness: 260, damping: 20 }}
+        style={{ pointerEvents: showFab ? "auto" : "none" }}
+        aria-hidden={!showFab}
+        tabIndex={showFab ? 0 : -1}
         className="chat-launcher btn-primary fixed right-4 bottom-4 z-50 flex h-14 w-14 items-center justify-center rounded-full sm:right-6 sm:bottom-6"
       >
         {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}

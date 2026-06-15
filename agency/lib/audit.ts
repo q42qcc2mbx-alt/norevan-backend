@@ -31,9 +31,35 @@ function normalizeUrl(input: string): URL {
   return url;
 }
 
+const MAX_REDIRECTS = 5;
+
+/** True if a bare numeric host (decimal/hex/octal IPv4, e.g. 2130706433,
+ *  0x7f000001, 017700000001, 127.1) resolves into the private/loopback space. */
+function numericHostIsPrivate(host: string): boolean {
+  // IPv4-mapped IPv6 like ::ffff:127.0.0.1
+  const mapped = host.replace(/^\[?::ffff:/i, "").replace(/\]$/, "");
+  // Try to read the host as a single integer (covers hex/decimal/octal).
+  let n: number | null = null;
+  if (/^0x[0-9a-f]+$/i.test(host)) n = parseInt(host, 16);
+  else if (/^0[0-7]+$/.test(host)) n = parseInt(host, 8);
+  else if (/^\d{1,10}$/.test(host)) n = parseInt(host, 10);
+  if (n !== null && Number.isFinite(n) && n >= 0 && n <= 0xffffffff) {
+    const a = (n >>> 24) & 255;
+    const b = (n >>> 8) & 255;
+    return a === 127 || a === 10 || a === 0 || (a === 192 && b === 168) || (a === 169 && ((n >>> 16) & 255) === 254) || (a === 172 && b >= 16 && b <= 31);
+  }
+  // Shorthand dotted forms (127.1, 10.1 …) — check the leading octet.
+  const lead = mapped.match(/^(\d{1,3})\./);
+  if (lead) {
+    const a = Number(lead[1]);
+    return a === 127 || a === 10 || a === 0;
+  }
+  return false;
+}
+
 /** Block requests to private/internal hosts (SSRF protection). */
 function assertPublicHost(url: URL) {
-  const host = url.hostname.toLowerCase();
+  const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, "");
   const privatePatterns = [
     /^localhost$/,
     /^127\./,
@@ -42,31 +68,57 @@ function assertPublicHost(url: URL) {
     /^172\.(1[6-9]|2\d|3[01])\./,
     /^169\.254\./,
     /^0\./,
-    /^\[?::1\]?$/,
-    /^\[?f[cd][0-9a-f]{2}:/i,
+    /^::1$/,
+    /^::ffff:/i,
+    /^f[cd][0-9a-f]{2}:/i,
+    /^fe80:/i,
     /\.local$/,
     /\.internal$/,
+    /\.localhost$/,
   ];
-  if (!host.includes(".") || privatePatterns.some((p) => p.test(host))) {
+  const looksLikeName = host.includes(".") && !/^[0-9.]+$/.test(host);
+  if (
+    (!host.includes(".") && !host.includes(":")) ||
+    privatePatterns.some((p) => p.test(host)) ||
+    (!looksLikeName && numericHostIsPrivate(host))
+  ) {
     throw new Error("Diese Adresse kann nicht analysiert werden.");
   }
 }
 
-async function fetchSite(url: URL) {
+/** Fetch with manual redirect handling: every hop is re-validated against the
+ *  SSRF allow-list so a public URL can't bounce us to an internal address. */
+async function fetchSite(startUrl: URL) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   const start = performance.now();
   try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      redirect: "follow",
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; NorevanAudit/1.0; +https://norevan.digital)",
-        Accept: "text/html,application/xhtml+xml",
-      },
-    });
-    const reader = res.body?.getReader();
+    let url = startUrl;
+    let res: Response | null = null;
+    for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+      assertPublicHost(url);
+      res = await fetch(url, {
+        signal: controller.signal,
+        redirect: "manual",
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (compatible; NorevanAudit/1.0; +https://norevan.digital)",
+          Accept: "text/html,application/xhtml+xml",
+        },
+      });
+      if (res.status >= 300 && res.status < 400 && res.headers.get("location")) {
+        if (hop === MAX_REDIRECTS) throw new Error("Zu viele Weiterleitungen.");
+        const next = new URL(res.headers.get("location")!, url);
+        if (next.protocol !== "http:" && next.protocol !== "https:") {
+          throw new Error("Diese Adresse kann nicht analysiert werden.");
+        }
+        res.body?.cancel().catch(() => {});
+        url = next;
+        continue;
+      }
+      break;
+    }
+    const reader = res!.body?.getReader();
     let html = "";
     let bytes = 0;
     if (reader) {
@@ -80,7 +132,7 @@ async function fetchSite(url: URL) {
       reader.cancel().catch(() => {});
     }
     const loadTimeMs = Math.round(performance.now() - start);
-    return { res, html, bytes, loadTimeMs };
+    return { res: res!, html, bytes, loadTimeMs };
   } finally {
     clearTimeout(timer);
   }
