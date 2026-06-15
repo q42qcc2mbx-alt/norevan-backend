@@ -69,8 +69,10 @@ export default function AccountSettings({ currentEmail }: { currentEmail: string
 
   return (
     <div className="card-elevated p-6">
-      <h2 className="flex items-center gap-2 text-base font-bold text-ink">
-        <ShieldCheck className="h-4.5 w-4.5 text-accent" />
+      <h2 className="flex items-center gap-2.5 text-base font-bold text-ink">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-accent/10 to-cyan-glow/10 text-accent ring-1 ring-accent/15">
+          <ShieldCheck className="h-4.5 w-4.5" />
+        </span>
         Konto-Einstellungen
       </h2>
       <p className="mt-1 text-sm text-ink-soft">

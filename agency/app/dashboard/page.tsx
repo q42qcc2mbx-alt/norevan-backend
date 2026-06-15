@@ -196,8 +196,8 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink md:text-3xl">
-            Hallo, {name} 👋
+          <h1 className="font-display text-2xl font-bold tracking-tight text-ink md:text-3xl">
+            Hallo, <span className="text-gradient">{name}</span> 👋
           </h1>
           <p className="mt-1 text-sm text-ink-soft">
             Ihr persönlicher Bereich — Analysen, Projekte und Nachrichten auf einen Blick.
@@ -258,8 +258,10 @@ export default function DashboardPage() {
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
         {/* Analysen */}
         <div className="card-elevated p-6">
-          <h2 className="flex items-center gap-2 text-base font-bold text-ink">
-            <ScanSearch className="h-4.5 w-4.5 text-accent" />
+          <h2 className="flex items-center gap-2.5 text-base font-bold text-ink">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-accent/10 to-cyan-glow/10 text-accent ring-1 ring-accent/15">
+              <ScanSearch className="h-4.5 w-4.5" />
+            </span>
             Meine Analysen
           </h2>
           {analysen.length === 0 ? (
@@ -306,8 +308,10 @@ export default function DashboardPage() {
 
         {/* Projekte */}
         <div className="card-elevated p-6">
-          <h2 className="flex items-center gap-2 text-base font-bold text-ink">
-            <FolderKanban className="h-4.5 w-4.5 text-accent" />
+          <h2 className="flex items-center gap-2.5 text-base font-bold text-ink">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-accent/10 to-cyan-glow/10 text-accent ring-1 ring-accent/15">
+              <FolderKanban className="h-4.5 w-4.5" />
+            </span>
             Meine Projekte
           </h2>
           {projekte.length === 0 ? (
@@ -342,8 +346,10 @@ export default function DashboardPage() {
 
         {/* Nachrichten */}
         <div className="card-elevated p-6 lg:col-span-2">
-          <h2 className="flex items-center gap-2 text-base font-bold text-ink">
-            <MessageSquareText className="h-4.5 w-4.5 text-accent" />
+          <h2 className="flex items-center gap-2.5 text-base font-bold text-ink">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-accent/10 to-cyan-glow/10 text-accent ring-1 ring-accent/15">
+              <MessageSquareText className="h-4.5 w-4.5" />
+            </span>
             Nachrichten
           </h2>
           {nachrichten.length === 0 ? (
