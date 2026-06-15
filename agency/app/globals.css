@@ -312,6 +312,24 @@ html[data-app-mode] .chat-launcher {
   }
 }
 
+/* PDF export for the multi-page admin guide: keep the guide in normal flow (so
+   it paginates), just hide the app chrome. Overrides the visibility-based rule
+   above via the body.printing-guide class set by the print button. */
+@media print {
+  body.printing-guide * {
+    visibility: visible !important;
+  }
+  body.printing-guide header,
+  body.printing-guide footer,
+  body.printing-guide .chat-launcher,
+  body.printing-guide [data-print-hide] {
+    display: none !important;
+  }
+  body.printing-guide .print-guide {
+    position: static !important;
+  }
+}
+
 /* Hero entrance — pure CSS so the LCP headline paints on first render instead
    of waiting for JS hydration (big LCP win). Staggered via delay utilities.
    prefers-reduced-motion is handled by the global rule below (near-instant). */

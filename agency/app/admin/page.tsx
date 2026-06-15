@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import {
   BarChart3,
+  BookOpen,
   Bot,
   FileText,
   FolderKanban,
@@ -29,6 +30,7 @@ import AdminAssistant from "@/components/admin/AdminAssistant";
 import Templates from "@/components/admin/Templates";
 import LiveChats from "@/components/admin/LiveChats";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
+import AdminGuide from "@/components/admin/AdminGuide";
 import DashboardSkeleton from "@/components/ui/DashboardSkeleton";
 import LeadDetailModal, { type DetailRow } from "@/components/admin/LeadDetailModal";
 
@@ -78,7 +80,7 @@ interface ProjectRow {
   notes: string | null;
 }
 
-type Tab = "uebersicht" | "statistik" | "assistent" | "chats" | "analysen" | "anfragen" | "projekte" | "nachricht" | "feedback" | "vorlagen" | "team";
+type Tab = "uebersicht" | "statistik" | "assistent" | "chats" | "analysen" | "anfragen" | "projekte" | "nachricht" | "feedback" | "vorlagen" | "team" | "anleitung";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("de-DE", {
@@ -291,11 +293,12 @@ export default function AdminPage() {
     { key: "feedback", label: `Feedback (${feedbacks.filter((f) => !f.done).length})`, icon: MessageSquareHeart },
     { key: "vorlagen", label: "Vorlagen", icon: FileText },
     { key: "team", label: `Team (${admins.length})`, icon: Users },
+    { key: "anleitung", label: "Anleitung", icon: BookOpen },
   ];
 
   return (
     <section dir="ltr" className="mx-auto max-w-7xl px-5 pt-28 pb-20 text-left md:px-8 md:pt-32">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div data-print-hide className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="flex items-center gap-2.5 text-2xl font-bold tracking-tight text-ink md:text-3xl">
             <ShieldCheck className="h-7 w-7 text-accent" />
@@ -330,7 +333,7 @@ export default function AdminPage() {
       </div>
 
       {/* Tabs */}
-      <div className="mt-8 flex flex-wrap gap-2">
+      <div data-print-hide className="mt-8 flex flex-wrap gap-2">
         {tabs.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -371,6 +374,8 @@ export default function AdminPage() {
         {tab === "assistent" && <AdminAssistant />}
 
         {tab === "chats" && <LiveChats />}
+
+        {tab === "anleitung" && <AdminGuide />}
 
         {tab === "vorlagen" && <Templates />}
 
