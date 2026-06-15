@@ -44,6 +44,11 @@ const permissionsPolicy = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
+  // Tree-shake barrel packages so only the icons/utilities actually used ship
+  // to the client (smaller First Load JS).
+  experimental: {
+    optimizePackageImports: ["lucide-react", "motion"],
+  },
   async headers() {
     return [
       {

@@ -5,11 +5,8 @@ import { Analytics } from "@vercel/analytics/next";
 import { I18nProvider } from "@/lib/i18n";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import ChatWidget from "@/components/ChatWidget";
-import DeviceChooser from "@/components/DeviceChooser";
-import PwaRegister from "@/components/PwaRegister";
-import CookieBanner from "@/components/CookieBanner";
 import AppNavBar from "@/components/AppNavBar";
+import DeferredWidgets from "@/components/DeferredWidgets";
 import "./globals.css";
 
 const inter = Inter({
@@ -129,11 +126,8 @@ export default function RootLayout({
             <Navbar />
             <main id="main" className="min-h-[60dvh]">{children}</main>
             <Footer />
-            <ChatWidget />
-            <DeviceChooser />
-            <PwaRegister />
-            <CookieBanner />
             <AppNavBar />
+            <DeferredWidgets />
           </I18nProvider>
         </ThemeProvider>
         <Analytics />
