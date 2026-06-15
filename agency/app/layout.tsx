@@ -81,11 +81,17 @@ export const viewport: Viewport = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "ProfessionalService",
+  "@id": `${siteUrl}/#organization`,
   name: "NOREVAN Digital",
   url: siteUrl,
+  logo: `${siteUrl}/icon`,
+  image: `${siteUrl}/opengraph-image`,
+  slogan: "Schnell, sicher und erfolgreich.",
   description:
     "Agentur für Website-Entwicklung und -Optimierung: Performance, Sicherheit, SEO, KI-Integration und Wartung.",
+  email: "kontakt@norevan.digital",
   areaServed: "DE",
+  knowsLanguage: ["de", "en", "ar"],
   priceRange: "€€€",
   serviceType: [
     "Website Entwicklung",
@@ -93,6 +99,12 @@ const jsonLd = {
     "Sicherheit & Performance",
     "KI & Automatisierung",
   ],
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "customer service",
+    email: "kontakt@norevan.digital",
+    availableLanguage: ["German", "English", "Arabic"],
+  },
 };
 
 export default function RootLayout({
@@ -111,8 +123,11 @@ export default function RootLayout({
         />
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
           <I18nProvider>
+            <a href="#main" className="skip-link">
+              Zum Inhalt springen
+            </a>
             <Navbar />
-            <main className="min-h-[60dvh]">{children}</main>
+            <main id="main" className="min-h-[60dvh]">{children}</main>
             <Footer />
             <ChatWidget />
             <DeviceChooser />
