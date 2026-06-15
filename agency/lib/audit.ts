@@ -368,8 +368,9 @@ export async function runAudit(rawUrl: string): Promise<AuditResult> {
     });
   }
   const hasTrust =
-    /(bewertung|kundenstimm|testimonial|rezension|garantie|zertifik|ausgezeichnet|trusted|referenz)/i.test(lower) ||
-    /aggregaterating|"review"/i.test(html);
+    /(bewertung|kundenstimm|testimonial|rezension|garantie|zertifik|ausgezeichnet|trusted|referenz|dsgvo|datenschutz|ssl[- ]?verschl|verschlüsselt|server in der eu|geprüft|trustpilot|google bewertung)/i.test(
+      lower,
+    ) || /aggregaterating|"review"/i.test(html);
   if (!hasTrust) {
     findings.push({
       category: "Conversion",

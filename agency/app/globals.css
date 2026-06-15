@@ -16,13 +16,13 @@
 }
 
 .dark {
-  --t-page: #0a0f1d;
-  --t-surface: #101729;
-  --t-card: #0e1526;
-  --t-edge: #233048;
-  --t-ink: #e8edf7;
-  --t-ink-soft: #a8b5cc;
-  --t-ink-muted: #8593ad;
+  --t-page: #080d18;
+  --t-surface: #111a2e;
+  --t-card: #131d33;
+  --t-edge: #2a3a55;
+  --t-ink: #eef2fb;
+  --t-ink-soft: #aebbd2;
+  --t-ink-muted: #8a98b3;
   --t-field: #0c1322;
   --t-placeholder: #5b6b88;
 }

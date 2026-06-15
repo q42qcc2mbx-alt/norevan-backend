@@ -23,6 +23,7 @@ import { navFor, type Role } from "@/lib/roles";
 import AiWebsiteHelper from "@/components/AiWebsiteHelper";
 import AccountSettings from "@/components/AccountSettings";
 import ReportDetail from "@/components/ReportDetail";
+import DashboardSkeleton from "@/components/ui/DashboardSkeleton";
 
 const BOOKING_URL = process.env.NEXT_PUBLIC_BOOKING_URL || "/kontakt";
 
@@ -182,11 +183,7 @@ export default function DashboardPage() {
   }
 
   if (loading || !session) {
-    return (
-      <div className="flex min-h-[70dvh] items-center justify-center pt-20">
-        <Loader2 className="h-8 w-8 animate-spin text-accent" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   const name = (session.user.user_metadata?.name as string) || session.user.email;

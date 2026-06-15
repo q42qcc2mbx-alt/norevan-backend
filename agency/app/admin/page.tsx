@@ -10,7 +10,6 @@ import {
   Home,
   Inbox,
   LayoutDashboard,
-  Loader2,
   LogOut,
   MessageSquareHeart,
   MessageSquareText,
@@ -24,6 +23,7 @@ import {
 import { getSupabase, PROJECT_STEPS, type ProjectStatus } from "@/lib/supabase";
 import DashboardOverview from "@/components/admin/DashboardOverview";
 import AdminAssistant from "@/components/admin/AdminAssistant";
+import DashboardSkeleton from "@/components/ui/DashboardSkeleton";
 import LeadDetailModal, { type DetailRow } from "@/components/admin/LeadDetailModal";
 
 const LEAD_STATUS = ["neu", "kontaktiert", "Kunde", "verloren"] as const;
@@ -255,11 +255,7 @@ export default function AdminPage() {
   }
 
   if (checking) {
-    return (
-      <div className="flex min-h-[70dvh] items-center justify-center pt-20">
-        <Loader2 className="h-8 w-8 animate-spin text-accent" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (!allowed) {
