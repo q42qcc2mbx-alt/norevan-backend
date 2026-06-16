@@ -1,0 +1,385 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Semantic tokens — values switch with the .dark class on <html>. */
+:root {
+  --t-page: #ffffff;
+  --t-surface: #ffffff;
+  --t-card: #f8fafc;
+  --t-edge: #e2e8f0;
+  --t-ink: #0f172a;
+  --t-ink-soft: #475569;
+  --t-ink-muted: #64748b;
+  --t-field: #ffffff;
+  --t-placeholder: #94a3b8;
+}
+
+.dark {
+  --t-page: #120404;
+  --t-surface: #1c0808;
+  --t-card: #220a0a;
+  --t-edge: #3a1414;
+  --t-ink: #fbeeee;
+  --t-ink-soft: #d8b3b3;
+  --t-ink-muted: #b38a8a;
+  --t-field: #190606;
+  --t-placeholder: #885b5b;
+}
+
+@theme inline {
+  --color-page: var(--t-page);
+  --color-surface: var(--t-surface);
+  --color-card: var(--t-card);
+  --color-edge: var(--t-edge);
+  --color-ink: var(--t-ink);
+  --color-ink-soft: var(--t-ink-soft);
+  --color-ink-muted: var(--t-ink-muted);
+  --color-accent: #a22a2a;
+  --color-accent-soft: #d85a5a;
+  --color-accent-deep: #7a1111;
+  --color-cyan-glow: #d85a5a;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-display-raw), var(--font-geist), ui-sans-serif,
+    system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* No sideways movement on mobile: nothing can scroll/pan horizontally. */
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+body {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  background: var(--t-page);
+  color: var(--t-ink);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 0.3s ease;
+}
+
+::selection {
+  background: rgba(37, 99, 235, 0.22);
+}
+
+/* Keyboard accessibility: a clear, on-brand focus ring for anyone tabbing
+   through the site (mouse clicks stay ring-free via :focus-visible). */
+:focus-visible {
+  outline: 2px solid var(--color-accent, #a22a2a);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip-to-content link — hidden until focused, then slides into view. */
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 50%;
+  z-index: 200;
+  transform: translate(-50%, -150%);
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  background: var(--color-accent, #a22a2a);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
+  transition: transform 0.18s ease;
+}
+.skip-link:focus {
+  transform: translate(-50%, 0);
+}
+
+/* Soft crimson gradient wash behind the hero (matches the Lady-Justice look) */
+.hero-glow {
+  background:
+    radial-gradient(42% 52% at 15% 6%, rgba(162, 42, 42, 0.16) 0%, transparent 70%),
+    radial-gradient(38% 48% at 85% 10%, rgba(216, 90, 90, 0.13) 0%, transparent 70%),
+    radial-gradient(40% 44% at 62% 0%, rgba(122, 17, 17, 0.12) 0%, transparent 70%),
+    radial-gradient(60% 50% at 50% 108%, rgba(162, 42, 42, 0.09) 0%, transparent 70%);
+}
+.dark .hero-glow {
+  background:
+    radial-gradient(42% 52% at 15% 6%, rgba(216, 90, 90, 0.24) 0%, transparent 70%),
+    radial-gradient(38% 48% at 85% 10%, rgba(162, 42, 42, 0.2) 0%, transparent 70%),
+    radial-gradient(40% 44% at 62% 0%, rgba(122, 17, 17, 0.22) 0%, transparent 70%),
+    radial-gradient(60% 50% at 50% 108%, rgba(162, 42, 42, 0.14) 0%, transparent 70%);
+}
+
+/* Premium "aurora" blobs — slow drifting colour clouds behind the hero. */
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(18px, -22px, 0) scale(1.1);
+  }
+}
+.animate-float-slow {
+  animation: float-slow 16s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Fine grid for a technical, premium feel */
+.grid-overlay {
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 85% 65% at 50% 0%, black 35%, transparent 100%);
+}
+.dark .grid-overlay {
+  background-image:
+    linear-gradient(rgba(232, 237, 247, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232, 237, 247, 0.05) 1px, transparent 1px);
+}
+
+.text-gradient {
+  background: linear-gradient(95deg, #a22a2a 10%, #d85a5a 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.dark .text-gradient {
+  background: linear-gradient(95deg, #d85a5a 10%, #f08a8a 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* Cards: tonal surface, hairline border, lift on hover */
+.card {
+  background: var(--t-card);
+  border: 1px solid var(--t-edge);
+  border-radius: 1.25rem;
+  transition:
+    border-color 0.3s ease,
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    background-color 0.3s ease;
+}
+.card:hover {
+  border-color: rgba(37, 99, 235, 0.4);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 16px 40px -16px rgba(37, 99, 235, 0.2);
+  transform: translateY(-3px);
+}
+
+/* Elevated surface (forms, hero visual, panels) */
+.card-elevated {
+  background: var(--t-surface);
+  border: 1px solid var(--t-edge);
+  border-radius: 1.5rem;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 12px 32px -12px rgba(15, 23, 42, 0.1);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+.dark .card-elevated {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 12px 32px -12px rgba(0, 0, 0, 0.45);
+}
+
+/* Flat surface card (used on tonal section backgrounds) */
+.card-surface {
+  background: var(--t-surface);
+  border: 1px solid var(--t-edge);
+  border-radius: 1.25rem;
+  transition:
+    border-color 0.3s ease,
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    background-color 0.3s ease;
+}
+.card-surface:hover {
+  border-color: rgba(37, 99, 235, 0.4);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 16px 40px -16px rgba(37, 99, 235, 0.2);
+  transform: translateY(-3px);
+}
+
+.btn-primary {
+  background: linear-gradient(95deg, #a22a2a, #7a1111);
+  color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 1px 2px rgba(15, 23, 42, 0.08),
+    0 8px 24px -8px rgba(37, 99, 235, 0.55);
+  transition:
+    box-shadow 0.25s ease,
+    transform 0.15s ease,
+    filter 0.2s ease;
+}
+.btn-primary:hover {
+  filter: brightness(1.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 2px 4px rgba(15, 23, 42, 0.08),
+    0 12px 32px -8px rgba(37, 99, 235, 0.65);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: var(--t-surface);
+  color: var(--t-ink);
+  border: 1px solid var(--t-edge);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.15s ease,
+    background-color 0.3s ease;
+}
+.btn-secondary:hover {
+  border-color: rgba(37, 99, 235, 0.45);
+  box-shadow: 0 6px 20px -8px rgba(15, 23, 42, 0.15);
+  transform: translateY(-1px);
+}
+
+/* Form fields */
+.field {
+  width: 100%;
+  background: var(--t-field);
+  border: 1px solid var(--t-edge);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--t-ink);
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.3s ease;
+}
+.field::placeholder {
+  color: var(--t-placeholder);
+}
+.field:focus {
+  border-color: #a22a2a;
+  box-shadow: 0 0 0 3px rgba(162, 42, 42, 0.15);
+}
+
+input,
+textarea {
+  color-scheme: light;
+}
+.dark input,
+.dark textarea {
+  color-scheme: dark;
+}
+
+/* App mode (phone/tablet): make room for the bottom tab bar and lift the
+   floating chat launcher above it. Safe-area aware for the iPhone notch. */
+html[data-app-mode] body {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+}
+html[data-app-mode] .chat-launcher {
+  bottom: calc(4.75rem + env(safe-area-inset-bottom));
+}
+
+/* PDF export: print only the report card (.print-section), hide everything else. */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  .print-section,
+  .print-section * {
+    visibility: visible !important;
+  }
+  .print-section {
+    position: absolute !important;
+    inset: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+  }
+}
+
+/* PDF export for the multi-page admin guide: keep the guide in normal flow (so
+   it paginates), just hide the app chrome. Overrides the visibility-based rule
+   above via the body.printing-guide class set by the print button. */
+@media print {
+  body.printing-guide * {
+    visibility: visible !important;
+  }
+  body.printing-guide header,
+  body.printing-guide footer,
+  body.printing-guide .chat-launcher,
+  body.printing-guide [data-print-hide] {
+    display: none !important;
+  }
+  body.printing-guide .print-guide {
+    position: static !important;
+  }
+}
+
+/* Hero entrance — pure CSS so the LCP headline paints on first render instead
+   of waiting for JS hydration (big LCP win). Staggered via delay utilities.
+   prefers-reduced-motion is handled by the global rule below (near-instant). */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: rise-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+/* LCP-safe entrance: the headline stays fully opaque (so it counts as painted
+   immediately) and only slides — transform never blocks LCP and causes no CLS. */
+@keyframes rise-lcp {
+  from {
+    transform: translateY(14px);
+  }
+  to {
+    transform: none;
+  }
+}
+.rise-lcp {
+  animation: rise-lcp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.rise-1 {
+  animation-delay: 0.05s;
+}
+.rise-2 {
+  animation-delay: 0.12s;
+}
+.rise-3 {
+  animation-delay: 0.2s;
+}
+.rise-4 {
+  animation-delay: 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
