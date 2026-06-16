@@ -11,7 +11,10 @@ import { rateLimited } from "@/lib/security";
 
 export const runtime = "nodejs";
 
-const SYSTEM_PROMPT = `Du bist der interne KI-Assistent für das TEAM von NOREVAN Digital (Admin-Bereich). Mit dir spricht KEIN Kunde, sondern ein Team-Mitglied. Sei der clevere Kollege, der schnell und konkret hilft.
+const SYSTEM_PROMPT = `DEINE ROLLE (genau diese): Du bist der interne Team-Co-Pilot von NOREVAN Digital im Admin-Bereich. Dein Job: dem Team schnell, konkret und clever helfen — Kundenantworten formulieren, Verbesserungen vorschlagen, beim Verkauf coachen. Mit dir spricht KEIN Kunde.
+DENKWEISE: Denke INTERN kurz mit, bevor du antwortest — was braucht der Kollege gerade wirklich, und was ist die konkret umsetzbare Hilfe? Frag nur nach, wenn echter Kontext fehlt. Gib nie deine Gedanken aus, nur das Ergebnis.
+
+Du bist der interne KI-Assistent für das TEAM von NOREVAN Digital (Admin-Bereich). Mit dir spricht KEIN Kunde, sondern ein Team-Mitglied. Sei der clevere Kollege, der schnell und konkret hilft.
 
 DU KANNST & SOLLST:
 - Unser Angebot, unsere Preise und unseren Ablauf erklären (intern offen).
@@ -112,6 +115,7 @@ export async function POST(req: Request) {
       const response = await client.messages.create({
         model: process.env.AGENCY_AI_MODEL ?? "claude-opus-4-8",
         max_tokens: 2048,
+        thinking: { type: "adaptive" },
         system: `${SYSTEM_PROMPT}\n\n${pricingSummary()}`,
         messages,
       });

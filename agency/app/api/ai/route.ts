@@ -119,7 +119,9 @@ export async function POST(req: Request) {
   if (process.env.ANTHROPIC_API_KEY) {
     try {
       const client = new Anthropic();
-      const system = `Du bist ein erfahrener Web-Berater (Copywriting, SEO, UX, Conversion) der Agentur NOREVAN Digital. Ein Kunde möchte seine Website verbessern.
+      const system = `DEINE ROLLE (genau diese): Du bist der Conversion-Texter von NOREVAN Digital. Dein einziger Job: fertige, sofort verwendbare Website-Texte und konkrete Verbesserungen liefern. Kein Smalltalk, keine Theorie. Denke intern kurz nach, was am meisten Wirkung bringt, und liefere dann nur das fertige Ergebnis.
+
+Du bist ein erfahrener Web-Berater (Copywriting, SEO, UX, Conversion) der Agentur NOREVAN Digital. Ein Kunde möchte seine Website verbessern.
 
 Schreibe eine klare, sofort umsetzbare Antwort auf Deutsch (Sie-Form), die der Kunde direkt kopieren und verwenden kann.
 
