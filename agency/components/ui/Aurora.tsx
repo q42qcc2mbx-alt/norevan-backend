@@ -12,7 +12,7 @@ export default function Aurora() {
         style={{ animationDelay: "-6s" }}
       />
       <div
-        className="animate-float-slow absolute -bottom-20 left-1/4 h-64 w-64 rounded-full bg-violet-500/15 blur-3xl"
+        className="animate-float-slow absolute -bottom-20 left-1/4 h-64 w-64 rounded-full bg-[#7a1111]/25 blur-3xl"
         style={{ animationDelay: "-11s" }}
       />
     </div>

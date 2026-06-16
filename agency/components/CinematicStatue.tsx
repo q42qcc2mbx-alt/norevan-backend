@@ -21,9 +21,9 @@ interface Particle {
 
 const SAMPLE_W = 300;
 const SAMPLE_H = Math.round(SAMPLE_W * (1450 / 1085)); // keep image aspect
-const LUMA_THRESHOLD = 30; // skip the near-black background
+const LUMA_THRESHOLD = 16; // skip only the darkest background, keep the statue
 
-export default function CinematicStatue() {
+export default function CinematicStatue({ scrollVh = 420 }: { scrollVh?: number }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [ready, setReady] = useState(false);
@@ -137,9 +137,11 @@ export default function CinematicStatue() {
         next.push({
           sx: i % SAMPLE_W,
           sy: Math.floor(i / SAMPLE_W),
-          r: Math.min(255, data[o] + 12),
-          g: data[o + 1],
-          b: data[o + 2],
+          // Lift the dark crimson statue so it glows clearly above the dark
+          // background — otherwise dark-red on dark-red is invisible.
+          r: Math.min(255, Math.round(data[o] * 1.8 + 48)),
+          g: Math.min(255, Math.round(data[o + 1] * 1.5 + 16)),
+          b: Math.min(255, Math.round(data[o + 2] * 1.5 + 16)),
           oxf,
           oyf,
           delay: Math.random() * 0.55,
@@ -181,14 +183,14 @@ export default function CinematicStatue() {
   }, []);
 
   return (
-    <div ref={wrapRef} className="relative" style={{ height: "420vh" }}>
+    <div ref={wrapRef} className="relative" style={{ height: `${scrollVh}vh` }}>
       <div className="sticky top-0 h-screen overflow-hidden bg-[#0A0000]">
-        {/* Cinematic atmosphere */}
+        {/* Cinematic atmosphere — kept dark so the bright particles pop */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(70% 55% at 50% 32%, #4A0000 0%, #2A0000 38%, #170000 66%, #0A0000 100%)",
+              "radial-gradient(70% 55% at 50% 32%, #2A0000 0%, #1A0000 40%, #120000 68%, #0A0000 100%)",
           }}
         />
         <div

@@ -16,15 +16,15 @@
 }
 
 .dark {
-  --t-page: #080d18;
-  --t-surface: #111a2e;
-  --t-card: #131d33;
-  --t-edge: #2a3a55;
-  --t-ink: #eef2fb;
-  --t-ink-soft: #aebbd2;
-  --t-ink-muted: #8a98b3;
-  --t-field: #0c1322;
-  --t-placeholder: #5b6b88;
+  --t-page: #120404;
+  --t-surface: #1c0808;
+  --t-card: #220a0a;
+  --t-edge: #3a1414;
+  --t-ink: #fbeeee;
+  --t-ink-soft: #d8b3b3;
+  --t-ink-muted: #b38a8a;
+  --t-field: #190606;
+  --t-placeholder: #885b5b;
 }
 
 @theme inline {
@@ -35,10 +35,10 @@
   --color-ink: var(--t-ink);
   --color-ink-soft: var(--t-ink-soft);
   --color-ink-muted: var(--t-ink-muted);
-  --color-accent: #2563eb;
-  --color-accent-soft: #60a5fa;
-  --color-accent-deep: #1d4ed8;
-  --color-cyan-glow: #06b6d4;
+  --color-accent: #a22a2a;
+  --color-accent-soft: #d85a5a;
+  --color-accent-deep: #7a1111;
+  --color-cyan-glow: #d85a5a;
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-display: var(--font-display-raw), var(--font-geist), ui-sans-serif,
@@ -98,20 +98,20 @@ body {
   transform: translate(-50%, 0);
 }
 
-/* Soft gradient wash behind the hero */
+/* Soft crimson gradient wash behind the hero (matches the Lady-Justice look) */
 .hero-glow {
   background:
-    radial-gradient(42% 52% at 15% 6%, rgba(37, 99, 235, 0.14) 0%, transparent 70%),
-    radial-gradient(38% 48% at 85% 10%, rgba(6, 182, 212, 0.13) 0%, transparent 70%),
-    radial-gradient(40% 44% at 62% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 70%),
-    radial-gradient(60% 50% at 50% 108%, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
+    radial-gradient(42% 52% at 15% 6%, rgba(162, 42, 42, 0.16) 0%, transparent 70%),
+    radial-gradient(38% 48% at 85% 10%, rgba(216, 90, 90, 0.13) 0%, transparent 70%),
+    radial-gradient(40% 44% at 62% 0%, rgba(122, 17, 17, 0.12) 0%, transparent 70%),
+    radial-gradient(60% 50% at 50% 108%, rgba(162, 42, 42, 0.09) 0%, transparent 70%);
 }
 .dark .hero-glow {
   background:
-    radial-gradient(42% 52% at 15% 6%, rgba(37, 99, 235, 0.22) 0%, transparent 70%),
-    radial-gradient(38% 48% at 85% 10%, rgba(6, 182, 212, 0.18) 0%, transparent 70%),
-    radial-gradient(40% 44% at 62% 0%, rgba(139, 92, 246, 0.16) 0%, transparent 70%),
-    radial-gradient(60% 50% at 50% 108%, rgba(37, 99, 235, 0.12) 0%, transparent 70%);
+    radial-gradient(42% 52% at 15% 6%, rgba(216, 90, 90, 0.24) 0%, transparent 70%),
+    radial-gradient(38% 48% at 85% 10%, rgba(162, 42, 42, 0.2) 0%, transparent 70%),
+    radial-gradient(40% 44% at 62% 0%, rgba(122, 17, 17, 0.22) 0%, transparent 70%),
+    radial-gradient(60% 50% at 50% 108%, rgba(162, 42, 42, 0.14) 0%, transparent 70%);
 }
 
 /* Premium "aurora" blobs — slow drifting colour clouds behind the hero. */

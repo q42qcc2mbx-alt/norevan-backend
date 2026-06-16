@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import CinematicStatue from "@/components/CinematicStatue";
 import FunnelHero from "@/components/funnel/FunnelHero";
 import CostOfInaction from "@/components/funnel/CostOfInaction";
 import FounderTeam from "@/components/funnel/FounderTeam";
@@ -27,6 +28,7 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <>
+      <CinematicStatue scrollVh={240} />
       <FunnelHero />
       <CostOfInaction />
       <FounderTeam />
