@@ -149,17 +149,36 @@ export default function CinematicStatue({ scrollVh = 600 }: { scrollVh?: number 
         ctx!.fillRect(x, y, s, s);
       }
 
-      // The real statue, drawn crisp on top — guarantees it's clearly visible.
-      // Faintly present from the start, sharpening to full as you scroll, while
-      // the glowing fragments converge behind/around it.
+      // The crisp statue assembles BOTTOM-UP as you scroll: only the bottom
+      // `revealH` of the real image is drawn (base first → head last), so it
+      // genuinely rebuilds from broken fragments into the whole figure.
       ctx!.globalAlpha = 1;
       ctx!.globalCompositeOperation = "source-over";
       const dW = SAMPLE_W * scale;
       const dH = SAMPLE_H * scale;
-      ctx!.globalAlpha = 0.34 + 0.66 * easeOutCubic(clamp01(displayP));
-      ctx!.filter = "brightness(1.32) saturate(1.12) contrast(1.05)";
-      ctx!.drawImage(img, offX, offY, dW, dH);
-      ctx!.filter = "none";
+      const revealH = dH * easeOutCubic(clamp01(displayP * 1.04));
+      if (revealH > 1) {
+        const topY = offY + dH - revealH;
+        ctx!.save();
+        ctx!.beginPath();
+        ctx!.rect(offX - 6, topY, dW + 12, revealH + 6);
+        ctx!.clip();
+        ctx!.filter = "brightness(1.3) saturate(1.12) contrast(1.04)";
+        ctx!.drawImage(img, offX, offY, dW, dH);
+        ctx!.filter = "none";
+        ctx!.restore();
+        // glowing "construction line" sweeping upward at the assembly frontier
+        if (displayP > 0.02 && displayP < 0.985) {
+          ctx!.globalCompositeOperation = "lighter";
+          const g = ctx!.createLinearGradient(0, topY - 22, 0, topY + 12);
+          g.addColorStop(0, "rgba(216,90,90,0)");
+          g.addColorStop(0.72, "rgba(255,150,150,0.55)");
+          g.addColorStop(1, "rgba(216,90,90,0)");
+          ctx!.fillStyle = g;
+          ctx!.fillRect(offX, topY - 22, dW, 34);
+          ctx!.globalCompositeOperation = "source-over";
+        }
+      }
       ctx!.globalAlpha = 1;
 
       if (titleRef.current) {
@@ -189,18 +208,23 @@ export default function CinematicStatue({ scrollVh = 600 }: { scrollVh?: number 
       for (const i of bright) {
         if (Math.random() > keep) continue;
         const o = i * 4;
+        const syVal = Math.floor(i / SAMPLE_W);
         const edge = Math.floor(Math.random() * 4);
         const oxf = edge === 0 ? -0.25 + Math.random() * 0.1 : edge === 1 ? 1.15 + Math.random() * 0.1 : Math.random() * 1.4 - 0.2;
         const oyf = edge === 2 ? -0.25 + Math.random() * 0.1 : edge === 3 ? 1.15 + Math.random() * 0.1 : Math.random() * 1.4 - 0.2;
+        // Bottom-up assembly: base/feet (large sy) form first, head (small sy)
+        // last — exactly the brief's order (Sockel → Beine → Körper → Kopf).
+        const heightFrac = 1 - syVal / SAMPLE_H; // 0 at bottom, 1 at top
+        const delay = Math.min(0.85, Math.max(0, heightFrac * 0.78 + (Math.random() - 0.5) * 0.12));
         next.push({
           sx: i % SAMPLE_W,
-          sy: Math.floor(i / SAMPLE_W),
+          sy: syVal,
           r: Math.min(255, Math.round(data[o] * 1.55 + 42)),
           g: Math.min(255, Math.round(data[o + 1] * 1.35 + 14)),
           b: Math.min(255, Math.round(data[o + 2] * 1.35 + 14)),
           oxf,
           oyf,
-          delay: Math.random() * 0.5,
+          delay,
           sizeMul: 0.7 + Math.random() * 0.9,
         });
       }
