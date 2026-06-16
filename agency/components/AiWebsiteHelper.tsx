@@ -22,6 +22,7 @@ export default function AiWebsiteHelper() {
   const [focus, setFocus] = useState("allgemein");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState("");
+  const [isAi, setIsAi] = useState(true);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
 
@@ -48,9 +49,10 @@ export default function AiWebsiteHelper() {
         },
         body: JSON.stringify({ url, description, focus }),
       });
-      const payload = (await res.json()) as { text?: string; error?: string };
+      const payload = (await res.json()) as { text?: string; error?: string; ai?: boolean };
       if (!res.ok || !payload.text) throw new Error(payload.error ?? "KI nicht erreichbar.");
       setResult(payload.text);
+      setIsAi(payload.ai !== false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "KI nicht erreichbar.");
     } finally {
@@ -184,6 +186,13 @@ export default function AiWebsiteHelper() {
         )}
         {loading && (
           <p className="mt-6 animate-pulse text-sm text-ink-muted">Generiere Vorschlag …</p>
+        )}
+        {result && !isAi && (
+          <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-700 dark:text-amber-400">
+            Hinweis: Das ist eine <strong>allgemeine Vorlage</strong> — die persönliche KI ist noch
+            nicht aktiviert (API-Schlüssel fehlt). Mit aktivierter KI erhalten Sie hier eine
+            maßgeschneiderte, jedes Mal neue Antwort auf genau Ihre Beschreibung.
+          </p>
         )}
         {result && (
           <pre className="mt-4 max-h-[460px] overflow-y-auto font-sans text-sm leading-relaxed whitespace-pre-wrap text-ink">

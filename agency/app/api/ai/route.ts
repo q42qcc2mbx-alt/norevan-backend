@@ -152,12 +152,16 @@ Regeln:
           .map((b) => b.text)
           .join("\n")
           .trim();
-        if (text) return NextResponse.json({ text });
+        if (text) return NextResponse.json({ text, ai: true });
       }
     } catch (err) {
       console.error("AI helper failed, falling back to templates:", err);
     }
   }
 
-  return NextResponse.json({ text: ruleBasedText(url, description, focus) });
+  // Honest fallback: clearly flagged as a generic template (ai:false) so it
+  // never pretends to be a tailored AI answer.
+  const note =
+    "ℹ Allgemeine Vorlage — die persönliche KI ist noch nicht aktiviert, deshalb sehen Sie hier bewährte Standard-Vorschläge (für jeden Fokus gleich). Eine maßgeschneiderte, jedes Mal neue Antwort auf genau Ihre Beschreibung erhalten Sie, sobald der KI-Schlüssel hinterlegt ist.\n\n";
+  return NextResponse.json({ text: note + ruleBasedText(url, description, focus), ai: false });
 }
