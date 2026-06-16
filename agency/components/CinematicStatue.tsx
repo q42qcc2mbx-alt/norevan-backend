@@ -149,8 +149,18 @@ export default function CinematicStatue({ scrollVh = 600 }: { scrollVh?: number 
         ctx!.fillRect(x, y, s, s);
       }
 
+      // The real statue, drawn crisp on top — guarantees it's clearly visible.
+      // Faintly present from the start, sharpening to full as you scroll, while
+      // the glowing fragments converge behind/around it.
       ctx!.globalAlpha = 1;
       ctx!.globalCompositeOperation = "source-over";
+      const dW = SAMPLE_W * scale;
+      const dH = SAMPLE_H * scale;
+      ctx!.globalAlpha = 0.34 + 0.66 * easeOutCubic(clamp01(displayP));
+      ctx!.filter = "brightness(1.32) saturate(1.12) contrast(1.05)";
+      ctx!.drawImage(img, offX, offY, dW, dH);
+      ctx!.filter = "none";
+      ctx!.globalAlpha = 1;
 
       if (titleRef.current) {
         titleRef.current.style.opacity = String(clamp01((displayP - 0.72) / 0.24));
