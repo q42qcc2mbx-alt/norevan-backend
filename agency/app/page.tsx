@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <>
-      <CinematicStatue scrollVh={240} />
+      <CinematicStatue scrollVh={360} />
       <FunnelHero />
       <CostOfInaction />
       <FounderTeam />

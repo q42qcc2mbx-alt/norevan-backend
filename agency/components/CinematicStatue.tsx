@@ -30,7 +30,7 @@ const SAMPLE_W = 300;
 const SAMPLE_H = Math.round(SAMPLE_W * (1450 / 1085));
 const LUMA_THRESHOLD = 16;
 
-export default function CinematicStatue({ scrollVh = 420 }: { scrollVh?: number }) {
+export default function CinematicStatue({ scrollVh = 600 }: { scrollVh?: number }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
@@ -98,8 +98,8 @@ export default function CinematicStatue({ scrollVh = 420 }: { scrollVh?: number 
     const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t);
 
     function loop() {
-      // buttery smoothing toward the scroll target
-      displayP += (targetP - displayP) * 0.09;
+      // buttery smoothing toward the scroll target (lower = slower, more languid)
+      displayP += (targetP - displayP) * 0.05;
       const p = easeOutCubic(clamp01(displayP));
       const time = Date.now() / 900;
 
@@ -111,8 +111,9 @@ export default function CinematicStatue({ scrollVh = 420 }: { scrollVh?: number 
       const cy = offY + SAMPLE_H * scale * 0.4;
       const haloR = Math.max(W, H) * 0.55;
       const halo = ctx!.createRadialGradient(cx, cy, 0, cx, cy, haloR);
-      halo.addColorStop(0, `rgba(216,90,90,${0.16 * p + 0.02})`);
-      halo.addColorStop(0.5, `rgba(122,17,17,${0.08 * p})`);
+      halo.addColorStop(0, `rgba(255,150,150,${0.22 * p + 0.03})`);
+      halo.addColorStop(0.28, `rgba(216,90,90,${0.3 * p + 0.03})`);
+      halo.addColorStop(0.6, `rgba(122,17,17,${0.16 * p})`);
       halo.addColorStop(1, "rgba(122,17,17,0)");
       ctx!.fillStyle = halo;
       ctx!.fillRect(0, 0, W, H);
@@ -142,7 +143,7 @@ export default function CinematicStatue({ scrollVh = 420 }: { scrollVh?: number 
         const wob = (1 - e) * 12;
         const x = ox + (tx - ox) * e + Math.sin(time + part.sx) * wob;
         const y = oy + (ty - oy) * e + Math.cos(time + part.sy) * wob;
-        ctx!.globalAlpha = 0.1 + 0.62 * e;
+        ctx!.globalAlpha = 0.12 + 0.85 * e;
         ctx!.fillStyle = `rgb(${part.r},${part.g},${part.b})`;
         const s = pSize * part.sizeMul;
         ctx!.fillRect(x, y, s, s);
