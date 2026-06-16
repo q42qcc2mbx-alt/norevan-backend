@@ -17,6 +17,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { guide, type GuideLang } from "@/lib/guide";
+import GuideMock, { type MockKind } from "@/components/admin/GuideMock";
 
 // In-dashboard "how your website works" guide. Trilingual (DE/EN/AR), prints
 // cleanly to PDF via the browser (a print stylesheet hides the app chrome and
@@ -33,6 +34,19 @@ const SECTION_ICONS = [
   Bot,
   FileText,
   ShieldCheck,
+];
+
+const SECTION_MOCKS: MockKind[] = [
+  "dashboard",
+  "funnel",
+  "analyses",
+  "stats",
+  "chats",
+  "projects",
+  "messages",
+  "assistant",
+  "templates",
+  "security",
 ];
 
 const LANGS: { code: GuideLang; label: string }[] = [
@@ -104,14 +118,14 @@ export default function AdminGuide() {
               return (
                 <li
                   key={s.title}
-                  className="flex gap-4 rounded-2xl border border-edge bg-surface/70 p-4 md:p-5"
+                  className="flex flex-col gap-3 rounded-2xl border border-edge bg-surface/70 p-4 sm:flex-row sm:gap-4 md:p-5"
                   style={{ breakInside: "avoid" }}
                 >
-                  <div className="flex flex-col items-center">
+                  <div className="flex items-center gap-3 sm:flex-col">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
                       {i + 1}
                     </span>
-                    <Icon className="mt-2 h-5 w-5 text-accent" />
+                    <Icon className="h-5 w-5 text-accent sm:mt-2" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <h2 className="font-display text-base font-bold text-ink">{s.title}</h2>
@@ -120,6 +134,9 @@ export default function AdminGuide() {
                       <MapPin className="h-3.5 w-3.5" />
                       <span className="font-bold">{g.whereLabel}</span> {s.where}
                     </p>
+                  </div>
+                  <div className="self-start sm:self-center">
+                    <GuideMock kind={SECTION_MOCKS[i] ?? "dashboard"} />
                   </div>
                 </li>
               );
