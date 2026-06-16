@@ -7,10 +7,10 @@ import { useI18n } from "@/lib/i18n";
 // Trust without anonymity — shown by discipline, not by name. Icons & gradients
 // stay in code; the role labels come from i18n.
 const VISUALS = [
-  { icon: Code2, gradient: "from-blue-500 to-indigo-500" },
-  { icon: Palette, gradient: "from-cyan-500 to-blue-500" },
-  { icon: ShieldCheck, gradient: "from-emerald-500 to-teal-500" },
-  { icon: TrendingUp, gradient: "from-violet-500 to-purple-500" },
+  { icon: Code2, gradient: "from-red-600 to-rose-700" },
+  { icon: Palette, gradient: "from-rose-500 to-red-600" },
+  { icon: ShieldCheck, gradient: "from-rose-600 to-red-800" },
+  { icon: TrendingUp, gradient: "from-red-700 to-rose-800" },
 ];
 
 export default function FounderTeam() {

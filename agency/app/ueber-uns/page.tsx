@@ -16,25 +16,25 @@ const team = [
   {
     role: "Entwicklung & Architektur",
     icon: Code2,
-    gradient: "from-blue-500 to-indigo-500",
+    gradient: "from-red-600 to-rose-700",
     text: "Verantwortet Architektur und Entwicklung — von der ersten Zeile Code bis zum Launch. Der Anspruch: Websites, die in unter einer Sekunde laden.",
   },
   {
     role: "Design & Conversion",
     icon: Palette,
-    gradient: "from-cyan-500 to-blue-500",
+    gradient: "from-rose-500 to-red-600",
     text: "Gestaltet Interfaces, die Vertrauen schaffen und Besucher intuitiv ans Ziel führen — modern, klar und auf Conversion ausgelegt.",
   },
   {
     role: "Sicherheit & Performance",
     icon: ShieldCheck,
-    gradient: "from-emerald-500 to-teal-500",
+    gradient: "from-rose-600 to-red-800",
     text: "Findet Schwachstellen, bevor Angreifer es tun. Härtet Websites nach Best Practice und sorgt mit Monitoring für ruhigen Schlaf.",
   },
   {
     role: "SEO & Wachstum",
     icon: TrendingUp,
-    gradient: "from-violet-500 to-purple-500",
+    gradient: "from-red-700 to-rose-800",
     text: "Bringt Websites bei Google nach vorn — mit technischem SEO, sauberer Struktur und datenbasierter Optimierung für nachhaltiges Wachstum.",
   },
 ];

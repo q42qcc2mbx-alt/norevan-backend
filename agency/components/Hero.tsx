@@ -50,8 +50,8 @@ function HeroVisual() {
               />
               <defs>
                 <linearGradient id="hero-ring" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#2563eb" />
-                  <stop offset="100%" stopColor="#06b6d4" />
+                  <stop offset="0%" stopColor="#a22a2a" />
+                  <stop offset="100%" stopColor="#d85a5a" />
                 </linearGradient>
               </defs>
             </svg>

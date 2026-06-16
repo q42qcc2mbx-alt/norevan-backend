@@ -13,13 +13,13 @@ export default function CtaBanner() {
         <Reveal>
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent to-accent-deep px-6 py-10 text-center shadow-xl shadow-accent/25 md:px-12 md:py-16">
             <div
-              className="pointer-events-none absolute inset-0 bg-[radial-gradient(45%_60%_at_80%_0%,rgba(6,182,212,0.35),transparent)]"
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(45%_60%_at_80%_0%,rgba(216,90,90,0.4),transparent)]"
               aria-hidden
             />
             <h2 className="relative text-2xl font-bold tracking-tight text-balance text-white md:text-4xl">
               {t.cta.title}
             </h2>
-            <p className="relative mx-auto mt-3 max-w-xl text-base text-blue-100 md:text-lg">
+            <p className="relative mx-auto mt-3 max-w-xl text-base text-rose-100 md:text-lg">
               {t.cta.subtitle}
             </p>
             <div className="relative mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row">

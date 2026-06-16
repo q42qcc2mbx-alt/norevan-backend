@@ -7,8 +7,8 @@ import Aurora from "./ui/Aurora";
 import { useI18n } from "@/lib/i18n";
 
 const visuals = [
-  { gradient: "from-blue-500 to-indigo-600", accent: "bg-blue-200/70", tech: ["Next.js", "TypeScript", "Tailwind CSS"] },
-  { gradient: "from-cyan-500 to-teal-500", accent: "bg-cyan-200/70", tech: ["Shopify", "Performance", "Core Web Vitals"] },
+  { gradient: "from-red-600 to-rose-700", accent: "bg-red-200/70", tech: ["Next.js", "TypeScript", "Tailwind CSS"] },
+  { gradient: "from-rose-500 to-red-700", accent: "bg-rose-200/70", tech: ["Shopify", "Performance", "Core Web Vitals"] },
   { gradient: "from-slate-600 to-slate-800", accent: "bg-slate-300/70", tech: ["Next.js", "Security", "SEO"] },
 ];
 

@@ -73,7 +73,7 @@ body {
 /* Keyboard accessibility: a clear, on-brand focus ring for anyone tabbing
    through the site (mouse clicks stay ring-free via :focus-visible). */
 :focus-visible {
-  outline: 2px solid var(--color-accent, #2563eb);
+  outline: 2px solid var(--color-accent, #a22a2a);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -87,7 +87,7 @@ body {
   transform: translate(-50%, -150%);
   padding: 0.6rem 1.1rem;
   border-radius: 999px;
-  background: var(--color-accent, #2563eb);
+  background: var(--color-accent, #a22a2a);
   color: #fff;
   font-size: 0.875rem;
   font-weight: 600;
@@ -144,13 +144,13 @@ body {
 }
 
 .text-gradient {
-  background: linear-gradient(95deg, #2563eb 10%, #06b6d4 90%);
+  background: linear-gradient(95deg, #a22a2a 10%, #d85a5a 90%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 .dark .text-gradient {
-  background: linear-gradient(95deg, #60a5fa 10%, #22d3ee 90%);
+  background: linear-gradient(95deg, #d85a5a 10%, #f08a8a 90%);
   -webkit-background-clip: text;
   background-clip: text;
 }
@@ -210,7 +210,7 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(95deg, #2563eb, #1d4ed8);
+  background: linear-gradient(95deg, #a22a2a, #7a1111);
   color: #fff;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.15),
@@ -269,8 +269,8 @@ body {
   color: var(--t-placeholder);
 }
 .field:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  border-color: #a22a2a;
+  box-shadow: 0 0 0 3px rgba(162, 42, 42, 0.15);
 }
 
 input,

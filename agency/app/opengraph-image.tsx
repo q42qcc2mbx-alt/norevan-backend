@@ -32,7 +32,7 @@ export default function OpengraphImage() {
               width: 84,
               height: 84,
               borderRadius: 20,
-              background: "linear-gradient(135deg, #2563eb, #06b6d4)",
+              background: "linear-gradient(135deg, #a22a2a, #d85a5a)",
             }}
           >
             <svg width="48" height="48" viewBox="0 0 24 24">
@@ -44,7 +44,7 @@ export default function OpengraphImage() {
           </div>
           <div style={{ display: "flex", fontSize: 46, fontWeight: 700 }}>
             <span style={{ color: "#e8edf7" }}>NOREVAN</span>
-            <span style={{ color: "#60a5fa", marginLeft: 12 }}>Digital</span>
+            <span style={{ color: "#d85a5a", marginLeft: 12 }}>Digital</span>
           </div>
         </div>
 

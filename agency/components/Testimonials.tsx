@@ -6,9 +6,9 @@ import Reveal from "./ui/Reveal";
 import { useI18n } from "@/lib/i18n";
 
 const visuals = [
-  { initials: "SB", gradient: "from-blue-500 to-indigo-500" },
-  { initials: "DK", gradient: "from-cyan-500 to-blue-500" },
-  { initials: "MH", gradient: "from-emerald-500 to-teal-500" },
+  { initials: "SB", gradient: "from-red-600 to-rose-700" },
+  { initials: "DK", gradient: "from-rose-500 to-red-600" },
+  { initials: "MH", gradient: "from-rose-600 to-red-800" },
 ];
 
 export default function Testimonials() {
